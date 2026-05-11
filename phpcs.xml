@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<ruleset name="Pixel Scout">
+	<description>WordPress Coding Standards for Pixel Scout Plugin</description>
+
+	<!-- Check all PHP files in these directories -->
+	<file>includes/</file>
+	<file>admin/</file>
+	<file>public/</file>
+	<file>pixel-scout.php</file>
+	<file>uninstall.php</file>
+
+	<!-- Exclude test directories -->
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*/dist/*</exclude-pattern>
+	<exclude-pattern>*/coverage/*</exclude-pattern>
+
+	<!-- Use WordPress coding standards -->
+	<rule ref="WordPress-Core">
+		<!-- Allow long lines for URLs, file paths, etc -->
+		<exclude name="Generic.Files.LineLength" />
+	</rule>
+
+	<!-- Use WordPress documentation standards -->
+	<rule ref="WordPress-Docs" />
+
+	<!-- Use WordPress extra standards (strict) -->
+	<rule ref="WordPress-Extra" />
+
+	<!-- PHP compatibility -->
+	<rule ref="PHPCompatibility">
+		<config name="testVersion" value="8.0" />
+	</rule>
+
+	<!-- Allow WP-specific globals -->
+	<rule ref="WordPress.GlobalVariables.GlobalVariableUsage">
+		<properties>
+			<property name="allowed" type="array">
+				<element value="GLOBALS" />
+				<element value="wpdb" />
+				<element value="wp_version" />
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Lowercase PHP constants -->
+	<rule ref="Generic.Constants.UpperCaseConstantName" />
+
+	<!-- Code quality -->
+	<rule ref="Generic.Metrics.CyclomaticComplexity">
+		<properties>
+			<property name="complexity" value="15" />
+			<property name="absoluteComplexity" value="20" />
+		</properties>
+	</rule>
+
+	<!-- Nesting level -->
+	<rule ref="Generic.Metrics.NestingLevel">
+		<properties>
+			<property name="nestingLevel" value="5" />
+			<property name="absoluteNestingLevel" value="8" />
+		</properties>
+	</rule>
+
+	<!-- Arguments per line limit -->
+	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
+		<properties>
+			<property name="requiredSpacesAfterOpen" value="0" />
+			<property name="requiredSpacesBeforeClose" value="0" />
+		</properties>
+	</rule>
+
+	<!-- Array declaration style -->
+	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing" />
+
+	<!-- Require blank lines between functions -->
+	<rule ref="PSR2.Methods.FunctionCallSignature" />
+
+	<!-- Line length warning (softer than error) -->
+	<rule ref="Generic.Files.LineLength">
+		<properties>
+			<property name="lineLimit" value="100" />
+			<property name="absoluteLineLimit" value="120" />
+			<property name="ignoreComments" value="true" />
+		</properties>
+		<severity>5</severity>
+	</rule>
+
+	<!-- Report all rule violations -->
+	<arg name="report" value="summary" />
+	<arg name="report" value="source" />
+
+	<!-- Show colors in output -->
+	<arg name="colors" />
+
+	<!-- Parallel processing -->
+	<arg name="parallel" value="10" />
+
+	<!-- Cache -->
+	<arg name="cache" value=".phpcs-cache" />
+
+	<!-- Show progress -->
+	<arg value="p" />
+</ruleset>
+

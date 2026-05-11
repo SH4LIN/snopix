@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+admin/dist/
+admin/app/dist/
+
+# Node package lock files
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+.DS_Store
+Thumbs.db
+
+# wp-env Docker environment
+.wp-env/
+wp-env.override.json
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+.test-cache/
+tests/fixtures/images/
+tests/fixtures/data/
+
+# Misc
+*.log
+
+
+

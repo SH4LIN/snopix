@@ -30,7 +30,7 @@ No AI. Pure vector math. PHP 8.0+, WP 6.0+, React 18.
 | DB | MySQL via $wpdb + Query builder | Custom table, JSON cols |
 | Similarity | Pure PHP | Hamming + cosine |
 | REST | WP REST API | Bridge PHP ↔ React |
-| Admin UI | React 18 + Vite | Fast, modern dashboard |
+| Admin UI | React 18 + TypeScript + Vite | Fast, typed dashboard |
 | Component lib | shadcn/ui + Tailwind | iOS-feel, minimal |
 | State | Zustand | Lightweight |
 | Data fetch | TanStack Query | Cache + loading states |
@@ -216,25 +216,25 @@ pixel-scout/
 │   │   └── admin-root.php                # <div id="ps-root"> + nonce output. Zero logic.
 │   └── app/
 │       ├── package.json
-│       ├── vite.config.js
+│       ├── vite.config.ts
 │       ├── index.html
 │       └── src/
-│           ├── main.jsx
-│           ├── App.jsx
+│           ├── main.tsx
+│           ├── App.tsx
 │           ├── store/
-│           │   └── use-store.js
+│           │   └── use-store.ts
 │           ├── hooks/
-│           │   ├── use-index-status.js
-│           │   ├── use-images.js
-│           │   └── use-reindex.js
+│           │   ├── use-index-status.ts
+│           │   ├── use-images.ts
+│           │   └── use-reindex.ts
 │           └── components/
-│               ├── Dashboard.jsx
-│               ├── StatsBar.jsx
-│               ├── ImageTable.jsx
-│               ├── ImageRow.jsx
-│               ├── SearchPreview.jsx
-│               ├── EmptyState.jsx
-│               └── ReindexButton.jsx
+│               ├── Dashboard.tsx
+│               ├── StatsBar.tsx
+│               ├── ImageTable.tsx
+│               ├── ImageRow.tsx
+│               ├── SearchPreview.tsx
+│               ├── EmptyState.tsx
+│               └── ReindexButton.tsx
 │
 ├── public/
 │   ├── class-shortcode.php
@@ -664,13 +664,13 @@ window.ps_data = {
 }
 ```
 
-### vite.config.js
-```js
+### vite.config.ts
+```ts
 export default {
     build: {
         outDir: '../../dist',
         rollupOptions: {
-            input: 'src/main.jsx',
+            input: 'src/main.tsx',
             output: {
                 entryFileNames: 'ps-admin.js',
                 assetFileNames: 'ps-admin.[ext]'
@@ -682,14 +682,14 @@ export default {
 
 ### Component tree
 ```
-App.jsx
-└── Dashboard.jsx
-    ├── StatsBar.jsx          GET /status → 3 cards: Total, Indexed, Pending
-    ├── ImageTable.jsx        GET /images → paginated, sortable, filterable
-    │   └── ImageRow.jsx
-    ├── ReindexButton.jsx     POST /reindex → polls GET /progress every 2s
-    ├── SearchPreview.jsx     POST /search → results grid with score %
-    └── EmptyState.jsx        When 0 indexed
+App.tsx
+└── Dashboard.tsx
+    ├── StatsBar.tsx          GET /status → 3 cards: Total, Indexed, Pending
+    ├── ImageTable.tsx        GET /images → paginated, sortable, filterable
+    │   └── ImageRow.tsx
+    ├── ReindexButton.tsx     POST /reindex → polls GET /progress every 2s
+    ├── SearchPreview.tsx     POST /search → results grid with score %
+    └── EmptyState.tsx        When 0 indexed
 ```
 
 ---
@@ -843,6 +843,39 @@ pHash pre-filter (hamming > 30 skip) eliminates ~70-80% before cosine math.
 
 ## BUILD PHASES
 
+---
+
+## PHASE 1 VERIFICATION
+
+Phase 1 includes a **smoke test** to validate Query builder and schema without WordPress Admin.
+
+### Running the smoke test
+
+```bash
+cd /path/to/wordpress/wp-content/plugins/pixel-scout
+wp eval-file includes/test-phase1.php
+```
+
+Tests:
+1. Schema install (creates `ps_index` table)
+2. Query upsert (insert fingerprint)
+3. Query get (retrieve indexed records)
+4. Query counts (total/indexed/pending)
+5. Query delete (cleanup test row)
+
+### Activation logging
+
+With `WP_DEBUG` enabled, activation logs to debug.log:
+```
+[Pixel Scout] Activation hook triggered.
+[Pixel Scout] Schema installed successfully.
+[Pixel Scout] Plugin activation complete.
+```
+
+Same logging on deactivation and uninstall.
+
+---
+
 ### Phase 1 — Infrastructure + Schema
 ```
 pixel-scout.php         plugin header, constants, autoloader
@@ -852,7 +885,8 @@ class-schema.php        install, uninstall, maybe_upgrade
 interface-repository.php
 class-index-repository.php
 
-Test: activate plugin → table created. Query builder unit test: insert row, get row, delete row.
+Test: Run smoke test: `wp eval-file includes/test-phase1.php`
+      or activate plugin in Admin → check debug.log for activation logs.
 ```
 
 ### Phase 2 — Imaging Domain
@@ -903,7 +937,7 @@ Test: Postman all endpoints. search returns ranked JSON. status returns counts. 
 ```
 class-admin-page.php
 admin/views/admin-root.php
-React app: Vite setup, all components
+React app: Vite + TypeScript setup, all components
 
 Test: dashboard loads, table shows images, stats accurate, reindex triggers + progress polls correctly.
 ```

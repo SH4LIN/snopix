@@ -1,0 +1,74 @@
+<?php
+/**
+ * Database schema management.
+ *
+ * @package Pixel_Scout
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class Pixel_Scout_Schema {
+	/**
+	 * Create or update plugin tables.
+	 *
+	 * @return void
+	 */
+	public function install(): void {
+		global $wpdb;
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		$charset_collate = $wpdb->get_charset_collate();
+		$table_name      = $wpdb->prefix . 'ps_index';
+
+		$sql = "CREATE TABLE {$table_name} (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			attachment_id BIGINT(20) UNSIGNED NOT NULL,
+			phash CHAR(16) NOT NULL DEFAULT '',
+			color_vector JSON DEFAULT NULL,
+			edge_vector JSON DEFAULT NULL,
+			width SMALLINT UNSIGNED DEFAULT 0,
+			height SMALLINT UNSIGNED DEFAULT 0,
+			mime_type VARCHAR(50) DEFAULT '',
+			file_size BIGINT UNSIGNED DEFAULT 0,
+			indexed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY attachment_id (attachment_id),
+			KEY idx_phash (phash)
+		) {$charset_collate};";
+
+		dbDelta( $sql );
+		update_option( PIXEL_SCOUT_OPTION_DB_VERSION, PIXEL_SCOUT_DB_VERSION );
+	}
+
+	/**
+	 * Drop plugin table.
+	 *
+	 * @return void
+	 */
+	public function uninstall(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'ps_index';
+		$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
+	}
+
+	/**
+	 * Run migrations if db version changed.
+	 *
+	 * @return void
+	 */
+	public function maybe_upgrade(): void {
+		$installed_version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION, '' );
+
+		if ( PIXEL_SCOUT_DB_VERSION === $installed_version ) {
+			return;
+		}
+
+		$this->install();
+	}
+}
+
+
