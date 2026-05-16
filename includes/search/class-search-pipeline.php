@@ -5,6 +5,10 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Search;
+
+use PixelScout\Repository\Index_Repository;
+use PixelScout\Imaging\Similarity;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -13,22 +17,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Orchestrates reverse image search: generate query fingerprint, score all indexed images,
  * filter by threshold, and hydrate results.
  */
-class Pixel_Scout_Search_Pipeline {
+class Search_Pipeline {
 
 	private const HAMMING_THRESHOLD = 30;
 	private const SCORE_THRESHOLD   = 0.40;
 
 	/**
-	 * @param Pixel_Scout_Index_Repository    $repository  Index data access.
-	 * @param Pixel_Scout_Fingerprint_Factory $factory     Fingerprint generator.
-	 * @param Pixel_Scout_Score_Calculator    $calculator  Composite score calculator.
-	 * @param Pixel_Scout_Similarity          $similarity  Similarity metrics for pre-filtering.
+	 * @param Index_Repository   $repository Index data access.
+	 * @param Fingerprint_Factory $factory    Fingerprint generator.
+	 * @param Score_Calculator   $calculator Composite score calculator.
+	 * @param Similarity         $similarity Similarity metrics for pre-filtering.
 	 */
 	public function __construct(
-		private Pixel_Scout_Index_Repository    $repository,
-		private Pixel_Scout_Fingerprint_Factory $factory,
-		private Pixel_Scout_Score_Calculator    $calculator,
-		private Pixel_Scout_Similarity          $similarity
+		private Index_Repository    $repository,
+		private Fingerprint_Factory $factory,
+		private Score_Calculator    $calculator,
+		private Similarity          $similarity
 	) {}
 
 	/**
@@ -37,7 +41,7 @@ class Pixel_Scout_Search_Pipeline {
 	 * @param int $attachment_id Query attachment ID.
 	 * @param int $limit         Maximum results to return.
 	 *
-	 * @return Pixel_Scout_Search_Result[]
+	 * @return Search_Result[]
 	 */
 	public function search( int $attachment_id, int $limit = 20 ): array {
 		$query_fp = $this->factory->generate( $attachment_id );
@@ -89,7 +93,7 @@ class Pixel_Scout_Search_Pipeline {
 			$thumb_url = $thumb ? $thumb[0] : '';
 			$title     = get_the_title( $id );
 
-			$results[] = new Pixel_Scout_Search_Result( $id, $url, $thumb_url, $title, $score );
+			$results[] = new Search_Result( $id, $url, $thumb_url, $title, $score );
 		}
 
 		return $results;

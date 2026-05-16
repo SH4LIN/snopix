@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Api;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Enforces per-IP request limits using WordPress transients.
  */
-class Pixel_Scout_Rate_Limiter {
+class Rate_Limiter {
 
 	/**
 	 * Maximum requests allowed per window.
@@ -39,7 +40,6 @@ class Pixel_Scout_Rate_Limiter {
 		$data = get_transient( $key );
 
 		if ( false === $data ) {
-			// First request in this window — initialise with expiry timestamp.
 			set_transient(
 				$key,
 				[ 'count' => 1, 'expires' => time() + self::WINDOW ],
@@ -52,7 +52,6 @@ class Pixel_Scout_Rate_Limiter {
 			return false;
 		}
 
-		// Increment count, preserving the original TTL so the window does not slide.
 		$remaining_ttl = max( 1, $data['expires'] - time() );
 		set_transient(
 			$key,

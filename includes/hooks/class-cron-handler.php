@@ -5,6 +5,9 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Hooks;
+
+use PixelScout\Indexing\Bulk_Indexer;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Handles cron events for batch processing.
  */
-class Pixel_Scout_Cron_Handler {
+class Cron_Handler {
 	/**
-	 * @param Pixel_Scout_Bulk_Indexer $bulk_indexer Bulk indexer.
+	 * @param Bulk_Indexer $bulk_indexer Bulk indexer.
 	 */
 	public function __construct(
-		private Pixel_Scout_Bulk_Indexer $bulk_indexer
+		private Bulk_Indexer $bulk_indexer
 	) {}
 
 	/**

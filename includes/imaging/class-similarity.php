@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Provides image similarity scoring utilities.
  */
-class Pixel_Scout_Similarity {
+class Similarity {
 
 	/**
 	 * Compute the Hamming distance between two 16-character hex pHash strings.

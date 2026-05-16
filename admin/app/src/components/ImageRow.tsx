@@ -6,9 +6,14 @@ interface ImageData {
   height: number
   indexed_at: string
   phash: string
+  title?: string
+  filename?: string
+  thumbnail_url?: string
 }
 
-interface Props { image: ImageData }
+interface Props {
+  image: ImageData
+}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -22,19 +27,54 @@ export default function ImageRow({ image }: Props) {
   const pillClass = isIndexed ? 'ps-pill ps-pill--indexed' : 'ps-pill ps-pill--pending'
   const label = isIndexed ? 'Indexed' : 'Pending'
   const date = image.indexed_at ? new Date(image.indexed_at).toLocaleDateString() : '—'
+  const displayName = image.filename || image.title || `ID ${image.attachment_id}`
 
   return (
     <tr onClick={() => window.open(editUrl, '_blank')} style={{ cursor: 'pointer' }}>
       <td>
-        <div style={{ width: '48px', height: '48px', background: 'var(--ps-surface)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: 'var(--ps-muted)' }}>
-          IMG
-        </div>
+        {image.thumbnail_url ? (
+          <img
+            src={image.thumbnail_url}
+            alt={displayName}
+            style={{
+              width: '48px',
+              height: '48px',
+              objectFit: 'cover',
+              borderRadius: '6px',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              background: 'var(--ps-surface)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              color: 'var(--ps-muted)',
+            }}
+          >
+            IMG
+          </div>
+        )}
       </td>
-      <td style={{ fontSize: '13px' }}>ID {image.attachment_id}<br /><span style={{ color: 'var(--ps-muted)', fontSize: '11px' }}>{image.mime_type}</span></td>
-      <td style={{ fontSize: '13px' }}>{image.width} &times; {image.height}</td>
+      <td style={{ fontSize: '13px' }}>
+        {displayName}
+        <br />
+        <span style={{ color: 'var(--ps-muted)', fontSize: '11px' }}>{image.mime_type}</span>
+      </td>
+      <td style={{ fontSize: '13px' }}>
+        {image.width} &times; {image.height}
+      </td>
       <td style={{ fontSize: '13px' }}>{formatBytes(image.file_size)}</td>
       <td style={{ fontSize: '13px' }}>{date}</td>
-      <td><span className={pillClass}>{label}</span></td>
+      <td>
+        <span className={pillClass}>{label}</span>
+      </td>
     </tr>
   )
 }

@@ -5,11 +5,12 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Repository;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-class Pixel_Scout_Schema {
+class Schema {
 	/**
 	 * Create or update plugin tables.
 	 *
@@ -70,5 +71,3 @@ class Pixel_Scout_Schema {
 		$this->install();
 	}
 }
-
-

@@ -5,6 +5,9 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Hooks;
+
+use PixelScout\Indexing\Image_Indexer;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Hooks into WordPress media lifecycle for automatic indexing.
  */
-class Pixel_Scout_Media_Hooks {
+class Media_Hooks {
 	/**
-	 * @param Pixel_Scout_Image_Indexer $indexer Single image indexer.
+	 * @param Image_Indexer $indexer Single image indexer.
 	 */
 	public function __construct(
-		private Pixel_Scout_Image_Indexer $indexer
+		private Image_Indexer $indexer
 	) {}
 
 	/**

@@ -5,6 +5,9 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Search;
+
+use PixelScout\Imaging\Similarity;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,16 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Calculates a composite similarity score from pHash, color, and edge fingerprints.
  */
-class Pixel_Scout_Score_Calculator {
+class Score_Calculator {
 
 	private const PHASH_WEIGHT = 0.40;
 	private const COLOR_WEIGHT = 0.35;
 	private const EDGE_WEIGHT  = 0.25;
 
 	/**
-	 * @param Pixel_Scout_Similarity $similarity Similarity metrics provider.
+	 * @param Similarity $similarity Similarity metrics provider.
 	 */
-	public function __construct( private Pixel_Scout_Similarity $similarity ) {}
+	public function __construct( private Similarity $similarity ) {}
 
 	/**
 	 * Calculate the composite similarity score between two fingerprint arrays.

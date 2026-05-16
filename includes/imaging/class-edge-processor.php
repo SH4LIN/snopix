@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Generates a 32-element normalised edge-density vector via Sobel filtering.
  */
-class Pixel_Scout_Edge_Processor implements Pixel_Scout_Processor_Interface {
+class Edge_Processor implements Processor_Interface {
 
 	/**
 	 * Thumbnail side length for edge detection.

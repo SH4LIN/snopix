@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 
 declare const ps_data: { rest_url: string; nonce: string }
 
-interface IndexStatus { total: number; indexed: number; pending: number }
+interface IndexStatus {
+  total: number
+  indexed: number
+  pending: number
+}
 
 export function useIndexStatus() {
   return useQuery<IndexStatus>({

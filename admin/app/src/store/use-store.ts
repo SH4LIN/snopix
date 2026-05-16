@@ -1,11 +1,13 @@
 import { create } from 'zustand'
 
+export type IndexingState = 'idle' | 'running' | 'done' | 'stalled'
+
 interface PSStore {
-  isReindexing: boolean
-  setReindexing: (v: boolean) => void
+  indexingState: IndexingState
+  setIndexingState: (s: IndexingState) => void
 }
 
 export const useStore = create<PSStore>((set) => ({
-  isReindexing: false,
-  setReindexing: (v) => set({ isReindexing: v }),
+  indexingState: 'idle',
+  setIndexingState: (s) => set({ indexingState: s }),
 }))

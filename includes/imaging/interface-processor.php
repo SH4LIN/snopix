@@ -5,11 +5,12 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-interface Pixel_Scout_Processor_Interface {
+interface Processor_Interface {
 	/**
 	 * Process a GD image resource and return a fingerprint fragment.
 	 *

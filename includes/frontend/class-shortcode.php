@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Frontend;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Renders the [ps_search] shortcode.
  */
-class Pixel_Scout_Shortcode {
+class Shortcode {
 	/**
 	 * Register the shortcode.
 	 *

@@ -12,7 +12,10 @@ interface ImageRow {
   phash: string
 }
 
-interface UseImagesParams { page: number; search: string }
+interface UseImagesParams {
+  page: number
+  search: string
+}
 
 export function useImages({ page, search }: UseImagesParams) {
   return useQuery<ImageRow[]>({

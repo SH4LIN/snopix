@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Generates a 64-bit perceptual hash encoded as a 16-character hex string.
  */
-class Pixel_Scout_PHash_Processor implements Pixel_Scout_Processor_Interface {
+class PHash_Processor implements Processor_Interface {
 
 	/**
 	 * Generate pHash fingerprint for an image.

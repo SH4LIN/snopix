@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Generates a normalised 48-element colour histogram (16 bins per RGB channel).
  */
-class Pixel_Scout_Color_Processor implements Pixel_Scout_Processor_Interface {
+class Color_Processor implements Processor_Interface {
 
 	/**
 	 * Number of bins per channel (0-255 divided into 16-value buckets).

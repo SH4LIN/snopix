@@ -5,6 +5,10 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Indexing;
+
+use PixelScout\Repository\Index_Repository;
+use PixelScout\Search\Fingerprint_Factory;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,16 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Handles indexing of individual images via fingerprint generation.
  */
-class Pixel_Scout_Image_Indexer {
+class Image_Indexer {
 	/**
-	 * @param Pixel_Scout_Mime_Validator $validator MIME validator.
-	 * @param Pixel_Scout_Fingerprint_Factory $factory Fingerprint factory.
-	 * @param Pixel_Scout_Index_Repository $repository Index repository.
+	 * @param Mime_Validator      $validator  MIME validator.
+	 * @param Fingerprint_Factory $factory    Fingerprint factory.
+	 * @param Index_Repository    $repository Index repository.
 	 */
 	public function __construct(
-		private Pixel_Scout_Mime_Validator $validator,
-		private Pixel_Scout_Fingerprint_Factory $factory,
-		private Pixel_Scout_Index_Repository $repository
+		private Mime_Validator      $validator,
+		private Fingerprint_Factory $factory,
+		private Index_Repository    $repository
 	) {}
 
 	/**
@@ -43,6 +47,15 @@ class Pixel_Scout_Image_Indexer {
 		if ( empty( $fingerprint ) ) {
 			return false;
 		}
+
+		$meta        = wp_get_attachment_metadata( $attachment_id );
+		$file        = get_attached_file( $attachment_id );
+		$fingerprint = array_merge( $fingerprint, [
+			'mime_type' => $mime,
+			'width'     => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
+			'height'    => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
+			'file_size' => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
+		] );
 
 		return $this->repository->upsert( $attachment_id, $fingerprint );
 	}

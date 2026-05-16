@@ -5,17 +5,18 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Infrastructure;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-class Pixel_Scout_Query {
+class Query {
 	/**
 	 * WordPress DB instance.
 	 *
-	 * @var wpdb
+	 * @var \wpdb
 	 */
-	private wpdb $wpdb;
+	private \wpdb $wpdb;
 
 	/**
 	 * Table name for the query.
@@ -97,11 +98,11 @@ class Pixel_Scout_Query {
 	/**
 	 * Constructor.
 	 *
-	 * @param wpdb|null $wpdb_instance Optional DB handle.
+	 * @param \wpdb|null $wpdb_instance Optional DB handle.
 	 */
-	private function __construct( ?wpdb $wpdb_instance = null ) {
+	private function __construct( ?\wpdb $wpdb_instance = null ) {
 		global $wpdb;
-		$this->wpdb = $wpdb_instance instanceof wpdb ? $wpdb_instance : $wpdb;
+		$this->wpdb = $wpdb_instance instanceof \wpdb ? $wpdb_instance : $wpdb;
 	}
 
 	/**
@@ -779,5 +780,3 @@ class Pixel_Scout_Query {
 		return implode( '.', $segments );
 	}
 }
-
-

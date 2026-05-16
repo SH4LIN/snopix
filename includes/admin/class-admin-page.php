@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Admin;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Handles WordPress admin menu registration and script/style loading.
  */
-class Pixel_Scout_Admin_Page {
+class Admin_Page {
 
 	/**
 	 * Register the admin menu page and enqueue hook.
@@ -75,6 +76,6 @@ class Pixel_Scout_Admin_Page {
 	 * @return void
 	 */
 	public function render(): void {
-		require __DIR__ . '/views/admin-root.php';
+		require PIXEL_SCOUT_PLUGIN_DIR . 'admin/views/admin-root.php';
 	}
 }

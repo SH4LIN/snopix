@@ -5,11 +5,14 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Repository;
+
+use PixelScout\Infrastructure\Query;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Interface {
+class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Cache group.
 	 */
@@ -39,6 +42,13 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return bool
 	 */
 	public function upsert( int $attachment_id, array $fingerprint ): bool {
+		if ( isset( $fingerprint['color_vector'] ) && is_array( $fingerprint['color_vector'] ) ) {
+			$fingerprint['color_vector'] = wp_json_encode( $fingerprint['color_vector'] );
+		}
+		if ( isset( $fingerprint['edge_vector'] ) && is_array( $fingerprint['edge_vector'] ) ) {
+			$fingerprint['edge_vector'] = wp_json_encode( $fingerprint['edge_vector'] );
+		}
+
 		$insert = array_merge(
 			[
 				'attachment_id' => $attachment_id,
@@ -48,7 +58,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 		);
 
 		$update_columns = array_keys( $insert );
-		$result         = Pixel_Scout_Query::create()
+		$result         = Query::create()
 			->from( self::TABLE )
 			->upsert( $insert, $update_columns );
 
@@ -70,7 +80,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 			return $cached;
 		}
 
-		$rows = Pixel_Scout_Query::create()
+		$rows = Query::create()
 			->from( self::TABLE )
 			->select( [ 'attachment_id', 'phash', 'color_vector', 'edge_vector', 'indexed_at' ] )
 			->order_by( 'indexed_at', 'DESC' )
@@ -92,7 +102,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_paginated( int $page, int $per_page, string $search ): array {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( self::TABLE )
 			->select( [ 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ] )
 			->order_by( 'indexed_at', 'DESC' )
@@ -116,12 +126,12 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<string, int>
 	 */
 	public function get_counts(): array {
-		$indexed = (int) Pixel_Scout_Query::create()
+		$indexed = (int) Query::create()
 			->from( self::TABLE )
 			->select( 'COUNT(*)' )
 			->get_var();
 
-		$total = (int) Pixel_Scout_Query::create()
+		$total = (int) Query::create()
 			->from( $this->wpdb->posts )
 			->select( 'COUNT(*)' )
 			->where( 'post_type', 'attachment', '=', '%s' )
@@ -141,7 +151,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<int>
 	 */
 	public function get_unindexed_ids(): array {
-		$rows = Pixel_Scout_Query::create()
+		$rows = Query::create()
 			->from( $this->wpdb->posts, 'p' )
 			->select( 'p.ID' )
 			->left_join( self::TABLE, 'idx.attachment_id = p.ID', 'idx' )
@@ -165,7 +175,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return bool
 	 */
 	public function delete( int $attachment_id ): bool {
-		$result = Pixel_Scout_Query::create()
+		$result = Query::create()
 			->from( self::TABLE )
 			->where( 'attachment_id', $attachment_id, '=', '%d' )
 			->delete();
@@ -197,8 +207,4 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	private function escape_like( string $value ): string {
 		return $this->wpdb->esc_like( $value );
 	}
-
 }
-
-
-

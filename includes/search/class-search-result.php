@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Search;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Immutable value object representing a single image search result.
  */
-class Pixel_Scout_Search_Result {
+class Search_Result {
 
 	/**
 	 * @param int    $attachment_id WordPress attachment ID.

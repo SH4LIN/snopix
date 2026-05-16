@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Hooks;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Manages plugin settings via the WordPress Settings API.
  */
-class Pixel_Scout_Settings {
+class Settings {
 
 	/**
 	 * Register settings, sections, and fields.

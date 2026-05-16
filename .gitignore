@@ -49,6 +49,8 @@ design-preview.png
 .claude/worktrees/
 .playwright-mcp/
 ruvector.db
+agentdb.rvf
+agentdb.rvf.lock
 
 
 

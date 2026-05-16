@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Indexing;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Validates whether an attachment's MIME type is indexable.
  */
-class Pixel_Scout_Mime_Validator {
+class Mime_Validator {
 	/**
 	 * Allowed MIME types for indexing.
 	 *

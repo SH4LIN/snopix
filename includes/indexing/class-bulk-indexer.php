@@ -5,6 +5,10 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Indexing;
+
+use PixelScout\Repository\Index_Repository;
+use PixelScout\Infrastructure\Action_Scheduler;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Manages bulk indexing via scheduled cron batches.
  */
-class Pixel_Scout_Bulk_Indexer {
+class Bulk_Indexer {
 	/**
 	 * Batch size for processing.
 	 */
@@ -21,21 +25,26 @@ class Pixel_Scout_Bulk_Indexer {
 	/**
 	 * Cron hook name.
 	 */
-	private const CRON_HOOK = 'ps_bulk_index_batch';
+	public const CRON_HOOK = 'ps_bulk_index_batch';
 
 	/**
-	 * @param Pixel_Scout_Index_Repository $repository Index repository.
-	 * @param Pixel_Scout_Image_Indexer $indexer Single image indexer.
-	 * @param Pixel_Scout_Index_Progress $progress Progress tracker.
+	 * @param Index_Repository   $repository Index repository.
+	 * @param Image_Indexer      $indexer    Single image indexer.
+	 * @param Index_Progress     $progress   Progress tracker.
+	 * @param Action_Scheduler   $scheduler  Action scheduler.
 	 */
 	public function __construct(
-		private Pixel_Scout_Index_Repository $repository,
-		private Pixel_Scout_Image_Indexer $indexer,
-		private Pixel_Scout_Index_Progress $progress
+		private Index_Repository $repository,
+		private Image_Indexer    $indexer,
+		private Index_Progress   $progress,
+		private Action_Scheduler $scheduler
 	) {}
 
 	/**
 	 * Schedule bulk indexing for all unindexed attachments.
+	 *
+	 * Cancels any in-flight batches before scheduling fresh ones so a
+	 * re-trigger always starts from a clean state.
 	 *
 	 * @return void
 	 */
@@ -46,13 +55,14 @@ class Pixel_Scout_Bulk_Indexer {
 			return;
 		}
 
+		$this->scheduler->cancel_all( self::CRON_HOOK );
 		$this->progress->reset();
 		$this->progress->set( 0, count( $ids ) );
 
 		$chunks = array_chunk( $ids, self::BATCH_SIZE );
 
 		foreach ( $chunks as $i => $chunk ) {
-			wp_schedule_single_event( time() + ( $i * 60 ), self::CRON_HOOK, [ $chunk ] );
+			$this->scheduler->schedule( self::CRON_HOOK, [ $chunk ], $i * 60 );
 		}
 	}
 

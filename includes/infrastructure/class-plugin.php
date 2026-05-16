@@ -5,38 +5,48 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Infrastructure;
+
+use PixelScout\Repository\{Index_Repository, Schema};
+use PixelScout\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor, Similarity};
+use PixelScout\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
+use PixelScout\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
+use PixelScout\Hooks\{Media_Hooks, Cron_Handler, Settings};
+use PixelScout\Api\{Rate_Limiter, REST_Controller};
+use PixelScout\Admin\Admin_Page;
+use PixelScout\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Pixel_Scout_Plugin {
+class Plugin {
 	/**
 	 * Singleton instance.
 	 *
-	 * @var Pixel_Scout_Plugin|null
+	 * @var Plugin|null
 	 */
-	private static ?Pixel_Scout_Plugin $instance = null;
+	private static ?Plugin $instance = null;
 
 	/**
 	 * Schema manager.
 	 *
-	 * @var Pixel_Scout_Schema
+	 * @var Schema
 	 */
-	private Pixel_Scout_Schema $schema;
+	private Schema $schema;
 
 	/**
 	 * Constructor.
 	 */
 	private function __construct() {
-		$this->schema = new Pixel_Scout_Schema();
+		$this->schema = new Schema();
 	}
 
 	/**
 	 * Get plugin singleton.
 	 *
-	 * @return Pixel_Scout_Plugin
+	 * @return Plugin
 	 */
-	public static function instance(): Pixel_Scout_Plugin {
+	public static function instance(): Plugin {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -65,7 +75,7 @@ class Pixel_Scout_Plugin {
 	 * @return void
 	 */
 	public function register_admin_page(): void {
-		( new Pixel_Scout_Admin_Page() )->register();
+		( new Admin_Page() )->register();
 	}
 
 	/**
@@ -74,7 +84,7 @@ class Pixel_Scout_Plugin {
 	 * @return void
 	 */
 	public function register_shortcode(): void {
-		( new Pixel_Scout_Shortcode() )->register();
+		( new Shortcode() )->register();
 	}
 
 	/**
@@ -93,29 +103,29 @@ class Pixel_Scout_Plugin {
 	 */
 	public function register_rest_routes(): void {
 		global $wpdb;
-		$repository   = new Pixel_Scout_Index_Repository( $wpdb );
-		$similarity   = new Pixel_Scout_Similarity();
-		$loader       = new Pixel_Scout_GD_Loader();
-		$factory      = new Pixel_Scout_Fingerprint_Factory(
+		$repository   = new Index_Repository( $wpdb );
+		$similarity   = new Similarity();
+		$loader       = new GD_Loader();
+		$factory      = new Fingerprint_Factory(
 			$loader,
-			new Pixel_Scout_PHash_Processor(),
-			new Pixel_Scout_Color_Processor(),
-			new Pixel_Scout_Edge_Processor()
+			new PHash_Processor(),
+			new Color_Processor(),
+			new Edge_Processor()
 		);
-		$calculator   = new Pixel_Scout_Score_Calculator( $similarity );
-		$pipeline     = new Pixel_Scout_Search_Pipeline( $repository, $factory, $calculator, $similarity );
-		$validator    = new Pixel_Scout_Mime_Validator();
-		$indexer      = new Pixel_Scout_Image_Indexer( $validator, $factory, $repository );
-		$bulk_indexer = new Pixel_Scout_Bulk_Indexer( $repository, $indexer, new Pixel_Scout_Index_Progress() );
-		$settings     = new Pixel_Scout_Settings();
+		$calculator   = new Score_Calculator( $similarity );
+		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
+		$validator    = new Mime_Validator();
+		$indexer      = new Image_Indexer( $validator, $factory, $repository );
+		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
+		$settings     = new Settings();
 
-		$controller = new Pixel_Scout_REST_Controller(
+		$controller = new REST_Controller(
 			$pipeline,
-			new Pixel_Scout_Query_Image(),
+			new Query_Image(),
 			$repository,
 			$bulk_indexer,
-			new Pixel_Scout_Index_Progress(),
-			new Pixel_Scout_Rate_Limiter(),
+			new Index_Progress(),
+			new Rate_Limiter(),
 			$settings
 		);
 		$controller->register_routes();
@@ -128,20 +138,20 @@ class Pixel_Scout_Plugin {
 	 */
 	public function register_hooks(): void {
 		global $wpdb;
-		$repository    = new Pixel_Scout_Index_Repository( $wpdb );
-		$validator     = new Pixel_Scout_Mime_Validator();
-		$loader        = new Pixel_Scout_GD_Loader();
-		$factory       = new Pixel_Scout_Fingerprint_Factory(
+		$repository    = new Index_Repository( $wpdb );
+		$validator     = new Mime_Validator();
+		$loader        = new GD_Loader();
+		$factory       = new Fingerprint_Factory(
 			$loader,
-			new Pixel_Scout_PHash_Processor(),
-			new Pixel_Scout_Color_Processor(),
-			new Pixel_Scout_Edge_Processor()
+			new PHash_Processor(),
+			new Color_Processor(),
+			new Edge_Processor()
 		);
-		$indexer       = new Pixel_Scout_Image_Indexer( $validator, $factory, $repository );
-		$bulk_indexer  = new Pixel_Scout_Bulk_Indexer( $repository, $indexer, new Pixel_Scout_Index_Progress() );
+		$indexer       = new Image_Indexer( $validator, $factory, $repository );
+		$bulk_indexer  = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
 
-		( new Pixel_Scout_Media_Hooks( $indexer ) )->register();
-		( new Pixel_Scout_Cron_Handler( $bulk_indexer ) )->register();
+		( new Media_Hooks( $indexer ) )->register();
+		( new Cron_Handler( $bulk_indexer ) )->register();
 	}
 
 	/**
@@ -150,7 +160,7 @@ class Pixel_Scout_Plugin {
 	 * @return void
 	 */
 	public function register_settings(): void {
-		( new Pixel_Scout_Settings() )->register();
+		( new Settings() )->register();
 	}
 
 	/**
@@ -203,13 +213,14 @@ class Pixel_Scout_Plugin {
 			error_log( '[Pixel Scout] Uninstall routine triggered.' );
 		}
 
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->uninstall();
 
 		delete_option( 'ps_settings' );
 		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
 		delete_transient( 'ps_bulk_progress' );
 		delete_transient( 'ps_bulk_total' );
+		delete_transient( 'ps_bulk_status' );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[Pixel Scout] Uninstall complete.' );
@@ -225,5 +236,3 @@ class Pixel_Scout_Plugin {
 		load_plugin_textdomain( 'pixel-scout', false, dirname( plugin_basename( PIXEL_SCOUT_FILE ) ) . '/languages' );
 	}
 }
-
-

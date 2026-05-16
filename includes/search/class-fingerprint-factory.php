@@ -5,6 +5,9 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Search;
+
+use PixelScout\Imaging\{GD_Loader, Processor_Interface};
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,31 +15,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Builds a complete image fingerprint by running all registered processors.
  */
-class Pixel_Scout_Fingerprint_Factory {
+class Fingerprint_Factory {
 
 	/**
-	 * GD image loader.
-	 *
-	 * @var Pixel_Scout_GD_Loader
-	 */
-	private Pixel_Scout_GD_Loader $loader;
-
-	/**
-	 * Ordered list of fingerprint processors.
-	 *
-	 * @var Pixel_Scout_Processor_Interface[]
+	 * @var Processor_Interface[]
 	 */
 	private array $processors;
 
 	/**
-	 * @param Pixel_Scout_GD_Loader             $loader     GD loader.
-	 * @param Pixel_Scout_Processor_Interface[] ...$processors Processors to run.
+	 * @param GD_Loader             $loader       GD loader.
+	 * @param Processor_Interface[] ...$processors Processors to run.
 	 */
 	public function __construct(
-		Pixel_Scout_GD_Loader $loader,
-		Pixel_Scout_Processor_Interface ...$processors
+		private GD_Loader $loader,
+		Processor_Interface ...$processors
 	) {
-		$this->loader     = $loader;
 		$this->processors = $processors;
 	}
 

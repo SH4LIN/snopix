@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Search;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Handles uploading and cleaning up a query image for reverse image search.
  */
-class Pixel_Scout_Query_Image {
+class Query_Image {
 
 	/**
 	 * Allowed MIME types for query images.

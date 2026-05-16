@@ -5,14 +5,15 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Imaging;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 /**
  * Loads GD image resources for WordPress media library attachments.
  */
-class Pixel_Scout_GD_Loader {
+class GD_Loader {
 
 	/**
 	 * MIME types supported by this loader.

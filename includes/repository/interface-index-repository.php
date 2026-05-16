@@ -5,11 +5,12 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Repository;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-interface Pixel_Scout_Index_Repository_Interface {
+interface Index_Repository_Interface {
 	/**
 	 * Insert or update fingerprint payload.
 	 *
@@ -61,4 +62,3 @@ interface Pixel_Scout_Index_Repository_Interface {
 	 */
 	public function delete( int $attachment_id ): bool;
 }
-

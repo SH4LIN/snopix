@@ -5,6 +5,12 @@
  * @package Pixel_Scout
  */
 
+namespace PixelScout\Api;
+
+use PixelScout\Search\{Search_Pipeline, Query_Image};
+use PixelScout\Repository\Index_Repository;
+use PixelScout\Indexing\{Bulk_Indexer, Index_Progress};
+use PixelScout\Hooks\Settings;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Registers and handles all ps/v1 REST API routes.
  */
-class Pixel_Scout_REST_Controller {
+class REST_Controller {
 
 	/**
 	 * REST API namespace.
@@ -20,24 +26,22 @@ class Pixel_Scout_REST_Controller {
 	private const REST_NAMESPACE = 'ps/v1';
 
 	/**
-	 * Constructor.
-	 *
-	 * @param Pixel_Scout_Search_Pipeline  $pipeline     Search pipeline.
-	 * @param Pixel_Scout_Query_Image      $query_image  Query image handler.
-	 * @param Pixel_Scout_Index_Repository $repository   Index repository.
-	 * @param Pixel_Scout_Bulk_Indexer     $bulk_indexer Bulk indexer.
-	 * @param Pixel_Scout_Index_Progress   $progress     Progress tracker.
-	 * @param Pixel_Scout_Rate_Limiter     $rate_limiter Rate limiter.
-	 * @param Pixel_Scout_Settings         $settings     Plugin settings.
+	 * @param Search_Pipeline  $pipeline     Search pipeline.
+	 * @param Query_Image      $query_image  Query image handler.
+	 * @param Index_Repository $repository   Index repository.
+	 * @param Bulk_Indexer     $bulk_indexer Bulk indexer.
+	 * @param Index_Progress   $progress     Progress tracker.
+	 * @param Rate_Limiter     $rate_limiter Rate limiter.
+	 * @param Settings         $settings     Plugin settings.
 	 */
 	public function __construct(
-		private Pixel_Scout_Search_Pipeline $pipeline,
-		private Pixel_Scout_Query_Image $query_image,
-		private Pixel_Scout_Index_Repository $repository,
-		private Pixel_Scout_Bulk_Indexer $bulk_indexer,
-		private Pixel_Scout_Index_Progress $progress,
-		private Pixel_Scout_Rate_Limiter $rate_limiter,
-		private Pixel_Scout_Settings $settings
+		private Search_Pipeline  $pipeline,
+		private Query_Image      $query_image,
+		private Index_Repository $repository,
+		private Bulk_Indexer     $bulk_indexer,
+		private Index_Progress   $progress,
+		private Rate_Limiter     $rate_limiter,
+		private Settings         $settings
 	) {}
 
 	/**
@@ -50,7 +54,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/search',
 			[
-				'methods'             => WP_REST_Server::CREATABLE,
+				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => [ $this, 'handle_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
@@ -63,7 +67,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/status',
 			[
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'handle_status' ],
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 			]
@@ -73,7 +77,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/images',
 			[
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'handle_images' ],
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 				'args'                => [
@@ -97,7 +101,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/reindex',
 			[
-				'methods'             => WP_REST_Server::CREATABLE,
+				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => [ $this, 'handle_reindex' ],
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 			]
@@ -107,7 +111,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/progress',
 			[
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'handle_progress' ],
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 			]
@@ -117,7 +121,7 @@ class Pixel_Scout_REST_Controller {
 			self::REST_NAMESPACE,
 			'/index/(?P<id>\d+)',
 			[
-				'methods'             => WP_REST_Server::DELETABLE,
+				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ $this, 'handle_delete_index' ],
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 				'args'                => [
@@ -133,15 +137,15 @@ class Pixel_Scout_REST_Controller {
 	/**
 	 * Handle POST /search — reverse image search.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle_search( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+	public function handle_search( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ) );
 
 		if ( ! $this->rate_limiter->is_allowed( $ip ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'rate_limited',
 				__( 'Too many requests.', 'pixel-scout' ),
 				[ 'status' => 429 ]
@@ -151,7 +155,7 @@ class Pixel_Scout_REST_Controller {
 		$files = $request->get_file_params();
 
 		if ( empty( $files['file'] ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'no_file',
 				__( 'No file provided.', 'pixel-scout' ),
 				[ 'status' => 400 ]
@@ -161,7 +165,7 @@ class Pixel_Scout_REST_Controller {
 		$attachment_id = $this->query_image->from_upload( $files['file'] );
 
 		if ( false === $attachment_id ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'upload_failed',
 				__( 'File upload failed or unsupported type.', 'pixel-scout' ),
 				[ 'status' => 422 ]
@@ -174,7 +178,7 @@ class Pixel_Scout_REST_Controller {
 			$this->query_image->cleanup( $attachment_id );
 		}
 
-		return new WP_REST_Response(
+		return new \WP_REST_Response(
 			array_map(
 				static fn( $r ) => [
 					'id'        => $r->attachment_id,
@@ -192,73 +196,84 @@ class Pixel_Scout_REST_Controller {
 	/**
 	 * Handle GET /status — index counts.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
-	public function handle_status( WP_REST_Request $request ): WP_REST_Response {
+	public function handle_status( \WP_REST_Request $request ): \WP_REST_Response {
 		$counts = $this->repository->get_counts();
-		return new WP_REST_Response( $counts, 200 );
+		return new \WP_REST_Response( $counts, 200 );
 	}
 
 	/**
 	 * Handle GET /images — paginated image list.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
-	public function handle_images( WP_REST_Request $request ): WP_REST_Response {
+	public function handle_images( \WP_REST_Request $request ): \WP_REST_Response {
 		$page     = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?: 25 );
 		$search   = sanitize_text_field( $request->get_param( 'search' ) ?: '' );
 
 		$rows = $this->repository->get_paginated( $page, $per_page, $search );
-		return new WP_REST_Response( $rows, 200 );
+
+		$rows = array_map( static function ( array $row ): array {
+			$id              = (int) $row['attachment_id'];
+			$row['title']    = get_the_title( $id );
+			$file            = get_attached_file( $id );
+			$row['filename'] = $file ? basename( $file ) : '';
+			$thumb           = wp_get_attachment_image_src( $id, 'thumbnail' );
+			$row['thumbnail_url'] = $thumb ? $thumb[0] : '';
+			return $row;
+		}, $rows );
+
+		return new \WP_REST_Response( $rows, 200 );
 	}
 
 	/**
 	 * Handle POST /reindex — schedule bulk reindex.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
-	public function handle_reindex( WP_REST_Request $request ): WP_REST_Response {
+	public function handle_reindex( \WP_REST_Request $request ): \WP_REST_Response {
 		$this->bulk_indexer->schedule();
-		return new WP_REST_Response( [ 'scheduled' => true ], 200 );
+		return new \WP_REST_Response( [ 'scheduled' => true ], 200 );
 	}
 
 	/**
 	 * Handle GET /progress — bulk index progress.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response
+	 * @return \WP_REST_Response
 	 */
-	public function handle_progress( WP_REST_Request $request ): WP_REST_Response {
-		return new WP_REST_Response( $this->progress->get(), 200 );
+	public function handle_progress( \WP_REST_Request $request ): \WP_REST_Response {
+		return new \WP_REST_Response( $this->progress->get(), 200 );
 	}
 
 	/**
 	 * Handle DELETE /index/{id} — remove a single index entry.
 	 *
-	 * @param WP_REST_Request $request REST request.
+	 * @param \WP_REST_Request $request REST request.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle_delete_index( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+	public function handle_delete_index( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id      = absint( $request->get_param( 'id' ) );
 		$deleted = $this->repository->delete( $id );
 
 		if ( ! $deleted ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'not_found',
 				__( 'Not found.', 'pixel-scout' ),
 				[ 'status' => 404 ]
 			);
 		}
 
-		return new WP_REST_Response( [ 'deleted' => true ], 200 );
+		return new \WP_REST_Response( [ 'deleted' => true ], 200 );
 	}
 }
