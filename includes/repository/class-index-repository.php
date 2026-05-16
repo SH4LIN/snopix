@@ -26,6 +26,11 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	private const CACHE_ALL = 'ps_all_indexed';
 
 	/**
+	 * @param \wpdb $wpdb WordPress database object.
+	 */
+	public function __construct( private \wpdb $wpdb ) {}
+
+	/**
 	 * Upsert index row.
 	 *
 	 * @param int                 $attachment_id Attachment ID.
@@ -87,8 +92,6 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_paginated( int $page, int $per_page, string $search ): array {
-		global $wpdb;
-
 		$query = Pixel_Scout_Query::create()
 			->from( self::TABLE )
 			->select( [ 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ] )
@@ -98,7 +101,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 		if ( '' !== $search ) {
 			$like = '%' . $this->escape_like( $search ) . '%';
 			$query->where_raw(
-				'attachment_id IN ( SELECT ID FROM ' . $wpdb->posts . ' WHERE post_title LIKE %s )',
+				'attachment_id IN ( SELECT ID FROM ' . $this->wpdb->posts . ' WHERE post_title LIKE %s )',
 				[ $like ]
 			);
 		}
@@ -113,15 +116,13 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<string, int>
 	 */
 	public function get_counts(): array {
-		global $wpdb;
-
 		$indexed = (int) Pixel_Scout_Query::create()
 			->from( self::TABLE )
 			->select( 'COUNT(*)' )
 			->get_var();
 
 		$total = (int) Pixel_Scout_Query::create()
-			->from( $wpdb->posts )
+			->from( $this->wpdb->posts )
 			->select( 'COUNT(*)' )
 			->where( 'post_type', 'attachment', '=', '%s' )
 			->where_raw( 'post_mime_type LIKE %s', [ 'image/%' ] )
@@ -140,10 +141,8 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return array<int>
 	 */
 	public function get_unindexed_ids(): array {
-		global $wpdb;
-
 		$rows = Pixel_Scout_Query::create()
-			->from( $wpdb->posts, 'p' )
+			->from( $this->wpdb->posts, 'p' )
 			->select( 'p.ID' )
 			->left_join( self::TABLE, 'idx.attachment_id = p.ID', 'idx' )
 			->where( 'p.post_type', 'attachment', '=', '%s' )
@@ -196,8 +195,7 @@ class Pixel_Scout_Index_Repository implements Pixel_Scout_Index_Repository_Inter
 	 * @return string
 	 */
 	private function escape_like( string $value ): string {
-		global $wpdb;
-		return $wpdb->esc_like( $value );
+		return $this->wpdb->esc_like( $value );
 	}
 
 }

@@ -53,6 +53,7 @@ require_once PIXEL_SCOUT_PLUGIN_DIR . 'includes/infrastructure/functions.php';
 
 register_activation_hook( __FILE__, [ 'Pixel_Scout_Plugin', 'activate' ] );
 register_deactivation_hook( __FILE__, [ 'Pixel_Scout_Plugin', 'deactivate' ] );
+register_uninstall_hook( __FILE__, [ 'Pixel_Scout_Plugin', 'uninstall' ] );
 
 Pixel_Scout_Plugin::instance()->register();
 

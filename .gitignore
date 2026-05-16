@@ -43,5 +43,12 @@ tests/fixtures/data/
 # Misc
 *.log
 
+# AI-generated artifacts
+design/
+design-preview.png
+.claude/worktrees/
+.playwright-mcp/
+ruvector.db
+
 
 

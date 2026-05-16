@@ -114,10 +114,36 @@ class Pixel_Scout_Autoloader {
 	private static function load_class_map(): void {
 		self::$class_map = [
 			'Pixel_Scout_Plugin'                      => self::$base_dir . '/infrastructure/class-plugin.php',
+			'Pixel_Scout_Admin_Page'                  => self::$base_dir . '/../admin/class-admin-page.php',
+			'Pixel_Scout_Shortcode'                   => self::$base_dir . '/../public/class-shortcode.php',
 			'Pixel_Scout_Query'                       => self::$base_dir . '/infrastructure/class-query.php',
 			'Pixel_Scout_Schema'                      => self::$base_dir . '/repository/class-schema.php',
-			'Pixel_Scout_Index_Repository_Interface' => self::$base_dir . '/repository/interface-repository.php',
+			'Pixel_Scout_Index_Repository_Interface'  => self::$base_dir . '/repository/interface-repository.php',
 			'Pixel_Scout_Index_Repository'            => self::$base_dir . '/repository/class-index-repository.php',
+			// Imaging domain
+			'Pixel_Scout_Processor_Interface'         => self::$base_dir . '/imaging/interface-processor.php',
+			'Pixel_Scout_GD_Loader'                   => self::$base_dir . '/imaging/class-gd-loader.php',
+			'Pixel_Scout_PHash_Processor'             => self::$base_dir . '/imaging/class-phash-processor.php',
+			'Pixel_Scout_Color_Processor'             => self::$base_dir . '/imaging/class-color-processor.php',
+			'Pixel_Scout_Edge_Processor'              => self::$base_dir . '/imaging/class-edge-processor.php',
+			'Pixel_Scout_Similarity'                  => self::$base_dir . '/imaging/class-similarity.php',
+			// Search domain
+			'Pixel_Scout_Fingerprint_Factory'         => self::$base_dir . '/search/class-fingerprint-factory.php',
+			'Pixel_Scout_Query_Image'                 => self::$base_dir . '/search/class-query-image.php',
+			'Pixel_Scout_Score_Calculator'            => self::$base_dir . '/search/class-score-calculator.php',
+			'Pixel_Scout_Search_Result'               => self::$base_dir . '/search/class-search-result.php',
+			'Pixel_Scout_Search_Pipeline'             => self::$base_dir . '/search/class-search-pipeline.php',
+			// Indexing domain
+			'Pixel_Scout_Mime_Validator'              => self::$base_dir . '/indexing/class-mime-validator.php',
+			'Pixel_Scout_Index_Progress'              => self::$base_dir . '/indexing/class-index-progress.php',
+			'Pixel_Scout_Image_Indexer'               => self::$base_dir . '/indexing/class-image-indexer.php',
+			'Pixel_Scout_Bulk_Indexer'                => self::$base_dir . '/indexing/class-bulk-indexer.php',
+			'Pixel_Scout_Media_Hooks'                 => self::$base_dir . '/hooks/class-media-hooks.php',
+			'Pixel_Scout_Cron_Handler'                => self::$base_dir . '/hooks/class-cron-handler.php',
+			'Pixel_Scout_Settings'                    => self::$base_dir . '/hooks/class-settings.php',
+			// API
+			'Pixel_Scout_Rate_Limiter'                => self::$base_dir . '/api/class-rate-limiter.php',
+			'Pixel_Scout_REST_Controller'             => self::$base_dir . '/api/class-rest-controller.php',
 		];
 	}
 }
