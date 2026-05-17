@@ -37,14 +37,18 @@ class Query_Image {
 			return false;
 		}
 
-		$type_data = wp_check_filetype( $file['name'] );
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$type_data = \wp_check_filetype( $file['name'] );
 
 		if ( ! in_array( $type_data['type'], self::ALLOWED_MIMES, true ) ) {
 			return false;
 		}
 
 		$overrides = array( 'test_form' => false );
-		$upload    = wp_handle_upload( $file, $overrides );
+		$upload    = \wp_handle_upload( $file, $overrides );
 
 		if ( isset( $upload['error'] ) || ! isset( $upload['file'] ) ) {
 			return false;
@@ -57,14 +61,14 @@ class Query_Image {
 			'post_status'    => 'inherit',
 		);
 
-		$attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
+		$attachment_id = \wp_insert_attachment( $attachment, $upload['file'] );
 
 		if ( is_wp_error( $attachment_id ) ) {
 			return false;
 		}
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
-		wp_update_attachment_metadata( $attachment_id, $metadata );
+		$metadata = \wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+		\wp_update_attachment_metadata( $attachment_id, $metadata );
 
 		return $attachment_id;
 	}
