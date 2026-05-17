@@ -1,7 +1,10 @@
+@import './components.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design tokens ─────────────────────── */
 :root {
 	--ps-bg: #ffffff;
 	--ps-surface: #f5f5f7;
@@ -25,29 +28,33 @@
 	--ps-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
+/* ─── WP admin resets ───────────────────────
+   :where() zeroes specificity so Tailwind
+   utilities always override these rules.
+   ─────────────────────────────────────────── */
 @layer base {
-	#pixel-scout-app,
-	#pixel-scout-app * {
+	:where(#pixel-scout-app),
+	:where(#pixel-scout-app) * {
 		box-sizing: border-box;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	#pixel-scout-app {
+	:where(#pixel-scout-app) {
 		font-family: var(--ps-font);
 		font-size: 14px;
+		line-height: 1.5;
 		color: var(--ps-text);
 		background: var(--ps-surface);
-		line-height: 1.5;
 	}
 
-	#pixel-scout-app a { color: inherit; text-decoration: none; }
-	#pixel-scout-app table { border-collapse: collapse; border-spacing: 0; }
+	:where(#pixel-scout-app) a { color: inherit; text-decoration: none; }
+	:where(#pixel-scout-app) table { border-collapse: collapse; border-spacing: 0; }
 
-	#pixel-scout-app input,
-	#pixel-scout-app button,
-	#pixel-scout-app select,
-	#pixel-scout-app textarea {
+	:where(#pixel-scout-app) input,
+	:where(#pixel-scout-app) button,
+	:where(#pixel-scout-app) select,
+	:where(#pixel-scout-app) textarea {
 		font-family: inherit;
 		font-size: inherit;
 		line-height: inherit;
@@ -56,214 +63,22 @@
 		-webkit-appearance: none;
 	}
 
-	#pixel-scout-app h1,
-	#pixel-scout-app h2,
-	#pixel-scout-app h3,
-	#pixel-scout-app h4 { margin: 0; font-weight: 600; }
+	:where(#pixel-scout-app) h1,
+	:where(#pixel-scout-app) h2,
+	:where(#pixel-scout-app) h3,
+	:where(#pixel-scout-app) h4 { margin: 0; font-weight: 600; }
 
-	#pixel-scout-app p { margin: 0; }
+	:where(#pixel-scout-app) p { margin: 0; }
 
-	#pixel-scout-app ul,
-	#pixel-scout-app ol { margin: 0; padding: 0; list-style: none; }
+	:where(#pixel-scout-app) ul,
+	:where(#pixel-scout-app) ol { margin: 0; padding: 0; list-style: none; }
 
-	#pixel-scout-app *:focus-visible {
-		outline: 2px solid var(--ps-accent);
-		outline-offset: 2px;
-		border-radius: var(--ps-radius-input);
+	:where(#pixel-scout-app) *:focus-visible {
+		@apply outline-2 outline-ps-accent outline-offset-2 rounded-[var(--ps-radius-input)];
+		outline-style: solid;
 	}
 
-	.ps-sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		border: 0;
-	}
-}
-
-@layer components {
-	#pixel-scout-app .ps-card {
-		background: var(--ps-bg);
-		border: 1px solid var(--ps-border);
-		border-radius: var(--ps-radius-card);
-		box-shadow: var(--ps-shadow-card);
-		padding: 24px;
-	}
-
-	#pixel-scout-app .ps-pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		padding: 3px 10px;
-		border-radius: var(--ps-radius-pill);
-		font-size: 12px;
-		font-weight: 500;
-		line-height: 1.4;
-		white-space: nowrap;
-	}
-
-	#pixel-scout-app .ps-pill::before {
-		content: '';
-		display: block;
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		flex-shrink: 0;
-	}
-
-	#pixel-scout-app .ps-pill--indexed { background: rgba(52, 199, 89, 0.12); color: #1a7a3c; }
-	#pixel-scout-app .ps-pill--indexed::before { background: var(--ps-success); }
-	#pixel-scout-app .ps-pill--pending { background: rgba(255, 149, 0, 0.12); color: #a05c00; }
-	#pixel-scout-app .ps-pill--pending::before { background: var(--ps-warning); }
-	#pixel-scout-app .ps-pill--failed { background: rgba(255, 59, 48, 0.1); color: #c0392b; }
-	#pixel-scout-app .ps-pill--failed::before { background: var(--ps-danger); }
-
-	#pixel-scout-app .ps-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 9px 18px;
-		background: var(--ps-accent);
-		color: #ffffff;
-		border: none;
-		border-radius: var(--ps-radius-input);
-		font-size: 14px;
-		font-weight: 500;
-		cursor: pointer;
-		transition:
-			background var(--ps-duration) var(--ps-easing),
-			transform var(--ps-duration) var(--ps-easing),
-			box-shadow var(--ps-duration) var(--ps-easing);
-		user-select: none;
-		white-space: nowrap;
-		text-decoration: none;
-	}
-
-	#pixel-scout-app .ps-btn:hover { background: #0077ed; box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3); }
-	#pixel-scout-app .ps-btn:active { transform: scale(0.98); background: #006acc; box-shadow: none; }
-	#pixel-scout-app .ps-btn:disabled { background: #b0c8ef; cursor: not-allowed; box-shadow: none; transform: none; }
-
-	#pixel-scout-app .ps-btn--ghost { background: transparent; color: var(--ps-accent); border: 1px solid var(--ps-border); }
-	#pixel-scout-app .ps-btn--ghost:hover { background: var(--ps-surface); box-shadow: none; }
-	#pixel-scout-app .ps-btn--ghost:active { background: var(--ps-border); box-shadow: none; }
-
-	#pixel-scout-app .ps-progress {
-		width: 100%;
-		height: 4px;
-		background: var(--ps-border);
-		border-radius: 2px;
-		overflow: hidden;
-	}
-
-	#pixel-scout-app .ps-progress__fill {
-		height: 100%;
-		border-radius: 2px;
-		background: var(--ps-accent);
-		transition: width 400ms var(--ps-easing);
-	}
-
-	#pixel-scout-app .ps-progress--indeterminate .ps-progress__fill {
-		width: 40% !important;
-		background: linear-gradient(90deg, var(--ps-accent) 0%, #5ab8ff 50%, var(--ps-accent) 100%);
-		background-size: 200% 100%;
-		animation: ps-progress-slide 1.6s ease-in-out infinite;
-	}
-
-	#pixel-scout-app .ps-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-	#pixel-scout-app .ps-table thead tr { border-bottom: 1px solid var(--ps-border); }
-
-	#pixel-scout-app .ps-table th {
-		padding: 10px 12px;
-		text-align: left;
-		font-size: 12px;
-		font-weight: 500;
-		color: var(--ps-muted);
-		letter-spacing: 0.03em;
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-
-	#pixel-scout-app .ps-table td {
-		padding: 12px;
-		color: var(--ps-text);
-		border-bottom: 1px solid var(--ps-border);
-		vertical-align: middle;
-	}
-
-	#pixel-scout-app .ps-table tbody tr:last-child td { border-bottom: none; }
-	#pixel-scout-app .ps-table tbody tr { transition: background var(--ps-duration) var(--ps-easing); }
-	#pixel-scout-app .ps-table tbody tr:hover { background: var(--ps-surface); }
-
-	#pixel-scout-app .ps-table__thumb {
-		width: 48px;
-		height: 48px;
-		border-radius: 6px;
-		object-fit: cover;
-		background: var(--ps-surface);
-		border: 1px solid var(--ps-border);
-		display: block;
-		flex-shrink: 0;
-	}
-
-	#pixel-scout-app .ps-input {
-		width: 100%;
-		padding: 10px 14px;
-		background: var(--ps-bg);
-		border: 1px solid var(--ps-border);
-		border-radius: var(--ps-radius-input);
-		font-size: 14px;
-		color: var(--ps-text);
-		transition:
-			border-color var(--ps-duration) var(--ps-easing),
-			box-shadow var(--ps-duration) var(--ps-easing);
-		outline: none;
-	}
-
-	#pixel-scout-app .ps-input::placeholder { color: var(--ps-muted); }
-	#pixel-scout-app .ps-input:hover { border-color: #c7c7cc; }
-	#pixel-scout-app .ps-input:focus { border-color: var(--ps-accent); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12); }
-
-	#pixel-scout-app .ps-input-wrap { position: relative; }
-	#pixel-scout-app .ps-input-wrap .ps-input { padding-left: 38px; }
-	#pixel-scout-app .ps-input-wrap__icon {
-		position: absolute;
-		left: 12px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: var(--ps-muted);
-		pointer-events: none;
-	}
-
-	#pixel-scout-app .ps-drop-zone {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 12px;
-		padding: 48px 24px;
-		border: 1.5px dashed var(--ps-border);
-		border-radius: var(--ps-radius-card);
-		background: var(--ps-surface);
-		cursor: pointer;
-		transition:
-			border-color var(--ps-duration) var(--ps-easing),
-			background var(--ps-duration) var(--ps-easing);
-		text-align: center;
-		user-select: none;
-	}
-
-	#pixel-scout-app .ps-drop-zone:hover,
-	#pixel-scout-app .ps-drop-zone--over { border-color: var(--ps-accent); background: rgba(0, 113, 227, 0.04); }
-
-	#pixel-scout-app .ps-drop-zone__icon { color: var(--ps-muted); transition: color var(--ps-duration) var(--ps-easing); }
-	#pixel-scout-app .ps-drop-zone:hover .ps-drop-zone__icon,
-	#pixel-scout-app .ps-drop-zone--over .ps-drop-zone__icon { color: var(--ps-accent); }
-
-	#pixel-scout-app .ps-drop-zone__label { font-size: 15px; font-weight: 500; color: var(--ps-text); }
-	#pixel-scout-app .ps-drop-zone__hint { font-size: 13px; color: var(--ps-muted); }
+	.ps-sr-only { @apply sr-only; }
 }
 
 @keyframes ps-progress-slide {
