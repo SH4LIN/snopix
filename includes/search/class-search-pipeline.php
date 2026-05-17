@@ -24,22 +24,22 @@ class Search_Pipeline {
 
 	/**
 	 * @param Index_Repository   $repository Index data access.
-	 * @param Fingerprint_Factory $factory    Fingerprint generator.
+	 * @param Fingerprint_Factory $factory	Fingerprint generator.
 	 * @param Score_Calculator   $calculator Composite score calculator.
-	 * @param Similarity         $similarity Similarity metrics for pre-filtering.
+	 * @param Similarity		 $similarity Similarity metrics for pre-filtering.
 	 */
 	public function __construct(
-		private Index_Repository    $repository,
+		private Index_Repository	$repository,
 		private Fingerprint_Factory $factory,
-		private Score_Calculator    $calculator,
-		private Similarity          $similarity
+		private Score_Calculator	$calculator,
+		private Similarity		  $similarity
 	) {}
 
 	/**
 	 * Run reverse image search for the given attachment.
 	 *
 	 * @param int $attachment_id Query attachment ID.
-	 * @param int $limit         Maximum results to return.
+	 * @param int $limit		 Maximum results to return.
 	 *
 	 * @return Search_Result[]
 	 */
@@ -84,14 +84,14 @@ class Search_Pipeline {
 		foreach ( $scored as $item ) {
 			$row   = $item['row'];
 			$score = $item['score'];
-			$id    = (int) $row['attachment_id'];
+			$id	= (int) $row['attachment_id'];
 
 			$src   = wp_get_attachment_image_src( $id, 'full' );
 			$thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
 
-			$url       = $src ? $src[0] : '';
+			$url	   = $src ? $src[0] : '';
 			$thumb_url = $thumb ? $thumb[0] : '';
-			$title     = get_the_title( $id );
+			$title	 = get_the_title( $id );
 
 			$results[] = new Search_Result( $id, $url, $thumb_url, $title, $score );
 		}

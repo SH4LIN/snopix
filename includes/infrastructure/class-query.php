@@ -133,7 +133,7 @@ class Query {
 	/**
 	 * Set table.
 	 *
-	 * @param string      $table Table name.
+	 * @param string	  $table Table name.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
@@ -161,14 +161,14 @@ class Query {
 	/**
 	 * Add INNER JOIN.
 	 *
-	 * @param string      $table Join table.
-	 * @param string      $condition Join condition.
+	 * @param string	  $table Join table.
+	 * @param string	  $condition Join condition.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
 	 */
 	public function inner_join( string $table, string $condition, ?string $alias = null ): self {
-		$resolved      = $this->resolve_table_name( $table );
+		$resolved	  = $this->resolve_table_name( $table );
 		$alias_segment = $alias ? ' ' . sanitize_key( $alias ) : '';
 		$this->joins[] = 'INNER JOIN ' . $resolved . $alias_segment . ' ON ' . $condition;
 		return $this;
@@ -177,14 +177,14 @@ class Query {
 	/**
 	 * Add LEFT JOIN.
 	 *
-	 * @param string      $table Join table.
-	 * @param string      $condition Join condition.
+	 * @param string	  $table Join table.
+	 * @param string	  $condition Join condition.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
 	 */
 	public function left_join( string $table, string $condition, ?string $alias = null ): self {
-		$resolved      = $this->resolve_table_name( $table );
+		$resolved	  = $this->resolve_table_name( $table );
 		$alias_segment = $alias ? ' ' . sanitize_key( $alias ) : '';
 		$this->joins[] = 'LEFT JOIN ' . $resolved . $alias_segment . ' ON ' . $condition;
 		return $this;
@@ -203,7 +203,7 @@ class Query {
 	public function where( string $column, $value, string $operator = '=', string $type = '%s' ): self {
 		$clause = $this->sanitize_identifier( $column ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type;
 		$this->where_clauses[] = [
-			'sql'    => $clause,
+			'sql'	=> $clause,
 			'values' => [ $value ],
 		];
 		return $this;
@@ -222,7 +222,7 @@ class Query {
 	public function where_between( string $column, $start, $end, string $type = '%d' ): self {
 		$clause = $this->sanitize_identifier( $column ) . ' BETWEEN ' . $type . ' AND ' . $type;
 		$this->where_clauses[] = [
-			'sql'    => $clause,
+			'sql'	=> $clause,
 			'values' => [ $start, $end ],
 		];
 		return $this;
@@ -231,14 +231,14 @@ class Query {
 	/**
 	 * Add raw where SQL.
 	 *
-	 * @param string                $sql SQL expression.
-	 * @param array<int, mixed>     $values Bind values.
+	 * @param string				$sql SQL expression.
+	 * @param array<int, mixed>	 $values Bind values.
 	 *
 	 * @return self
 	 */
 	public function where_raw( string $sql, array $values = [] ): self {
 		$this->where_clauses[] = [
-			'sql'    => trim( $sql ),
+			'sql'	=> trim( $sql ),
 			'values' => array_values( $values ),
 		];
 		return $this;
@@ -248,8 +248,8 @@ class Query {
 	 * Add date range where clause.
 	 *
 	 * @param string $column Column name.
-	 * @param int    $start_ts Start timestamp.
-	 * @param int    $end_ts End timestamp.
+	 * @param int	$start_ts Start timestamp.
+	 * @param int	$end_ts End timestamp.
 	 * @param bool   $inclusive Inclusive range.
 	 *
 	 * @return self
@@ -267,9 +267,9 @@ class Query {
 	/**
 	 * Add IN clause.
 	 *
-	 * @param string            $column Column name.
+	 * @param string			$column Column name.
 	 * @param array<int, mixed> $values Values.
-	 * @param string            $type Placeholder type.
+	 * @param string			$type Placeholder type.
 	 *
 	 * @return self
 	 */
@@ -280,9 +280,9 @@ class Query {
 	/**
 	 * Add NOT IN clause.
 	 *
-	 * @param string            $column Column name.
+	 * @param string			$column Column name.
 	 * @param array<int, mixed> $values Values.
-	 * @param string            $type Placeholder type.
+	 * @param string			$type Placeholder type.
 	 *
 	 * @return self
 	 */
@@ -332,7 +332,7 @@ class Query {
 	 */
 	public function having( string $condition, $value, string $operator = '=', string $type = '%s' ): self {
 		$this->having_clauses[] = [
-			'sql'    => trim( $condition ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type,
+			'sql'	=> trim( $condition ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type,
 			'values' => [ $value ],
 		];
 		return $this;
@@ -507,13 +507,13 @@ class Query {
 		}
 
 		$set_parts = [];
-		$values    = [];
+		$values	= [];
 		foreach ( $data as $column => $value ) {
 			$set_parts[] = $this->sanitize_identifier( (string) $column ) . ' = ' . $this->infer_format( $value );
-			$values[]    = $value;
+			$values[]	= $value;
 		}
 
-		$sql      = 'UPDATE ' . $this->table . ' SET ' . implode( ', ', $set_parts ) . ' WHERE ' . $where_sql;
+		$sql	  = 'UPDATE ' . $this->table . ' SET ' . implode( ', ', $set_parts ) . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, array_merge( $values, $where_values ) );
 		$result   = $this->wpdb->query( $prepared );
 		return false === $result ? false : (int) $result;
@@ -530,7 +530,7 @@ class Query {
 			return false;
 		}
 
-		$sql      = 'DELETE FROM ' . $this->table . ' WHERE ' . $where_sql;
+		$sql	  = 'DELETE FROM ' . $this->table . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, $where_values );
 		$result   = $this->wpdb->query( $prepared );
 		return false === $result ? false : (int) $result;
@@ -545,20 +545,20 @@ class Query {
 	 * @return bool
 	 */
 	public function upsert( array $insert_data, array $update_columns ): bool {
-		$columns      = array_keys( $insert_data );
+		$columns	  = array_keys( $insert_data );
 		$placeholders = [];
-		$values       = [];
+		$values	   = [];
 
 		foreach ( $insert_data as $value ) {
 			$placeholders[] = $this->infer_format( $value );
-			$values[]       = $value;
+			$values[]	   = $value;
 		}
 
 		$escaped_columns = array_map( [ $this, 'sanitize_identifier' ], $columns );
-		$updates         = [];
+		$updates		 = [];
 		foreach ( $update_columns as $column ) {
 			$clean_column = $this->sanitize_identifier( $column );
-			$updates[]    = $clean_column . ' = VALUES(' . $clean_column . ')';
+			$updates[]	= $clean_column . ' = VALUES(' . $clean_column . ')';
 		}
 
 		$sql = 'INSERT INTO ' . $this->table
@@ -596,7 +596,7 @@ class Query {
 			$having_sqls = [];
 			foreach ( $this->having_clauses as $having ) {
 				$having_sqls[] = $having['sql'];
-				$values        = array_merge( $values, $having['values'] );
+				$values		= array_merge( $values, $having['values'] );
 			}
 
 			$sql .= ' HAVING ' . implode( ' AND ', $having_sqls );
@@ -628,21 +628,21 @@ class Query {
 
 		foreach ( $this->where_clauses as $clause ) {
 			$clauses[] = $clause['sql'];
-			$values    = array_merge( $values, $clause['values'] );
+			$values	= array_merge( $values, $clause['values'] );
 		}
 
 		foreach ( $this->or_groups as $group ) {
-			$group_sql    = [];
+			$group_sql	= [];
 			$group_values = [];
 
 			foreach ( $group as $group_clause ) {
-				$group_sql[]    = $group_clause['sql'];
+				$group_sql[]	= $group_clause['sql'];
 				$group_values   = array_merge( $group_values, $group_clause['values'] );
 			}
 
 			if ( ! empty( $group_sql ) ) {
 				$clauses[] = '( ' . implode( ' OR ', $group_sql ) . ' )';
-				$values    = array_merge( $values, $group_values );
+				$values	= array_merge( $values, $group_values );
 			}
 		}
 
@@ -652,7 +652,7 @@ class Query {
 	/**
 	 * Prepare SQL with values when required.
 	 *
-	 * @param string            $sql SQL.
+	 * @param string			$sql SQL.
 	 * @param array<int, mixed> $values Values.
 	 *
 	 * @return string
@@ -702,10 +702,10 @@ class Query {
 	/**
 	 * Add IN/NOT IN clause.
 	 *
-	 * @param string            $column Column.
+	 * @param string			$column Column.
 	 * @param array<int, mixed> $values Values.
-	 * @param string            $type Placeholder.
-	 * @param bool              $negate Negate.
+	 * @param string			$type Placeholder.
+	 * @param bool			  $negate Negate.
 	 *
 	 * @return self
 	 */
@@ -716,10 +716,10 @@ class Query {
 		}
 
 		$placeholders = implode( ', ', array_fill( 0, count( $values ), $type ) );
-		$operator     = $negate ? 'NOT IN' : 'IN';
+		$operator	 = $negate ? 'NOT IN' : 'IN';
 
 		$this->where_clauses[] = [
-			'sql'    => $this->sanitize_identifier( $column ) . ' ' . $operator . ' ( ' . $placeholders . ' )',
+			'sql'	=> $this->sanitize_identifier( $column ) . ' ' . $operator . ' ( ' . $placeholders . ' )',
 			'values' => $values,
 		];
 

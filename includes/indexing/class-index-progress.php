@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Manages progress state for bulk indexing operations using transients.
  *
  * status values:
- *   idle    — no job running
+ *   idle	— no job running
  *   running — batches in flight
- *   done    — all batches completed
+ *   done	— all batches completed
  */
 class Index_Progress {
 	private const KEY_DONE   = 'ps_bulk_progress';

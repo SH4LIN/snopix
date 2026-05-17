@@ -7,14 +7,14 @@ import './styles/components.css'
 
 const container = document.getElementById('ps-root')
 if (container) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
-  })
-  createRoot(container).render(
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </React.StrictMode>
-  )
+	const queryClient = new QueryClient({
+		defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+	})
+	createRoot(container).render(
+		<React.StrictMode>
+			<QueryClientProvider client={queryClient}>
+				<App />
+			</QueryClientProvider>
+		</React.StrictMode>
+	)
 }

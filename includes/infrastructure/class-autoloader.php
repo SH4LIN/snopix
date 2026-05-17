@@ -6,7 +6,7 @@
  * filesystem path under includes/. No manual class map needed.
  *
  * Conventions:
- *   PixelScout\Indexing\Image_Indexer           → includes/indexing/class-image-indexer.php
+ *   PixelScout\Indexing\Image_Indexer		   → includes/indexing/class-image-indexer.php
  *   PixelScout\Repository\Index_Repository_Interface → includes/repository/interface-index-repository.php
  *
  * @package Pixel_Scout
@@ -47,15 +47,15 @@ class Autoloader {
 	 */
 	private static function locate( string $class_name ): ?string {
 		$relative = substr( $class_name, strlen( 'PixelScout\\' ) );
-		$parts    = explode( '\\', $relative );
-		$short    = array_pop( $parts );
-		$dir      = strtolower( implode( '/', $parts ) );
+		$parts	= explode( '\\', $relative );
+		$short	= array_pop( $parts );
+		$dir	  = strtolower( implode( '/', $parts ) );
 
 		if ( str_ends_with( $short, '_Interface' ) ) {
-			$slug     = strtolower( str_replace( '_', '-', substr( $short, 0, -strlen( '_Interface' ) ) ) );
+			$slug	 = strtolower( str_replace( '_', '-', substr( $short, 0, -strlen( '_Interface' ) ) ) );
 			$filename = 'interface-' . $slug . '.php';
 		} else {
-			$slug     = strtolower( str_replace( '_', '-', $short ) );
+			$slug	 = strtolower( str_replace( '_', '-', $short ) );
 			$filename = 'class-' . $slug . '.php';
 		}
 

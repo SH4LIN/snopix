@@ -45,7 +45,7 @@ class Edge_Processor implements Processor_Interface {
 		imagedestroy( $small );
 
 		$magnitude = $this->compute_sobel( $pixels );
-		$blocks    = $this->compute_blocks( $magnitude );
+		$blocks	= $this->compute_blocks( $magnitude );
 		$reduced   = $this->reduce_to_32( $blocks );
 		$normalised = $this->normalise( $reduced );
 
@@ -64,7 +64,7 @@ class Edge_Processor implements Processor_Interface {
 		$pixels = [];
 		for ( $x = 0; $x < $size; $x++ ) {
 			for ( $y = 0; $y < $size; $y++ ) {
-				$rgb             = imagecolorat( $gd, $x, $y );
+				$rgb			 = imagecolorat( $gd, $x, $y );
 				$pixels[ $x ][ $y ] = (float) ( ( $rgb >> 16 ) & 0xFF );
 			}
 		}
@@ -82,7 +82,7 @@ class Edge_Processor implements Processor_Interface {
 	 * @return array<int, array<int, float>> Magnitude matrix [x][y].
 	 */
 	private function compute_sobel( array $p ): array {
-		$size      = self::THUMB_SIZE;
+		$size	  = self::THUMB_SIZE;
 		$magnitude = [];
 
 		for ( $x = 0; $x < $size; $x++ ) {
@@ -116,7 +116,7 @@ class Edge_Processor implements Processor_Interface {
 	 */
 	private function compute_blocks( array $magnitude ): array {
 		$block_size = self::THUMB_SIZE / self::BLOCK_COUNT; // 8.
-		$flat       = [];
+		$flat	   = [];
 
 		for ( $bx = 0; $bx < self::BLOCK_COUNT; $bx++ ) {
 			for ( $by = 0; $by < self::BLOCK_COUNT; $by++ ) {

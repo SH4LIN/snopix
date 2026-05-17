@@ -86,7 +86,7 @@ class Similarity {
 	 */
 	private function hex_to_binary( string $hex ): string {
 		$binary = '';
-		$len    = strlen( $hex );
+		$len	= strlen( $hex );
 
 		for ( $i = 0; $i < $len; $i++ ) {
 			$nibble = hexdec( $hex[ $i ] );

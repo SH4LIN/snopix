@@ -49,7 +49,7 @@ class Shortcode {
 			'ps_public',
 			[
 				'rest_url' => esc_url_raw( rest_url( 'ps/v1/' ) ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
+				'nonce'	=> wp_create_nonce( 'wp_rest' ),
 			]
 		);
 

@@ -29,13 +29,13 @@ class Bulk_Indexer {
 
 	/**
 	 * @param Index_Repository   $repository Index repository.
-	 * @param Image_Indexer      $indexer    Single image indexer.
-	 * @param Index_Progress     $progress   Progress tracker.
+	 * @param Image_Indexer	  $indexer	Single image indexer.
+	 * @param Index_Progress	 $progress   Progress tracker.
 	 * @param Action_Scheduler   $scheduler  Action scheduler.
 	 */
 	public function __construct(
 		private Index_Repository $repository,
-		private Image_Indexer    $indexer,
+		private Image_Indexer	$indexer,
 		private Index_Progress   $progress,
 		private Action_Scheduler $scheduler
 	) {}

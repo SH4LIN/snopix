@@ -64,7 +64,7 @@ class Admin_Page {
 			'ps_data',
 			[
 				'rest_url' => esc_url_raw( rest_url( 'ps/v1/' ) ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
+				'nonce'	=> wp_create_nonce( 'wp_rest' ),
 				'is_admin' => current_user_can( 'manage_options' ),
 			]
 		);

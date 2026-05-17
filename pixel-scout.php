@@ -3,8 +3,8 @@
  * Plugin Name: Pixel Scout
  * Plugin URI:  https://example.com
  * Description: Image similarity search for WordPress media library.
- * Version:     0.1.0
- * Author:      Pixel Scout
+ * Version:\t 0.1.0
+ * Author:\t  Pixel Scout
  * Text Domain: pixel-scout
  * Requires at least: 6.0
  * Requires PHP: 8.0

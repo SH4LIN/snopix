@@ -105,19 +105,19 @@ class Plugin {
 		global $wpdb;
 		$repository   = new Index_Repository( $wpdb );
 		$similarity   = new Similarity();
-		$loader       = new GD_Loader();
-		$factory      = new Fingerprint_Factory(
+		$loader	   = new GD_Loader();
+		$factory	  = new Fingerprint_Factory(
 			$loader,
 			new PHash_Processor(),
 			new Color_Processor(),
 			new Edge_Processor()
 		);
 		$calculator   = new Score_Calculator( $similarity );
-		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
-		$validator    = new Mime_Validator();
-		$indexer      = new Image_Indexer( $validator, $factory, $repository );
+		$pipeline	 = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
+		$validator	= new Mime_Validator();
+		$indexer	  = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
-		$settings     = new Settings();
+		$settings	 = new Settings();
 
 		$controller = new REST_Controller(
 			$pipeline,
@@ -138,16 +138,16 @@ class Plugin {
 	 */
 	public function register_hooks(): void {
 		global $wpdb;
-		$repository    = new Index_Repository( $wpdb );
-		$validator     = new Mime_Validator();
-		$loader        = new GD_Loader();
-		$factory       = new Fingerprint_Factory(
+		$repository	= new Index_Repository( $wpdb );
+		$validator	 = new Mime_Validator();
+		$loader		= new GD_Loader();
+		$factory	   = new Fingerprint_Factory(
 			$loader,
 			new PHash_Processor(),
 			new Color_Processor(),
 			new Edge_Processor()
 		);
-		$indexer       = new Image_Indexer( $validator, $factory, $repository );
+		$indexer	   = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer  = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
 
 		( new Media_Hooks( $indexer ) )->register();

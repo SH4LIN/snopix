@@ -71,8 +71,8 @@ class GD_Loader {
 	/**
 	 * Resolve MIME type from attachment metadata or file check.
 	 *
-	 * @param int    $attachment_id Attachment ID.
-	 * @param string $file          Absolute file path.
+	 * @param int	$attachment_id Attachment ID.
+	 * @param string $file		  Absolute file path.
 	 *
 	 * @return string
 	 */

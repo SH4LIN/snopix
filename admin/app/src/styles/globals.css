@@ -2,26 +2,26 @@
    Design tokens
    ───────────────────────────────────────── */
 :root {
-  --ps-bg: #ffffff;
-  --ps-surface: #f5f5f7;
-  --ps-text: #1d1d1f;
-  --ps-muted: #6e6e73;
-  --ps-accent: #0071e3;
-  --ps-danger: #ff3b30;
-  --ps-success: #34c759;
-  --ps-warning: #ff9500;
-  --ps-border: #e5e5ea;
+	--ps-bg: #ffffff;
+	--ps-surface: #f5f5f7;
+	--ps-text: #1d1d1f;
+	--ps-muted: #6e6e73;
+	--ps-accent: #0071e3;
+	--ps-danger: #ff3b30;
+	--ps-success: #34c759;
+	--ps-warning: #ff9500;
+	--ps-border: #e5e5ea;
 
-  --ps-radius-card: 12px;
-  --ps-radius-input: 8px;
-  --ps-radius-pill: 20px;
+	--ps-radius-card: 12px;
+	--ps-radius-input: 8px;
+	--ps-radius-pill: 20px;
 
-  --ps-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+	--ps-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
 
-  --ps-duration: 200ms;
-  --ps-easing: ease-out;
+	--ps-duration: 200ms;
+	--ps-easing: ease-out;
 
-  --ps-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+	--ps-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 /* ─────────────────────────────────────────
@@ -31,29 +31,29 @@
    ───────────────────────────────────────── */
 #pixel-scout-app,
 #pixel-scout-app * {
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	box-sizing: border-box;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 #pixel-scout-app {
-  font-family: var(--ps-font);
-  font-size: 14px;
-  color: var(--ps-text);
-  background: var(--ps-surface);
-  line-height: 1.5;
+	font-family: var(--ps-font);
+	font-size: 14px;
+	color: var(--ps-text);
+	background: var(--ps-surface);
+	line-height: 1.5;
 }
 
 /* Strip WP link styles inside app */
 #pixel-scout-app a {
-  color: inherit;
-  text-decoration: none;
+	color: inherit;
+	text-decoration: none;
 }
 
 /* Strip WP table resets */
 #pixel-scout-app table {
-  border-collapse: collapse;
-  border-spacing: 0;
+	border-collapse: collapse;
+	border-spacing: 0;
 }
 
 /* Strip WP form resets */
@@ -61,12 +61,12 @@
 #pixel-scout-app button,
 #pixel-scout-app select,
 #pixel-scout-app textarea {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	margin: 0;
+	appearance: none;
+	-webkit-appearance: none;
 }
 
 /* Strip WP heading margins */
@@ -74,38 +74,38 @@
 #pixel-scout-app h2,
 #pixel-scout-app h3,
 #pixel-scout-app h4 {
-  margin: 0;
-  font-weight: 600;
+	margin: 0;
+	font-weight: 600;
 }
 
 /* Strip WP paragraph margins */
 #pixel-scout-app p {
-  margin: 0;
+	margin: 0;
 }
 
 /* Strip WP list resets */
 #pixel-scout-app ul,
 #pixel-scout-app ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
 /* Global focus ring — accessible, not ugly */
 #pixel-scout-app *:focus-visible {
-  outline: 2px solid var(--ps-accent);
-  outline-offset: 2px;
-  border-radius: var(--ps-radius-input);
+	outline: 2px solid var(--ps-accent);
+	outline-offset: 2px;
+	border-radius: var(--ps-radius-input);
 }
 
 /* Utility: visually hide without removing from a11y tree */
 .ps-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
 }

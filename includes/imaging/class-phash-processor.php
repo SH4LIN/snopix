@@ -52,7 +52,7 @@ class PHash_Processor implements Processor_Interface {
 		$pixels = [];
 		for ( $x = 0; $x < $size; $x++ ) {
 			for ( $y = 0; $y < $size; $y++ ) {
-				$rgb             = imagecolorat( $gd, $x, $y );
+				$rgb			 = imagecolorat( $gd, $x, $y );
 				// After greyscale filter all channels are equal; use red channel.
 				$pixels[ $x ][ $y ] = (float) ( ( $rgb >> 16 ) & 0xFF );
 			}

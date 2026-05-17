@@ -44,7 +44,7 @@ class Query_Image {
 		}
 
 		$overrides = [ 'test_form' => false ];
-		$upload    = wp_handle_upload( $file, $overrides );
+		$upload	= wp_handle_upload( $file, $overrides );
 
 		if ( isset( $upload['error'] ) || ! isset( $upload['file'] ) ) {
 			return false;
@@ -52,9 +52,9 @@ class Query_Image {
 
 		$attachment = [
 			'post_mime_type' => $upload['type'],
-			'post_title'     => sanitize_file_name( basename( $upload['file'] ) ),
+			'post_title'	 => sanitize_file_name( basename( $upload['file'] ) ),
 			'post_content'   => '',
-			'post_status'    => 'inherit',
+			'post_status'	=> 'inherit',
 		];
 
 		$attachment_id = wp_insert_attachment( $attachment, $upload['file'] );

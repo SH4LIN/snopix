@@ -26,7 +26,7 @@ class Settings {
 			'ps_settings',
 			[
 				'sanitize_callback' => [ $this, 'sanitize' ],
-				'default'           => [ 'search_visibility' => 'anyone' ],
+				'default'		   => [ 'search_visibility' => 'anyone' ],
 			]
 		);
 
@@ -54,7 +54,7 @@ class Settings {
 	 * @return array<string, string>
 	 */
 	public function sanitize( array $input ): array {
-		$allowed    = [ 'anyone', 'logged_in' ];
+		$allowed	= [ 'anyone', 'logged_in' ];
 		$visibility = isset( $input['search_visibility'] ) ? sanitize_key( $input['search_visibility'] ) : 'anyone';
 
 		return [
@@ -69,9 +69,9 @@ class Settings {
 	 */
 	public function render_visibility_field(): void {
 		$settings   = get_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
-		$current    = $settings['search_visibility'] ?? 'anyone';
-		$options    = [
-			'anyone'    => __( 'Anyone', 'pixel-scout' ),
+		$current	= $settings['search_visibility'] ?? 'anyone';
+		$options	= [
+			'anyone'	=> __( 'Anyone', 'pixel-scout' ),
 			'logged_in' => __( 'Logged-in users only', 'pixel-scout' ),
 		];
 

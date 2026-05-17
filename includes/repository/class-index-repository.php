@@ -36,7 +36,7 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Upsert index row.
 	 *
-	 * @param int                 $attachment_id Attachment ID.
+	 * @param int				 $attachment_id Attachment ID.
 	 * @param array<string, mixed> $fingerprint Fingerprint payload.
 	 *
 	 * @return bool
@@ -52,13 +52,13 @@ class Index_Repository implements Index_Repository_Interface {
 		$insert = array_merge(
 			[
 				'attachment_id' => $attachment_id,
-				'indexed_at'    => current_time( 'mysql' ),
+				'indexed_at'	=> current_time( 'mysql' ),
 			],
 			$fingerprint
 		);
 
 		$update_columns = array_keys( $insert );
-		$result         = Query::create()
+		$result		 = Query::create()
 			->from( self::TABLE )
 			->upsert( $insert, $update_columns );
 
@@ -95,8 +95,8 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Get paginated index rows.
 	 *
-	 * @param int    $page Current page.
-	 * @param int    $per_page Rows per page.
+	 * @param int	$page Current page.
+	 * @param int	$per_page Rows per page.
 	 * @param string $search Search term.
 	 *
 	 * @return array<int, array<string, mixed>>

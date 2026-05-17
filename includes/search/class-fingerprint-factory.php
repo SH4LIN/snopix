@@ -23,7 +23,7 @@ class Fingerprint_Factory {
 	private array $processors;
 
 	/**
-	 * @param GD_Loader             $loader       GD loader.
+	 * @param GD_Loader			 $loader	   GD loader.
 	 * @param Processor_Interface[] ...$processors Processors to run.
 	 */
 	public function __construct(
