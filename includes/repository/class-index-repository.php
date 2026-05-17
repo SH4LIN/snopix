@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Provides data access for the plugin image index.
+ */
 class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Cache group.
@@ -29,6 +32,8 @@ class Index_Repository implements Index_Repository_Interface {
 	private const CACHE_ALL = 'ps_all_indexed';
 
 	/**
+	 * Constructor.
+	 *
 	 * @param \wpdb $wpdb WordPress database object.
 	 */
 	public function __construct( private \wpdb $wpdb ) {}

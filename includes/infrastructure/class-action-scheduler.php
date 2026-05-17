@@ -14,6 +14,9 @@ namespace PixelScout\Infrastructure;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+/**
+ * Thin wrapper around wp_schedule_single_event for background actions.
+ */
 class Action_Scheduler {
 
 	/**

@@ -16,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Search_Result {
 
 	/**
+	 * Constructor.
+	 *
 	 * @param int    $attachment_id WordPress attachment ID.
 	 * @param string $url          Full-size image URL.
 	 * @param string $thumbnail  Thumbnail image URL.

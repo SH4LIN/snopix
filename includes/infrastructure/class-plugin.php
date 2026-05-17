@@ -19,6 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Main plugin class — bootstraps all services and hooks.
+ */
 class Plugin {
 	/**
 	 * Singleton instance.

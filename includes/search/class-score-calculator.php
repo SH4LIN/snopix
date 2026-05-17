@@ -22,6 +22,8 @@ class Score_Calculator {
 	private const EDGE_WEIGHT  = 0.25;
 
 	/**
+	 * Constructor.
+	 *
 	 * @param Similarity $similarity Similarity metrics provider.
 	 */
 	public function __construct( private Similarity $similarity ) {}
@@ -29,7 +31,7 @@ class Score_Calculator {
 	/**
 	 * Calculate the composite similarity score between two fingerprint arrays.
 	 *
-	 * color_vector and edge_vector may be JSON-encoded strings (as stored in DB).
+	 * Color_vector and edge_vector may be JSON-encoded strings (as stored in DB).
 	 * Returns 0.0 if any required key is missing from either fingerprint.
 	 *
 	 * @param array<string, mixed> $query_fp  Fingerprint of the query image.

@@ -17,15 +17,37 @@ namespace PixelScout\Infrastructure;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+/**
+ * PSR-4–style autoloader for PixelScout namespaced classes.
+ */
 class Autoloader {
 
+	/**
+	 * Base directory for class files.
+	 *
+	 * @var string
+	 */
 	private static string $base_dir = '';
 
+	/**
+	 * Register the autoloader with spl_autoload_register.
+	 *
+	 * @param string $base_directory Absolute path to the includes directory.
+	 *
+	 * @return void
+	 */
 	public static function init( string $base_directory ): void {
 		self::$base_dir = rtrim( $base_directory, '/' );
 		spl_autoload_register( array( self::class, 'load' ) );
 	}
 
+	/**
+	 * Attempt to load a class by its fully-qualified name.
+	 *
+	 * @param string $class_name Fully-qualified class name.
+	 *
+	 * @return void
+	 */
 	public static function load( string $class_name ): void {
 		if ( 0 !== strpos( $class_name, 'PixelScout\\' ) ) {
 			return;

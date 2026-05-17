@@ -26,6 +26,8 @@ class REST_Controller {
 	private const REST_NAMESPACE = 'ps/v1';
 
 	/**
+	 * Constructor.
+	 *
 	 * @param Search_Pipeline  $pipeline     Search pipeline.
 	 * @param Query_Image      $query_image  Query image handler.
 	 * @param Index_Repository $repository   Index repository.
@@ -210,9 +212,9 @@ class REST_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_images( \WP_REST_Request $request ): \WP_REST_Response {
-		$page     = absint( $request->get_param( 'page' ) ?: 1 );
-		$per_page = absint( $request->get_param( 'per_page' ) ?: 25 );
-		$search   = sanitize_text_field( $request->get_param( 'search' ) ?: '' );
+		$page     = absint( $request->get_param( 'page' ) ?? 1 );
+		$per_page = absint( $request->get_param( 'per_page' ) ?? 25 );
+		$search   = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
 
 		$rows = $this->repository->get_paginated( $page, $per_page, $search );
 

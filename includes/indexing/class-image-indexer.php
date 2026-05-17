@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Image_Indexer {
 	/**
+	 * Constructor.
+	 *
 	 * @param Mime_Validator      $validator  MIME validator.
 	 * @param Fingerprint_Factory $factory  Fingerprint factory.
 	 * @param Index_Repository    $repository Index repository.

@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Manages progress state for bulk indexing operations using transients.
  *
- * status values:
+ * Status values:
  *   idle   — no job running
  *   running — batches in flight
  *   done   — all batches completed
@@ -32,7 +32,7 @@ class Index_Progress {
 		return array(
 			'done'   => (int) get_transient( self::KEY_DONE ),
 			'total'  => (int) get_transient( self::KEY_TOTAL ),
-			'status' => (string) ( get_transient( self::KEY_STATUS ) ?: 'idle' ),
+			'status' => get_transient( self::KEY_STATUS ) ? (string) get_transient( self::KEY_STATUS ) : 'idle',
 		);
 	}
 

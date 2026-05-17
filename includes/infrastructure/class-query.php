@@ -10,6 +10,9 @@ namespace PixelScout\Infrastructure;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+/**
+ * Fluent query builder wrapper for $wpdb.
+ */
 class Query {
 	/**
 	 * WordPress DB instance.
@@ -433,7 +436,7 @@ class Query {
 	public function get( $output = ARRAY_A ): ?array {
 		list( $sql, $values ) = $this->build_sql_with_values();
 		$prepared             = $this->prepare_sql( $sql, $values );
-		$result               = $this->wpdb->get_results( $prepared, $output );
+		$result               = $this->wpdb->get_results( $prepared, $output ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return is_array( $result ) ? $result : null;
 	}
 
@@ -447,7 +450,7 @@ class Query {
 	public function get_row( $output = ARRAY_A ) {
 		list( $sql, $values ) = $this->build_sql_with_values();
 		$prepared             = $this->prepare_sql( $sql, $values );
-		return $this->wpdb->get_row( $prepared, $output );
+		return $this->wpdb->get_row( $prepared, $output ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -460,7 +463,7 @@ class Query {
 	public function get_var( int $col_offset = 0 ) {
 		list( $sql, $values ) = $this->build_sql_with_values();
 		$prepared             = $this->prepare_sql( $sql, $values );
-		return $this->wpdb->get_var( $prepared, $col_offset );
+		return $this->wpdb->get_var( $prepared, $col_offset ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -473,7 +476,7 @@ class Query {
 	public function get_col( int $col_offset = 0 ): ?array {
 		list( $sql, $values ) = $this->build_sql_with_values();
 		$prepared             = $this->prepare_sql( $sql, $values );
-		$result               = $this->wpdb->get_col( $prepared, $col_offset );
+		$result               = $this->wpdb->get_col( $prepared, $col_offset ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return is_array( $result ) ? $result : null;
 	}
 
@@ -515,7 +518,7 @@ class Query {
 
 		$sql      = 'UPDATE ' . $this->table . ' SET ' . implode( ', ', $set_parts ) . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, array_merge( $values, $where_values ) );
-		$result   = $this->wpdb->query( $prepared );
+		$result   = $this->wpdb->query( $prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return false === $result ? false : (int) $result;
 	}
 
@@ -532,7 +535,7 @@ class Query {
 
 		$sql      = 'DELETE FROM ' . $this->table . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, $where_values );
-		$result   = $this->wpdb->query( $prepared );
+		$result   = $this->wpdb->query( $prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return false === $result ? false : (int) $result;
 	}
 
@@ -567,7 +570,7 @@ class Query {
 			. ' ON DUPLICATE KEY UPDATE ' . implode( ', ', $updates );
 
 		$prepared = $this->prepare_sql( $sql, $values );
-		$result   = $this->wpdb->query( $prepared );
+		$result   = $this->wpdb->query( $prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return false !== $result;
 	}
 
@@ -662,7 +665,7 @@ class Query {
 			return $sql;
 		}
 
-		return $this->wpdb->prepare( $sql, ...$values );
+		return $this->wpdb->prepare( $sql, ...$values ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**

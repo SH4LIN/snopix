@@ -52,7 +52,7 @@ class GD_Loader {
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		$resource = @$fn( $file );
 
-		return $resource ?: false;
+		return false !== $resource ? $resource : false;
 	}
 
 	/**
@@ -64,7 +64,7 @@ class GD_Loader {
 	 */
 	public function destroy( $gd_resource ): void {
 		if ( $gd_resource ) {
-			imagedestroy( $gd_resource );
+			imagedestroy( $gd_resource ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated
 		}
 	}
 

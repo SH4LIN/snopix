@@ -28,6 +28,8 @@ class Bulk_Indexer {
 	public const CRON_HOOK = 'ps_bulk_index_batch';
 
 	/**
+	 * Constructor.
+	 *
 	 * @param Index_Repository $repository Index repository.
 	 * @param Image_Indexer    $indexer  Single image indexer.
 	 * @param Index_Progress   $progress   Progress tracker.

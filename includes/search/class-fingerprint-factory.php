@@ -18,17 +18,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Fingerprint_Factory {
 
 	/**
+	 * Registered image processors.
+	 *
 	 * @var Processor_Interface[]
 	 */
 	private array $processors;
 
 	/**
-	 * @param GD_Loader             $loader       GD loader.
-	 * @param Processor_Interface[] ...$processors Processors to run.
+	 * Constructor.
+	 *
+	 * @param GD_Loader            $loader       GD loader.
+	 * @param Processor_Interface  ...$processors Processors to run.
 	 */
 	public function __construct(
 		private GD_Loader $loader,
-		Processor_Interface ...$processors
+		Processor_Interface ...$processors // phpcs:ignore WordPress.Commenting.FunctionComment.InvalidTypeHint
 	) {
 		$this->processors = $processors;
 	}

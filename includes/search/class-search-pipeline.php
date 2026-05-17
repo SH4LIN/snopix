@@ -23,6 +23,8 @@ class Search_Pipeline {
 	private const SCORE_THRESHOLD   = 0.40;
 
 	/**
+	 * Constructor.
+	 *
 	 * @param Index_Repository    $repository Index data access.
 	 * @param Fingerprint_Factory $factory  Fingerprint generator.
 	 * @param Score_Calculator    $calculator Composite score calculator.

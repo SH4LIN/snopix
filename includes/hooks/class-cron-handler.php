@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Cron_Handler {
 	/**
+	 * Constructor.
+	 *
 	 * @param Bulk_Indexer $bulk_indexer Bulk indexer.
 	 */
 	public function __construct(

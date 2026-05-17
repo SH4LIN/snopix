@@ -10,6 +10,9 @@ namespace PixelScout\Repository;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+/**
+ * Manages database table schema for the plugin.
+ */
 class Schema {
 	/**
 	 * Create or update plugin tables.
@@ -53,6 +56,7 @@ class Schema {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'ps_index';
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
 	}
 

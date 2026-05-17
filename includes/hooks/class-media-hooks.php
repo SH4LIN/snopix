@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Media_Hooks {
 	/**
+	 * Constructor.
+	 *
 	 * @param Image_Indexer $indexer Single image indexer.
 	 */
 	public function __construct(
