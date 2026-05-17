@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { __ } from '@wordpress/i18n'
 
 declare const ps_data: { rest_url: string; nonce: string }
 
@@ -31,7 +32,7 @@ export default function SearchPreview() {
 			if (!res.ok) throw new Error('Search failed')
 			setResults(await res.json())
 		} catch {
-			setError('Something went wrong. Try a different image.')
+			setError(__( 'Something went wrong. Try a different image.', 'pixel-scout' ))
 		} finally {
 			setLoading(false)
 		}
@@ -39,10 +40,8 @@ export default function SearchPreview() {
 
 	return (
 		<div className="ps-card">
-			<div
-				style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', color: 'var(--ps-text)' }}
-			>
-				Search by Image
+			<div className="text-sm font-semibold mb-3 text-ps-text">
+				{__( 'Search by Image', 'pixel-scout' )}
 			</div>
 
 			<div
@@ -52,98 +51,59 @@ export default function SearchPreview() {
 				onDrop={(e) => {
 					e.preventDefault()
 					const f = e.dataTransfer.files[0]
-					if (f) {
-						handleFile(f)
-					}
+					if (f) handleFile(f)
 				}}
 			>
-				<div style={{ fontSize: '13px', color: 'var(--ps-muted)' }}>
-					Drop an image to test search
+				<div className="text-[13px] text-ps-muted">
+					{__( 'Drop an image to test search', 'pixel-scout' )}
 				</div>
-
-				<div style={{ fontSize: '12px', color: 'var(--ps-muted)', marginTop: '4px' }}>
-					or click to browse
+				<div className="text-xs text-ps-muted mt-1">
+					{__( 'or click to browse', 'pixel-scout' )}
 				</div>
-
 				<input
 					ref={inputRef}
 					type="file"
 					accept="image/*"
-					style={{ display: 'none' }}
+					className="hidden"
 					onChange={(e) => {
 						const f = e.target.files?.[0]
-                        if (f) {
-                            handleFile(f)
-                        }
+						if (f) handleFile(f)
 					}}
 				/>
 			</div>
 
-			{
-				loading && (
-					<div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--ps-muted)' }}>
-						Searching&hellip;
-					</div>
-				)
-			}
+			{loading && (
+				<div className="mt-3 text-[13px] text-ps-muted">
+					{__( 'Searching…', 'pixel-scout' )}
+				</div>
+			)}
 
-			{
-				error && (
-					<div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--ps-danger)' }}>
-						{error}
-					</div>
-				)
-			}
+			{error && (
+				<div className="mt-3 text-[13px] text-ps-danger">{error}</div>
+			)}
 
-			{
-				results !== null && results.length === 0 && (
-					<div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--ps-muted)' }}>
-						No similar images found. Try a different image.
-					</div>
-				)
-			}
+			{results !== null && results.length === 0 && (
+				<div className="mt-3 text-[13px] text-ps-muted">
+					{__( 'No similar images found. Try a different image.', 'pixel-scout' )}
+				</div>
+			)}
 
-			{
-				results && results.length > 0 && (
-					<div style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-						{
-							results.slice(0, 6).map((r) => (
-								<div
-									key={r.id}
-									style={{
-										position: 'relative',
-										borderRadius: '8px',
-										overflow: 'hidden',
-										background: 'var(--ps-surface)',
-									}}
-								>
-
-									<img
-										src={r.thumbnail || r.url}
-										alt={r.title}
-										style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }}
-									/>
-
-									<div
-										style={{
-											position: 'absolute',
-											top: '4px',
-											right: '4px',
-											background: 'var(--ps-accent)',
-											color: '#fff',
-											fontSize: '10px',
-											borderRadius: '10px',
-											padding: '2px 6px',
-										}}
-									>
-										{Math.round(r.score * 100)}%
-									</div>
-								</div>
-							))
-						}
-					</div>
-				)
-			}
+			{results && results.length > 0 && (
+				<div className="mt-3 grid grid-cols-2 gap-2">
+					{results.slice(0, 6).map((r) => (
+						<div key={r.id} className="relative rounded-[8px] overflow-hidden bg-ps-surface">
+							<img
+								src={r.thumbnail || r.url}
+								alt={r.title}
+								className="w-full h-20 object-cover block"
+							/>
+							<div className="absolute top-1 right-1 bg-ps-accent text-white text-[10px] rounded-[10px] px-1.5 py-0.5">
+								{Math.round(r.score * 100)}%
+							</div>
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }

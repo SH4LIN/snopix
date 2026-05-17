@@ -1,15 +1,15 @@
+import { __ } from '@wordpress/i18n'
+
 export default function EmptyState() {
 	return (
-		<div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--ps-muted)' }}>
-			<div style={{ fontSize: '32px', marginBottom: '12px' }}>🖼</div>
-
-			<div
-				style={{ fontSize: '16px', fontWeight: 600, color: 'var(--ps-text)', marginBottom: '8px' }}
-			>
-				No images indexed yet
+		<div className="text-center py-12 px-6 text-ps-muted">
+			<div className="text-[32px] mb-3">🖼</div>
+			<div className="text-base font-semibold text-ps-text mb-2">
+				{__( 'No images indexed yet', 'pixel-scout' )}
 			</div>
-
-			<div style={{ fontSize: '14px' }}>Upload images to the Media Library to get started.</div>
+			<div className="text-sm">
+				{__( 'Upload images to the Media Library to get started.', 'pixel-scout' )}
+			</div>
 		</div>
 	)
 }

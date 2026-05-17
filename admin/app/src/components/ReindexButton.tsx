@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n'
 import { useStore } from '../store/use-store'
 import { useReindex, useIndexingProgress } from '../hooks/use-reindex'
 
@@ -23,87 +24,60 @@ export default function ReindexButton({ status }: Props) {
 	const pct = progress && progress.total > 0 ? (progress.done / progress.total) * 100 : 0
 
 	return (
-		<div className="ps-card" style={{ marginBottom: '16px' }}>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					marginBottom: '12px',
-				}}
-			>
-
-				<span style={{ fontSize: '14px', color: 'var(--ps-text)' }}>
-					{
-						status
-							? `${status.indexed.toLocaleString()} of ${status.total.toLocaleString()} images indexed` : '—'
-					}
+		<div className="ps-card mb-4">
+			<div className="flex justify-between items-center mb-3">
+				<span className="text-sm">
+					{status
+						? __( `${status.indexed.toLocaleString()} of ${status.total.toLocaleString()} images indexed`, 'pixel-scout' )
+						: '—'}
 				</span>
 
-				{
-					isIdle && (
-						<button
-							className="ps-btn"
-							onClick={() => startReindex()}
-							disabled={isPending || !status?.pending}
-						>
-							Index Remaining {status?.pending ?? ''} &rarr;
-						</button>
-					)
-				}
+				{isIdle && (
+					<button
+						className="ps-btn"
+						onClick={() => startReindex()}
+						disabled={isPending || !status?.pending}
+					>
+						{/* translators: %d is the number of images to index */}
+						{__( 'Index Remaining', 'pixel-scout' )} {status?.pending ?? ''} &rarr;
+					</button>
+				)}
 
-				{
-					isRunning && (
-						<button
-							className="ps-btn"
-							style={{ background: 'var(--ps-muted)' }}
-							onClick={() => setIndexingState('idle')}
-						>
-							Cancel
-						</button>
-					)
-				}
+				{isRunning && (
+					<button className="ps-btn bg-ps-muted" onClick={() => setIndexingState('idle')}>
+						{__( 'Cancel', 'pixel-scout' )}
+					</button>
+				)}
 			</div>
 
-			{
-				(isRunning || isDone) && (
-					<div className="ps-progress">
-						<div
-							style={{
-								height: '100%',
-								width: `${isDone ? 100 : pct}%`,
-								background: isDone ? 'var(--ps-success)' : 'var(--ps-accent)',
-								borderRadius: 'inherit',
-								transition: 'width 0.4s ease',
-							}}
-						/>
-					</div>
-				)
-			}
+			{(isRunning || isDone) && (
+				<div className="ps-progress">
+					<div
+						className={`h-full transition-all duration-[400ms] rounded-[inherit] ${
+							isDone ? 'bg-ps-success' : 'bg-ps-accent'
+						}`}
+						style={{ width: `${isDone ? 100 : pct}%` }}
+					/>
+				</div>
+			)}
 
-			{
-				isRunning && progress && (
-					<div style={{ fontSize: '12px', color: 'var(--ps-muted)', marginTop: '6px' }}>
-						Indexing&hellip; {progress.done} of {progress.total}
-					</div>
-				)
-			}
+			{isRunning && progress && (
+				<div className="text-xs text-ps-muted mt-1.5">
+					{__( 'Indexing…', 'pixel-scout' )} {progress.done} of {progress.total}
+				</div>
+			)}
 
-			{
-				isDone && (
-					<div style={{ fontSize: '12px', color: 'var(--ps-success)', marginTop: '6px' }}>
-						✓ Indexing complete
-					</div>
-				)
-			}
+			{isDone && (
+				<div className="text-xs text-ps-success mt-1.5">
+					✓ {__( 'Indexing complete', 'pixel-scout' )}
+				</div>
+			)}
 
-			{
-				isStalled && (
-					<div style={{ fontSize: '12px', color: 'var(--ps-danger)', marginTop: '6px' }}>
-						✗ Indexing stalled — check server cron
-					</div>
-				)
-			}
+			{isStalled && (
+				<div className="text-xs text-ps-danger mt-1.5">
+					✗ {__( 'Indexing stalled — check server cron', 'pixel-scout' )}
+				</div>
+			)}
 		</div>
 	)
 }

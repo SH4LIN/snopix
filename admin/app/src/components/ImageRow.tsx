@@ -1,3 +1,5 @@
+import { __ } from '@wordpress/i18n'
+
 interface ImageData {
 	attachment_id: number
 	mime_type: string
@@ -25,61 +27,33 @@ export default function ImageRow({ image }: Props) {
 	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`
 	const isIndexed = !!image.phash
 	const pillClass = isIndexed ? 'ps-pill ps-pill--indexed' : 'ps-pill ps-pill--pending'
-	const label = isIndexed ? 'Indexed' : 'Pending'
+	const label = isIndexed ? __( 'Indexed', 'pixel-scout' ) : __( 'Pending', 'pixel-scout' )
 	const date = image.indexed_at ? new Date(image.indexed_at).toLocaleDateString() : '—'
 	const displayName = image.filename || image.title || `ID ${image.attachment_id}`
 
 	return (
-		<tr onClick={() => window.open(editUrl, '_blank')} style={{ cursor: 'pointer' }}>
-
+		<tr onClick={() => window.open(editUrl, '_blank')} className="cursor-pointer">
 			<td>
-				{
-					image.thumbnail_url ? (
-						<img
-							src={image.thumbnail_url}
-							alt={displayName}
-							style={{
-								width: '48px',
-								height: '48px',
-								objectFit: 'cover',
-								borderRadius: '6px',
-								display: 'block',
-							}}
-						/>
-					) : (
-						<div
-							style={{
-								width: '48px',
-								height: '48px',
-								background: 'var(--ps-surface)',
-								borderRadius: '6px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								fontSize: '10px',
-								color: 'var(--ps-muted)',
-							}}
-						>
-							IMG
-						</div>
-					)
-				}
+				{image.thumbnail_url ? (
+					<img
+						src={image.thumbnail_url}
+						alt={displayName}
+						className="w-12 h-12 object-cover rounded-[6px] block"
+					/>
+				) : (
+					<div className="w-12 h-12 bg-ps-surface rounded-[6px] flex items-center justify-center text-[10px] text-ps-muted">
+						{__( 'IMG', 'pixel-scout' )}
+					</div>
+				)}
 			</td>
-
-			<td style={{ fontSize: '13px' }}>
+			<td className="text-[13px]">
 				{displayName}
 				<br />
-				<span style={{ color: 'var(--ps-muted)', fontSize: '11px' }}>{image.mime_type}</span>
+				<span className="text-ps-muted text-[11px]">{image.mime_type}</span>
 			</td>
-
-			<td style={{ fontSize: '13px' }}>
-				{image.width} &times; {image.height}
-			</td>
-
-			<td style={{ fontSize: '13px' }}>{formatBytes(image.file_size)}</td>
-
-			<td style={{ fontSize: '13px' }}>{date}</td>
-
+			<td className="text-[13px]">{image.width} &times; {image.height}</td>
+			<td className="text-[13px]">{formatBytes(image.file_size)}</td>
+			<td className="text-[13px]">{date}</td>
 			<td>
 				<span className={pillClass}>{label}</span>
 			</td>

@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n'
 import StatsBar from './StatsBar'
 import ReindexButton from './ReindexButton'
 import ImageTable from './ImageTable'
@@ -8,34 +9,22 @@ export default function Dashboard() {
 	const { data: status } = useIndexStatus()
 
 	return (
-		<div id="pixel-scout-app" style={{ padding: '24px', maxWidth: '1200px' }}>
-			<h1
-				style={{ fontSize: '28px', fontWeight: 700, marginBottom: '4px', color: 'var(--ps-text)' }}
-			>
-				Pixel Scout
+		<div id="pixel-scout-app" className="p-6 max-w-[1200px]">
+			<h1 className="text-[28px] font-bold mb-1 text-ps-text">
+				{__( 'Pixel Scout', 'pixel-scout' )}
 			</h1>
 
-			<p style={{ color: 'var(--ps-muted)', marginBottom: '24px', fontSize: '14px' }}>
-				Image similarity search
+			<p className="text-ps-muted text-sm mb-6">
+				{__( 'Image similarity search', 'pixel-scout' )}
 			</p>
 
 			<StatsBar status={status} />
 
 			<ReindexButton status={status} />
 
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: '1fr 320px',
-					gap: '16px',
-					marginTop: '16px',
-				}}
-			>
-
+			<div className="grid grid-cols-[1fr_320px] gap-4 mt-4">
 				<ImageTable />
-
 				<SearchPreview />
-
 			</div>
 		</div>
 	)

@@ -1,3 +1,5 @@
+import { __ } from '@wordpress/i18n'
+
 interface Status {
 	total: number
 	indexed: number
@@ -10,34 +12,23 @@ interface Props {
 
 export default function StatsBar({ status }: Props) {
 	const cards = [
-		{ label: 'Total Images', value: status?.total ?? '—', color: 'var(--ps-text)' },
-		{ label: 'Indexed', value: status?.indexed ?? '—', color: 'var(--ps-success)' },
-		{ label: 'Pending', value: status?.pending ?? '—', color: 'var(--ps-warning)' },
+		{ label: __( 'Total Images', 'pixel-scout' ), value: status?.total ?? '—', className: 'text-ps-text' },
+		{ label: __( 'Indexed', 'pixel-scout' ), value: status?.indexed ?? '—', className: 'text-ps-success' },
+		{ label: __( 'Pending', 'pixel-scout' ), value: status?.pending ?? '—', className: 'text-ps-warning' },
 	]
+
 	return (
-		<div
-			style={{
-				display: 'grid',
-				gridTemplateColumns: 'repeat(3, 1fr)',
-				gap: '12px',
-				marginBottom: '16px',
-			}}
-		>
-
-			{
-				cards.map(({ label, value, color }) => (
-					<div key={label} className="ps-card">
-						<div style={{ fontSize: '32px', fontWeight: 700, color }}>
-							{value.toLocaleString?.() ?? value}
-						</div>
-
-						<div style={{ fontSize: '13px', color: 'var(--ps-muted)', marginTop: '4px' }}>
-							{label}
-						</div>
+		<div className="grid grid-cols-3 gap-3 mb-4">
+			{cards.map(({ label, value, className }) => (
+				<div key={label} className="ps-card">
+					<div className={`text-[32px] font-bold ${className}`}>
+						{typeof value === 'number' ? value.toLocaleString() : value}
 					</div>
-
-				))
-			}
+					<div className="text-[13px] text-ps-muted mt-1">
+						{label}
+					</div>
+				</div>
+			))}
 		</div>
 	)
 }
