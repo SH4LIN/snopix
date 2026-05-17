@@ -98,22 +98,25 @@ export default function SearchPreview() {
 			)}
 
 			{results && results.length > 0 && (
-				<div className="mt-3 grid grid-cols-2 gap-2">
+				<div className="mt-4 flex flex-col gap-3">
 					{results.slice(0, 6).map((r) => (
 						<a
 							key={r.id}
 							href={r.attachment_url}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="relative rounded-[8px] overflow-hidden bg-ps-surface block no-underline"
+							className="block no-underline rounded-[8px] overflow-hidden bg-ps-surface border border-ps-border hover:border-ps-accent transition-colors"
 						>
 							<img
 								src={r.url}
 								alt={r.title}
-								className="w-full h-20 object-cover block"
+								className="w-full object-contain block max-h-64"
 							/>
-							<div className="absolute top-1 right-1 bg-ps-accent text-white text-[10px] rounded-[10px] px-1.5 py-0.5">
-								{Math.round(r.score * 100)}%
+							<div className="flex items-center justify-between px-3 py-2">
+								<span className="text-[12px] text-ps-text truncate">{r.title}</span>
+								<span className="text-[11px] font-medium text-ps-accent ml-2 shrink-0">
+									{Math.round(r.score * 100)}%
+								</span>
 							</div>
 						</a>
 					))}
