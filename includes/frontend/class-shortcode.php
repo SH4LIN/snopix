@@ -26,11 +26,9 @@ class Shortcode {
 	/**
 	 * Render the search widget HTML.
 	 *
-	 * @param array $atts Shortcode attributes (unused).
-	 *
 	 * @return string
 	 */
-	public function render( array $atts ): string {
+	public function render(): string {
 		wp_enqueue_style(
 			'ps-search',
 			PIXEL_SCOUT_PLUGIN_URL . 'public/assets/css/search.css',

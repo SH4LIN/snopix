@@ -167,26 +167,29 @@ class Plugin {
 	}
 
 	/**
+	 * Log a message when WP_DEBUG is enabled.
+	 *
+	 * @param string $message Message to log.
+	 *
+	 * @return void
+	 */
+	private static function debug_log( string $message ): void {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Pixel Scout] ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+
+	/**
 	 * Handle plugin activation.
 	 *
 	 * @return void
 	 */
 	public static function activate(): void {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Activation hook triggered.' );
-		}
-
+		self::debug_log( 'Activation hook triggered.' );
 		self::instance()->schema->install();
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Schema installed successfully.' );
-		}
-
+		self::debug_log( 'Schema installed successfully.' );
 		self::instance()->schema->maybe_upgrade();
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Plugin activation complete.' );
-		}
+		self::debug_log( 'Plugin activation complete.' );
 	}
 
 	/**
@@ -195,15 +198,9 @@ class Plugin {
 	 * @return void
 	 */
 	public static function deactivate(): void {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Deactivation hook triggered.' );
-		}
-
+		self::debug_log( 'Deactivation hook triggered.' );
 		wp_clear_scheduled_hook( 'ps_bulk_index_batch' );
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Scheduled events cleared.' );
-		}
+		self::debug_log( 'Scheduled events cleared.' );
 	}
 
 	/**
@@ -212,9 +209,7 @@ class Plugin {
 	 * @return void
 	 */
 	public static function uninstall(): void {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Uninstall routine triggered.' );
-		}
+		self::debug_log( 'Uninstall routine triggered.' );
 
 		$schema = new Schema();
 		$schema->uninstall();
@@ -225,9 +220,7 @@ class Plugin {
 		delete_transient( 'ps_bulk_total' );
 		delete_transient( 'ps_bulk_status' );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] Uninstall complete.' );
-		}
+		self::debug_log( 'Uninstall complete.' );
 	}
 
 	/**

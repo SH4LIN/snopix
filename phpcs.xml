@@ -5,7 +5,7 @@
 	<file>includes/</file>
 	<file>pixel-scout.php</file>
 	<file>uninstall.php</file>
-	<file>admin/views/</file>
+	<file>admin/app/views/</file>
 
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
@@ -51,7 +51,7 @@
 	</rule>
 
 	<arg name="extensions" value="php" />
-	<arg name="report" value="summary" />
+	<arg name="report" value="full" />
 	<arg name="colors" />
 	<arg name="cache" value=".phpcs-cache" />
 	<arg value="p" />

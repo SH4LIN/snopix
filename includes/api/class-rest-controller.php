@@ -195,11 +195,9 @@ class REST_Controller {
 	/**
 	 * Handle GET /status — index counts.
 	 *
-	 * @param \WP_REST_Request $request REST request.
-	 *
 	 * @return \WP_REST_Response
 	 */
-	public function handle_status( \WP_REST_Request $request ): \WP_REST_Response {
+	public function handle_status(): \WP_REST_Response {
 		$counts = $this->repository->get_counts();
 		return new \WP_REST_Response( $counts, 200 );
 	}
@@ -237,11 +235,9 @@ class REST_Controller {
 	/**
 	 * Handle POST /reindex — schedule bulk reindex.
 	 *
-	 * @param \WP_REST_Request $request REST request.
-	 *
 	 * @return \WP_REST_Response
 	 */
-	public function handle_reindex( \WP_REST_Request $request ): \WP_REST_Response {
+	public function handle_reindex(): \WP_REST_Response {
 		$this->bulk_indexer->schedule();
 		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
 	}
@@ -249,11 +245,9 @@ class REST_Controller {
 	/**
 	 * Handle GET /progress — bulk index progress.
 	 *
-	 * @param \WP_REST_Request $request REST request.
-	 *
 	 * @return \WP_REST_Response
 	 */
-	public function handle_progress( \WP_REST_Request $request ): \WP_REST_Response {
+	public function handle_progress(): \WP_REST_Response {
 		return new \WP_REST_Response( $this->progress->get(), 200 );
 	}
 
