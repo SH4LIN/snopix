@@ -61,7 +61,7 @@ class Color_Processor implements Processor_Interface {
 			}
 		}
 
-		imagedestroy( $small );
+		imagedestroy( $small ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 
 		$vector = array_merge(
 			$this->normalise_bins( $r_bins ),

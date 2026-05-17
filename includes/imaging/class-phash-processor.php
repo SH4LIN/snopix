@@ -32,7 +32,7 @@ class PHash_Processor implements Processor_Interface {
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
 
 		$pixels = $this->extract_pixels( $small, 32 );
-		imagedestroy( $small );
+		imagedestroy( $small ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 
 		$dct  = $this->compute_dct( $pixels );
 		$bits = $this->compute_bits( $dct );

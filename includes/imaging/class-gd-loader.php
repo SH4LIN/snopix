@@ -64,7 +64,7 @@ class GD_Loader {
 	 */
 	public function destroy( $gd_resource ): void {
 		if ( $gd_resource ) {
-			imagedestroy( $gd_resource ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imagedestroyDeprecated
+			imagedestroy( $gd_resource ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 		}
 	}
 

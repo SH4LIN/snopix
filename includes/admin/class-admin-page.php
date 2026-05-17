@@ -46,14 +46,14 @@ class Admin_Page {
 
 		wp_enqueue_style(
 			'ps-admin',
-			PIXEL_SCOUT_PLUGIN_URL . 'admin/dist/ps-admin.css',
+			PIXEL_SCOUT_PLUGIN_URL . 'admin/app/dist/ps-admin.css',
 			array(),
 			PIXEL_SCOUT_VERSION
 		);
 
 		wp_enqueue_script(
 			'ps-admin',
-			PIXEL_SCOUT_PLUGIN_URL . 'admin/dist/ps-admin.js',
+			PIXEL_SCOUT_PLUGIN_URL . 'admin/app/dist/ps-admin.js',
 			array(),
 			PIXEL_SCOUT_VERSION,
 			true
@@ -78,6 +78,6 @@ class Admin_Page {
 	 * @return void
 	 */
 	public function render(): void {
-		require PIXEL_SCOUT_PLUGIN_DIR . 'admin/views/admin-root.php';
+		require PIXEL_SCOUT_PLUGIN_DIR . 'admin/app/views/admin-root.php';
 	}
 }

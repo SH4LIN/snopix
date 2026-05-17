@@ -42,7 +42,7 @@ class Edge_Processor implements Processor_Interface {
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
 
 		$pixels = $this->extract_pixels( $small );
-		imagedestroy( $small );
+		imagedestroy( $small ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 
 		$magnitude  = $this->compute_sobel( $pixels );
 		$blocks     = $this->compute_blocks( $magnitude );
