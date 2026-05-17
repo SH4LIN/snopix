@@ -177,14 +177,19 @@ class REST_Controller {
 			$this->query_image->cleanup( $attachment_id );
 		}
 
+		$results = array_values(
+			array_filter( $results, static fn( $r ) => $r->attachment_id !== $attachment_id )
+		);
+
 		return new \WP_REST_Response(
 			array_map(
 				static fn( $r ) => array(
-					'id'        => $r->attachment_id,
-					'url'       => $r->url,
-					'thumbnail' => $r->thumbnail,
-					'title'     => $r->title,
-					'score'     => round( $r->score, 4 ),
+					'id'             => $r->attachment_id,
+					'url'            => $r->url,
+					'thumbnail'      => $r->thumbnail,
+					'title'          => $r->title,
+					'score'          => round( $r->score, 4 ),
+					'attachment_url' => get_attachment_link( $r->attachment_id ),
 				),
 				$results
 			),

@@ -9,6 +9,7 @@ interface SearchResultItem {
 	thumbnail: string;
 	title: string;
 	score: number;
+	attachment_url: string;
 }
 
 export default function SearchPreview() {
@@ -99,19 +100,22 @@ export default function SearchPreview() {
 			{results && results.length > 0 && (
 				<div className="mt-3 grid grid-cols-2 gap-2">
 					{results.slice(0, 6).map((r) => (
-						<div
+						<a
 							key={r.id}
-							className="relative rounded-[8px] overflow-hidden bg-ps-surface"
+							href={r.attachment_url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="relative rounded-[8px] overflow-hidden bg-ps-surface block no-underline"
 						>
 							<img
-								src={r.thumbnail || r.url}
+								src={r.url}
 								alt={r.title}
 								className="w-full h-20 object-cover block"
 							/>
 							<div className="absolute top-1 right-1 bg-ps-accent text-white text-[10px] rounded-[10px] px-1.5 py-0.5">
 								{Math.round(r.score * 100)}%
 							</div>
-						</div>
+						</a>
 					))}
 				</div>
 			)}
