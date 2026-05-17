@@ -1,23 +1,23 @@
-import { useState } from 'react'
-import { __ } from '@wordpress/i18n'
-import { useImages } from '../hooks/use-images'
-import ImageRow from './ImageRow'
+import { useState } from 'react';
+import { __ } from '@wordpress/i18n';
+import { useImages } from '../hooks/use-images';
+import ImageRow from './ImageRow';
 
 export default function ImageTable() {
-	const [page, setPage] = useState(1)
-	const [search, setSearch] = useState('')
-	const { data: images, isLoading } = useImages({ page, search })
+	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState('');
+	const { data: images, isLoading } = useImages({ page, search });
 
 	return (
 		<div className="ps-card">
 			<div className="mb-3">
 				<input
 					className="ps-input w-full"
-					placeholder={__( 'Search images…', 'pixel-scout' )}
+					placeholder={__('Search images…', 'pixel-scout')}
 					value={search}
 					onChange={(e) => {
-						setSearch(e.target.value)
-						setPage(1)
+						setSearch(e.target.value);
+						setPage(1);
 					}}
 				/>
 			</div>
@@ -26,18 +26,21 @@ export default function ImageTable() {
 				<thead>
 					<tr>
 						<th></th>
-						<th>{__( 'File Name', 'pixel-scout' )}</th>
-						<th>{__( 'Dimensions', 'pixel-scout' )}</th>
-						<th>{__( 'Size', 'pixel-scout' )}</th>
-						<th>{__( 'Indexed At', 'pixel-scout' )}</th>
-						<th>{__( 'Status', 'pixel-scout' )}</th>
+						<th>{__('File Name', 'pixel-scout')}</th>
+						<th>{__('Dimensions', 'pixel-scout')}</th>
+						<th>{__('Size', 'pixel-scout')}</th>
+						<th>{__('Indexed At', 'pixel-scout')}</th>
+						<th>{__('Status', 'pixel-scout')}</th>
 					</tr>
 				</thead>
 				<tbody>
 					{isLoading && (
 						<tr>
-							<td colSpan={6} className="text-center text-ps-muted py-6">
-								{__( 'Loading…', 'pixel-scout' )}
+							<td
+								colSpan={6}
+								className="text-center text-ps-muted py-6"
+							>
+								{__('Loading…', 'pixel-scout')}
 							</td>
 						</tr>
 					)}
@@ -46,8 +49,11 @@ export default function ImageTable() {
 					))}
 					{!isLoading && images?.length === 0 && (
 						<tr>
-							<td colSpan={6} className="text-center text-ps-muted py-6">
-								{__( 'No images found', 'pixel-scout' )}
+							<td
+								colSpan={6}
+								className="text-center text-ps-muted py-6"
+							>
+								{__('No images found', 'pixel-scout')}
 							</td>
 						</tr>
 					)}
@@ -55,7 +61,9 @@ export default function ImageTable() {
 			</table>
 
 			<div className="flex justify-between items-center mt-3 text-[13px] text-ps-muted">
-				<span>{__( 'Page', 'pixel-scout' )} {page}</span>
+				<span>
+					{__('Page', 'pixel-scout')} {page}
+				</span>
 				<div className="flex gap-2">
 					<button
 						onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -74,5 +82,5 @@ export default function ImageTable() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

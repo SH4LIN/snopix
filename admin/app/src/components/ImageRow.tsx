@@ -1,38 +1,48 @@
-import { __ } from '@wordpress/i18n'
+import { __ } from '@wordpress/i18n';
 
 interface ImageData {
-	attachment_id: number
-	mime_type: string
-	file_size: number
-	width: number
-	height: number
-	indexed_at: string
-	phash: string
-	title?: string
-	filename?: string
-	thumbnail_url?: string
+	attachment_id: number;
+	mime_type: string;
+	file_size: number;
+	width: number;
+	height: number;
+	indexed_at: string;
+	phash: string;
+	title?: string;
+	filename?: string;
+	thumbnail_url?: string;
 }
 
 interface Props {
-	image: ImageData
+	image: ImageData;
 }
 
 function formatBytes(bytes: number): string {
-	if (bytes < 1024) return `${bytes} B`
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-	return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export default function ImageRow({ image }: Props) {
-	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`
-	const isIndexed = !!image.phash
-	const pillClass = isIndexed ? 'ps-pill ps-pill--indexed' : 'ps-pill ps-pill--pending'
-	const label = isIndexed ? __( 'Indexed', 'pixel-scout' ) : __( 'Pending', 'pixel-scout' )
-	const date = image.indexed_at ? new Date(image.indexed_at).toLocaleDateString() : '—'
-	const displayName = image.filename || image.title || `ID ${image.attachment_id}`
+	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`;
+	const isIndexed = !!image.phash;
+	const pillClass = isIndexed
+		? 'ps-pill ps-pill--indexed'
+		: 'ps-pill ps-pill--pending';
+	const label = isIndexed
+		? __('Indexed', 'pixel-scout')
+		: __('Pending', 'pixel-scout');
+	const date = image.indexed_at
+		? new Date(image.indexed_at).toLocaleDateString()
+		: '—';
+	const displayName =
+		image.filename || image.title || `ID ${image.attachment_id}`;
 
 	return (
-		<tr onClick={() => window.open(editUrl, '_blank')} className="cursor-pointer">
+		<tr
+			onClick={() => window.open(editUrl, '_blank')}
+			className="cursor-pointer"
+		>
 			<td>
 				{image.thumbnail_url ? (
 					<img
@@ -42,21 +52,25 @@ export default function ImageRow({ image }: Props) {
 					/>
 				) : (
 					<div className="w-12 h-12 bg-ps-surface rounded-[6px] flex items-center justify-center text-[10px] text-ps-muted">
-						{__( 'IMG', 'pixel-scout' )}
+						{__('IMG', 'pixel-scout')}
 					</div>
 				)}
 			</td>
 			<td className="text-[13px]">
 				{displayName}
 				<br />
-				<span className="text-ps-muted text-[11px]">{image.mime_type}</span>
+				<span className="text-ps-muted text-[11px]">
+					{image.mime_type}
+				</span>
 			</td>
-			<td className="text-[13px]">{image.width} &times; {image.height}</td>
+			<td className="text-[13px]">
+				{image.width} &times; {image.height}
+			</td>
 			<td className="text-[13px]">{formatBytes(image.file_size)}</td>
 			<td className="text-[13px]">{date}</td>
 			<td>
 				<span className={pillClass}>{label}</span>
 			</td>
 		</tr>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-@import './components.css';
+@import "./components.css";
 
 @tailwind base;
 @tailwind components;
@@ -25,7 +25,9 @@
 	--ps-duration: 200ms;
 	--ps-easing: ease-out;
 
-	--ps-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+	--ps-font:
+		-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
+		sans-serif;
 }
 
 /* ─── WP admin resets ───────────────────────
@@ -48,8 +50,14 @@
 		background: var(--ps-surface);
 	}
 
-	:where(#pixel-scout-app) a { color: inherit; text-decoration: none; }
-	:where(#pixel-scout-app) table { border-collapse: collapse; border-spacing: 0; }
+	:where(#pixel-scout-app) a {
+		color: inherit;
+		text-decoration: none;
+	}
+	:where(#pixel-scout-app) table {
+		border-collapse: collapse;
+		border-spacing: 0;
+	}
 
 	:where(#pixel-scout-app) input,
 	:where(#pixel-scout-app) button,
@@ -66,22 +74,37 @@
 	:where(#pixel-scout-app) h1,
 	:where(#pixel-scout-app) h2,
 	:where(#pixel-scout-app) h3,
-	:where(#pixel-scout-app) h4 { margin: 0; font-weight: 600; }
+	:where(#pixel-scout-app) h4 {
+		margin: 0;
+		font-weight: 600;
+	}
 
-	:where(#pixel-scout-app) p { margin: 0; }
+	:where(#pixel-scout-app) p {
+		margin: 0;
+	}
 
 	:where(#pixel-scout-app) ul,
-	:where(#pixel-scout-app) ol { margin: 0; padding: 0; list-style: none; }
+	:where(#pixel-scout-app) ol {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
 
 	:where(#pixel-scout-app) *:focus-visible {
 		@apply outline-2 outline-ps-accent outline-offset-2 rounded-[var(--ps-radius-input)];
 		outline-style: solid;
 	}
 
-	.ps-sr-only { @apply sr-only; }
+	.ps-sr-only {
+		@apply sr-only;
+	}
 }
 
 @keyframes ps-progress-slide {
-	0% { background-position: 200% 0; }
-	100% { background-position: -200% 0; }
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
 }
