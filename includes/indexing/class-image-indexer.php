@@ -18,14 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Image_Indexer {
 	/**
-	 * @param Mime_Validator	  $validator  MIME validator.
-	 * @param Fingerprint_Factory $factory	Fingerprint factory.
-	 * @param Index_Repository	$repository Index repository.
+	 * @param Mime_Validator      $validator  MIME validator.
+	 * @param Fingerprint_Factory $factory  Fingerprint factory.
+	 * @param Index_Repository    $repository Index repository.
 	 */
 	public function __construct(
-		private Mime_Validator	  $validator,
+		private Mime_Validator $validator,
 		private Fingerprint_Factory $factory,
-		private Index_Repository	$repository
+		private Index_Repository $repository
 	) {}
 
 	/**
@@ -48,14 +48,17 @@ class Image_Indexer {
 			return false;
 		}
 
-		$meta		= wp_get_attachment_metadata( $attachment_id );
-		$file		= get_attached_file( $attachment_id );
-		$fingerprint = array_merge( $fingerprint, [
-			'mime_type' => $mime,
-			'width'	 => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
-			'height'	=> isset( $meta['height'] ) ? (int) $meta['height'] : 0,
-			'file_size' => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
-		] );
+		$meta        = wp_get_attachment_metadata( $attachment_id );
+		$file        = get_attached_file( $attachment_id );
+		$fingerprint = array_merge(
+			$fingerprint,
+			array(
+				'mime_type' => $mime,
+				'width'     => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
+				'height'    => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
+				'file_size' => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
+			)
+		);
 
 		return $this->repository->upsert( $attachment_id, $fingerprint );
 	}

@@ -1,37 +1,37 @@
 {
-  "name": "pixel-scout",
-  "version": "0.1.0",
-  "description": "Image similarity search for WordPress media library",
-  "private": true,
-  "scripts": {
-    "dev": "npm run build:admin -- --watch",
-    "build": "npm run build:admin && npm run build:search",
-    "build:admin": "cd admin/app && vite build",
-    "build:search": "echo 'Frontend search build - future'",
-    "lint": "npm run lint:ts && npm run lint:styles",
-    "lint:ts": "eslint admin/app/src --ext .ts,.tsx",
-    "format": "prettier --write admin/app/src",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@types/node": "^22.12.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.23.0",
-    "@typescript-eslint/parser": "^8.23.0",
-    "@wordpress/env": "^11.5.0",
-    "eslint": "^10.3.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-react": "^7.37.5",
-    "prettier": "^3.8.3",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.12"
-  }
+	"name": "pixel-scout",
+	"version": "0.1.0",
+	"description": "Image similarity search for WordPress media library",
+	"private": true,
+	"scripts": {
+		"dev": "npm run build:admin -- --watch",
+		"build": "npm run build:admin && npm run build:search",
+		"build:admin": "cd admin/app && vite build",
+		"build:search": "echo 'Frontend search build - future'",
+		"lint": "npm run lint:ts && npm run lint:styles",
+		"lint:ts": "eslint admin/app/src --ext .ts,.tsx",
+		"format": "prettier --write admin/app/src",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:headed": "playwright test --headed",
+		"test:e2e:debug": "playwright test --debug",
+		"test:e2e:report": "playwright show-report"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.60.0",
+		"@types/node": "^22.12.0",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@typescript-eslint/eslint-plugin": "^8.23.0",
+		"@typescript-eslint/parser": "^8.23.0",
+		"@wordpress/env": "^11.5.0",
+		"eslint": "^10.3.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-react": "^7.37.5",
+		"prettier": "^3.8.3",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.12"
+	}
 }
 
 

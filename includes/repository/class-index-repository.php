@@ -36,7 +36,7 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Upsert index row.
 	 *
-	 * @param int				 $attachment_id Attachment ID.
+	 * @param int                  $attachment_id Attachment ID.
 	 * @param array<string, mixed> $fingerprint Fingerprint payload.
 	 *
 	 * @return bool
@@ -50,15 +50,15 @@ class Index_Repository implements Index_Repository_Interface {
 		}
 
 		$insert = array_merge(
-			[
+			array(
 				'attachment_id' => $attachment_id,
-				'indexed_at'	=> current_time( 'mysql' ),
-			],
+				'indexed_at'    => current_time( 'mysql' ),
+			),
 			$fingerprint
 		);
 
 		$update_columns = array_keys( $insert );
-		$result		 = Query::create()
+		$result         = Query::create()
 			->from( self::TABLE )
 			->upsert( $insert, $update_columns );
 
@@ -82,11 +82,11 @@ class Index_Repository implements Index_Repository_Interface {
 
 		$rows = Query::create()
 			->from( self::TABLE )
-			->select( [ 'attachment_id', 'phash', 'color_vector', 'edge_vector', 'indexed_at' ] )
+			->select( array( 'attachment_id', 'phash', 'color_vector', 'edge_vector', 'indexed_at' ) )
 			->order_by( 'indexed_at', 'DESC' )
 			->get( ARRAY_A );
 
-		$rows = is_array( $rows ) ? $rows : [];
+		$rows = is_array( $rows ) ? $rows : array();
 		wp_cache_set( self::CACHE_ALL, $rows, self::CACHE_GROUP, 5 * MINUTE_IN_SECONDS );
 
 		return $rows;
@@ -95,8 +95,8 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Get paginated index rows.
 	 *
-	 * @param int	$page Current page.
-	 * @param int	$per_page Rows per page.
+	 * @param int    $page Current page.
+	 * @param int    $per_page Rows per page.
 	 * @param string $search Search term.
 	 *
 	 * @return array<int, array<string, mixed>>
@@ -104,7 +104,7 @@ class Index_Repository implements Index_Repository_Interface {
 	public function get_paginated( int $page, int $per_page, string $search ): array {
 		$query = Query::create()
 			->from( self::TABLE )
-			->select( [ 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ] )
+			->select( array( 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ) )
 			->order_by( 'indexed_at', 'DESC' )
 			->paginate( max( 1, $page ), max( 1, $per_page ) );
 
@@ -112,12 +112,12 @@ class Index_Repository implements Index_Repository_Interface {
 			$like = '%' . $this->escape_like( $search ) . '%';
 			$query->where_raw(
 				'attachment_id IN ( SELECT ID FROM ' . $this->wpdb->posts . ' WHERE post_title LIKE %s )',
-				[ $like ]
+				array( $like )
 			);
 		}
 
 		$rows = $query->get( ARRAY_A );
-		return is_array( $rows ) ? $rows : [];
+		return is_array( $rows ) ? $rows : array();
 	}
 
 	/**
@@ -135,14 +135,14 @@ class Index_Repository implements Index_Repository_Interface {
 			->from( $this->wpdb->posts )
 			->select( 'COUNT(*)' )
 			->where( 'post_type', 'attachment', '=', '%s' )
-			->where_raw( 'post_mime_type LIKE %s', [ 'image/%' ] )
+			->where_raw( 'post_mime_type LIKE %s', array( 'image/%' ) )
 			->get_var();
 
-		return [
+		return array(
 			'total'   => $total,
 			'indexed' => $indexed,
 			'pending' => max( 0, $total - $indexed ),
-		];
+		);
 	}
 
 	/**
@@ -156,12 +156,12 @@ class Index_Repository implements Index_Repository_Interface {
 			->select( 'p.ID' )
 			->left_join( self::TABLE, 'idx.attachment_id = p.ID', 'idx' )
 			->where( 'p.post_type', 'attachment', '=', '%s' )
-			->where_raw( 'p.post_mime_type LIKE %s', [ 'image/%' ] )
+			->where_raw( 'p.post_mime_type LIKE %s', array( 'image/%' ) )
 			->where_raw( 'idx.attachment_id IS NULL' )
 			->get_col();
 
 		if ( ! is_array( $rows ) ) {
-			return [];
+			return array();
 		}
 
 		return array_map( 'absint', $rows );

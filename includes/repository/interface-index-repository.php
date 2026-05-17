@@ -14,7 +14,7 @@ interface Index_Repository_Interface {
 	/**
 	 * Insert or update fingerprint payload.
 	 *
-	 * @param int				 $attachment_id Attachment ID.
+	 * @param int                  $attachment_id Attachment ID.
 	 * @param array<string, mixed> $fingerprint Fingerprint payload.
 	 *
 	 * @return bool
@@ -31,8 +31,8 @@ interface Index_Repository_Interface {
 	/**
 	 * Get paginated rows.
 	 *
-	 * @param int	$page Current page.
-	 * @param int	$per_page Page size.
+	 * @param int    $page Current page.
+	 * @param int    $per_page Page size.
 	 * @param string $search Search term.
 	 *
 	 * @return array<int, array<string, mixed>>

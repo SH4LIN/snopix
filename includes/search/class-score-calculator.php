@@ -38,7 +38,7 @@ class Score_Calculator {
 	 * @return float Composite score in the range 0.0–1.0.
 	 */
 	public function calculate( array $query_fp, array $stored_fp ): float {
-		$required = [ 'phash', 'color_vector', 'edge_vector' ];
+		$required = array( 'phash', 'color_vector', 'edge_vector' );
 
 		foreach ( $required as $key ) {
 			if ( ! isset( $query_fp[ $key ], $stored_fp[ $key ] ) ) {
@@ -71,9 +71,9 @@ class Score_Calculator {
 	private function decode_vector( mixed $value ): array {
 		if ( is_string( $value ) ) {
 			$decoded = json_decode( $value, true );
-			return is_array( $decoded ) ? $decoded : [];
+			return is_array( $decoded ) ? $decoded : array();
 		}
 
-		return is_array( $value ) ? $value : [];
+		return is_array( $value ) ? $value : array();
 	}
 }

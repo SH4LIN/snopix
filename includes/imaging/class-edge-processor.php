@@ -36,7 +36,7 @@ class Edge_Processor implements Processor_Interface {
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, self::THUMB_SIZE, self::THUMB_SIZE );
 		if ( false === $small ) {
-			return [ 'edge_vector' => array_fill( 0, 32, 0.0 ) ];
+			return array( 'edge_vector' => array_fill( 0, 32, 0.0 ) );
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
@@ -44,12 +44,12 @@ class Edge_Processor implements Processor_Interface {
 		$pixels = $this->extract_pixels( $small );
 		imagedestroy( $small );
 
-		$magnitude = $this->compute_sobel( $pixels );
-		$blocks	= $this->compute_blocks( $magnitude );
-		$reduced   = $this->reduce_to_32( $blocks );
+		$magnitude  = $this->compute_sobel( $pixels );
+		$blocks     = $this->compute_blocks( $magnitude );
+		$reduced    = $this->reduce_to_32( $blocks );
 		$normalised = $this->normalise( $reduced );
 
-		return [ 'edge_vector' => $normalised ];
+		return array( 'edge_vector' => $normalised );
 	}
 
 	/**
@@ -61,10 +61,10 @@ class Edge_Processor implements Processor_Interface {
 	 */
 	private function extract_pixels( $gd ): array {
 		$size   = self::THUMB_SIZE;
-		$pixels = [];
+		$pixels = array();
 		for ( $x = 0; $x < $size; $x++ ) {
 			for ( $y = 0; $y < $size; $y++ ) {
-				$rgb			 = imagecolorat( $gd, $x, $y );
+				$rgb                = imagecolorat( $gd, $x, $y );
 				$pixels[ $x ][ $y ] = (float) ( ( $rgb >> 16 ) & 0xFF );
 			}
 		}
@@ -82,8 +82,8 @@ class Edge_Processor implements Processor_Interface {
 	 * @return array<int, array<int, float>> Magnitude matrix [x][y].
 	 */
 	private function compute_sobel( array $p ): array {
-		$size	  = self::THUMB_SIZE;
-		$magnitude = [];
+		$size      = self::THUMB_SIZE;
+		$magnitude = array();
 
 		for ( $x = 0; $x < $size; $x++ ) {
 			for ( $y = 0; $y < $size; $y++ ) {
@@ -116,7 +116,7 @@ class Edge_Processor implements Processor_Interface {
 	 */
 	private function compute_blocks( array $magnitude ): array {
 		$block_size = self::THUMB_SIZE / self::BLOCK_COUNT; // 8.
-		$flat	   = [];
+		$flat       = array();
 
 		for ( $bx = 0; $bx < self::BLOCK_COUNT; $bx++ ) {
 			for ( $by = 0; $by < self::BLOCK_COUNT; $by++ ) {
@@ -141,7 +141,7 @@ class Edge_Processor implements Processor_Interface {
 	 * @return array<int, float> 32 values.
 	 */
 	private function reduce_to_32( array $flat ): array {
-		$reduced = [];
+		$reduced = array();
 		for ( $i = 0; $i < 32; $i++ ) {
 			$reduced[] = ( $flat[ $i * 2 ] + $flat[ $i * 2 + 1 ] ) / 2.0;
 		}

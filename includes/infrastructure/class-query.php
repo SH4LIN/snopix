@@ -37,42 +37,42 @@ class Query {
 	 *
 	 * @var array<string>
 	 */
-	private array $joins = [];
+	private array $joins = array();
 
 	/**
 	 * AND where clauses.
 	 *
 	 * @var array<int, array{sql: string, values: array<int, mixed>}>
 	 */
-	private array $where_clauses = [];
+	private array $where_clauses = array();
 
 	/**
 	 * OR groups, each group is AND-joined with base where clauses.
 	 *
 	 * @var array<int, array<int, array{sql: string, values: array<int, mixed>}>>
 	 */
-	private array $or_groups = [];
+	private array $or_groups = array();
 
 	/**
 	 * GROUP BY columns.
 	 *
 	 * @var array<string>
 	 */
-	private array $group_by = [];
+	private array $group_by = array();
 
 	/**
 	 * HAVING clauses.
 	 *
 	 * @var array<int, array{sql: string, values: array<int, mixed>}>
 	 */
-	private array $having_clauses = [];
+	private array $having_clauses = array();
 
 	/**
 	 * ORDER BY expressions.
 	 *
 	 * @var array<string>
 	 */
-	private array $order_by = [];
+	private array $order_by = array();
 
 	/**
 	 * Limit.
@@ -133,13 +133,13 @@ class Query {
 	/**
 	 * Set table.
 	 *
-	 * @param string	  $table Table name.
+	 * @param string      $table Table name.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
 	 */
 	public function from( string $table, ?string $alias = null ): self {
-		$resolved = $this->resolve_table_name( $table );
+		$resolved    = $this->resolve_table_name( $table );
 		$this->table = $resolved . ( $alias ? ' ' . sanitize_key( $alias ) : '' );
 		return $this;
 	}
@@ -154,21 +154,21 @@ class Query {
 	 */
 	public function from_subquery( self $query, string $alias ): self {
 		list( $sub_sql, $sub_values ) = $query->build_sql_with_values();
-		$this->table = '( ' . $this->prepare_sql( $sub_sql, $sub_values ) . ' ) ' . sanitize_key( $alias );
+		$this->table                  = '( ' . $this->prepare_sql( $sub_sql, $sub_values ) . ' ) ' . sanitize_key( $alias );
 		return $this;
 	}
 
 	/**
 	 * Add INNER JOIN.
 	 *
-	 * @param string	  $table Join table.
-	 * @param string	  $condition Join condition.
+	 * @param string      $table Join table.
+	 * @param string      $condition Join condition.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
 	 */
 	public function inner_join( string $table, string $condition, ?string $alias = null ): self {
-		$resolved	  = $this->resolve_table_name( $table );
+		$resolved      = $this->resolve_table_name( $table );
 		$alias_segment = $alias ? ' ' . sanitize_key( $alias ) : '';
 		$this->joins[] = 'INNER JOIN ' . $resolved . $alias_segment . ' ON ' . $condition;
 		return $this;
@@ -177,14 +177,14 @@ class Query {
 	/**
 	 * Add LEFT JOIN.
 	 *
-	 * @param string	  $table Join table.
-	 * @param string	  $condition Join condition.
+	 * @param string      $table Join table.
+	 * @param string      $condition Join condition.
 	 * @param string|null $alias Optional alias.
 	 *
 	 * @return self
 	 */
 	public function left_join( string $table, string $condition, ?string $alias = null ): self {
-		$resolved	  = $this->resolve_table_name( $table );
+		$resolved      = $this->resolve_table_name( $table );
 		$alias_segment = $alias ? ' ' . sanitize_key( $alias ) : '';
 		$this->joins[] = 'LEFT JOIN ' . $resolved . $alias_segment . ' ON ' . $condition;
 		return $this;
@@ -201,11 +201,11 @@ class Query {
 	 * @return self
 	 */
 	public function where( string $column, $value, string $operator = '=', string $type = '%s' ): self {
-		$clause = $this->sanitize_identifier( $column ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type;
-		$this->where_clauses[] = [
-			'sql'	=> $clause,
-			'values' => [ $value ],
-		];
+		$clause                = $this->sanitize_identifier( $column ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type;
+		$this->where_clauses[] = array(
+			'sql'    => $clause,
+			'values' => array( $value ),
+		);
 		return $this;
 	}
 
@@ -220,27 +220,27 @@ class Query {
 	 * @return self
 	 */
 	public function where_between( string $column, $start, $end, string $type = '%d' ): self {
-		$clause = $this->sanitize_identifier( $column ) . ' BETWEEN ' . $type . ' AND ' . $type;
-		$this->where_clauses[] = [
-			'sql'	=> $clause,
-			'values' => [ $start, $end ],
-		];
+		$clause                = $this->sanitize_identifier( $column ) . ' BETWEEN ' . $type . ' AND ' . $type;
+		$this->where_clauses[] = array(
+			'sql'    => $clause,
+			'values' => array( $start, $end ),
+		);
 		return $this;
 	}
 
 	/**
 	 * Add raw where SQL.
 	 *
-	 * @param string				$sql SQL expression.
-	 * @param array<int, mixed>	 $values Bind values.
+	 * @param string            $sql SQL expression.
+	 * @param array<int, mixed> $values Bind values.
 	 *
 	 * @return self
 	 */
-	public function where_raw( string $sql, array $values = [] ): self {
-		$this->where_clauses[] = [
-			'sql'	=> trim( $sql ),
+	public function where_raw( string $sql, array $values = array() ): self {
+		$this->where_clauses[] = array(
+			'sql'    => trim( $sql ),
 			'values' => array_values( $values ),
-		];
+		);
 		return $this;
 	}
 
@@ -248,8 +248,8 @@ class Query {
 	 * Add date range where clause.
 	 *
 	 * @param string $column Column name.
-	 * @param int	$start_ts Start timestamp.
-	 * @param int	$end_ts End timestamp.
+	 * @param int    $start_ts Start timestamp.
+	 * @param int    $end_ts End timestamp.
 	 * @param bool   $inclusive Inclusive range.
 	 *
 	 * @return self
@@ -267,9 +267,9 @@ class Query {
 	/**
 	 * Add IN clause.
 	 *
-	 * @param string			$column Column name.
+	 * @param string            $column Column name.
 	 * @param array<int, mixed> $values Values.
-	 * @param string			$type Placeholder type.
+	 * @param string            $type Placeholder type.
 	 *
 	 * @return self
 	 */
@@ -280,9 +280,9 @@ class Query {
 	/**
 	 * Add NOT IN clause.
 	 *
-	 * @param string			$column Column name.
+	 * @param string            $column Column name.
 	 * @param array<int, mixed> $values Values.
-	 * @param string			$type Placeholder type.
+	 * @param string            $type Placeholder type.
 	 *
 	 * @return self
 	 */
@@ -331,10 +331,10 @@ class Query {
 	 * @return self
 	 */
 	public function having( string $condition, $value, string $operator = '=', string $type = '%s' ): self {
-		$this->having_clauses[] = [
-			'sql'	=> trim( $condition ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type,
-			'values' => [ $value ],
-		];
+		$this->having_clauses[] = array(
+			'sql'    => trim( $condition ) . ' ' . strtoupper( trim( $operator ) ) . ' ' . $type,
+			'values' => array( $value ),
+		);
 		return $this;
 	}
 
@@ -347,7 +347,7 @@ class Query {
 	 * @return self
 	 */
 	public function order_by( string $column, string $direction = 'ASC' ): self {
-		$dir = 'DESC' === strtoupper( $direction ) ? 'DESC' : 'ASC';
+		$dir              = 'DESC' === strtoupper( $direction ) ? 'DESC' : 'ASC';
 		$this->order_by[] = $this->sanitize_identifier( $column ) . ' ' . $dir;
 		return $this;
 	}
@@ -432,8 +432,8 @@ class Query {
 	 */
 	public function get( $output = ARRAY_A ): ?array {
 		list( $sql, $values ) = $this->build_sql_with_values();
-		$prepared = $this->prepare_sql( $sql, $values );
-		$result   = $this->wpdb->get_results( $prepared, $output );
+		$prepared             = $this->prepare_sql( $sql, $values );
+		$result               = $this->wpdb->get_results( $prepared, $output );
 		return is_array( $result ) ? $result : null;
 	}
 
@@ -446,7 +446,7 @@ class Query {
 	 */
 	public function get_row( $output = ARRAY_A ) {
 		list( $sql, $values ) = $this->build_sql_with_values();
-		$prepared = $this->prepare_sql( $sql, $values );
+		$prepared             = $this->prepare_sql( $sql, $values );
 		return $this->wpdb->get_row( $prepared, $output );
 	}
 
@@ -459,7 +459,7 @@ class Query {
 	 */
 	public function get_var( int $col_offset = 0 ) {
 		list( $sql, $values ) = $this->build_sql_with_values();
-		$prepared = $this->prepare_sql( $sql, $values );
+		$prepared             = $this->prepare_sql( $sql, $values );
 		return $this->wpdb->get_var( $prepared, $col_offset );
 	}
 
@@ -472,8 +472,8 @@ class Query {
 	 */
 	public function get_col( int $col_offset = 0 ): ?array {
 		list( $sql, $values ) = $this->build_sql_with_values();
-		$prepared = $this->prepare_sql( $sql, $values );
-		$result   = $this->wpdb->get_col( $prepared, $col_offset );
+		$prepared             = $this->prepare_sql( $sql, $values );
+		$result               = $this->wpdb->get_col( $prepared, $col_offset );
 		return is_array( $result ) ? $result : null;
 	}
 
@@ -506,14 +506,14 @@ class Query {
 			return false;
 		}
 
-		$set_parts = [];
-		$values	= [];
+		$set_parts = array();
+		$values    = array();
 		foreach ( $data as $column => $value ) {
 			$set_parts[] = $this->sanitize_identifier( (string) $column ) . ' = ' . $this->infer_format( $value );
-			$values[]	= $value;
+			$values[]    = $value;
 		}
 
-		$sql	  = 'UPDATE ' . $this->table . ' SET ' . implode( ', ', $set_parts ) . ' WHERE ' . $where_sql;
+		$sql      = 'UPDATE ' . $this->table . ' SET ' . implode( ', ', $set_parts ) . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, array_merge( $values, $where_values ) );
 		$result   = $this->wpdb->query( $prepared );
 		return false === $result ? false : (int) $result;
@@ -530,7 +530,7 @@ class Query {
 			return false;
 		}
 
-		$sql	  = 'DELETE FROM ' . $this->table . ' WHERE ' . $where_sql;
+		$sql      = 'DELETE FROM ' . $this->table . ' WHERE ' . $where_sql;
 		$prepared = $this->prepare_sql( $sql, $where_values );
 		$result   = $this->wpdb->query( $prepared );
 		return false === $result ? false : (int) $result;
@@ -545,20 +545,20 @@ class Query {
 	 * @return bool
 	 */
 	public function upsert( array $insert_data, array $update_columns ): bool {
-		$columns	  = array_keys( $insert_data );
-		$placeholders = [];
-		$values	   = [];
+		$columns      = array_keys( $insert_data );
+		$placeholders = array();
+		$values       = array();
 
 		foreach ( $insert_data as $value ) {
 			$placeholders[] = $this->infer_format( $value );
-			$values[]	   = $value;
+			$values[]       = $value;
 		}
 
-		$escaped_columns = array_map( [ $this, 'sanitize_identifier' ], $columns );
-		$updates		 = [];
+		$escaped_columns = array_map( array( $this, 'sanitize_identifier' ), $columns );
+		$updates         = array();
 		foreach ( $update_columns as $column ) {
 			$clean_column = $this->sanitize_identifier( $column );
-			$updates[]	= $clean_column . ' = VALUES(' . $clean_column . ')';
+			$updates[]    = $clean_column . ' = VALUES(' . $clean_column . ')';
 		}
 
 		$sql = 'INSERT INTO ' . $this->table
@@ -583,7 +583,7 @@ class Query {
 		}
 
 		list( $where_sql, $where_values ) = $this->compile_where();
-		$values = $where_values;
+		$values                           = $where_values;
 		if ( '' !== $where_sql ) {
 			$sql .= ' WHERE ' . $where_sql;
 		}
@@ -593,10 +593,10 @@ class Query {
 		}
 
 		if ( ! empty( $this->having_clauses ) ) {
-			$having_sqls = [];
+			$having_sqls = array();
 			foreach ( $this->having_clauses as $having ) {
 				$having_sqls[] = $having['sql'];
-				$values		= array_merge( $values, $having['values'] );
+				$values        = array_merge( $values, $having['values'] );
 			}
 
 			$sql .= ' HAVING ' . implode( ' AND ', $having_sqls );
@@ -614,7 +614,7 @@ class Query {
 			$sql .= ' OFFSET ' . (int) $this->offset_value;
 		}
 
-		return [ $sql, $values ];
+		return array( $sql, $values );
 	}
 
 	/**
@@ -623,36 +623,36 @@ class Query {
 	 * @return array{0: string, 1: array<int, mixed>}
 	 */
 	private function compile_where(): array {
-		$clauses = [];
-		$values  = [];
+		$clauses = array();
+		$values  = array();
 
 		foreach ( $this->where_clauses as $clause ) {
 			$clauses[] = $clause['sql'];
-			$values	= array_merge( $values, $clause['values'] );
+			$values    = array_merge( $values, $clause['values'] );
 		}
 
 		foreach ( $this->or_groups as $group ) {
-			$group_sql	= [];
-			$group_values = [];
+			$group_sql    = array();
+			$group_values = array();
 
 			foreach ( $group as $group_clause ) {
-				$group_sql[]	= $group_clause['sql'];
-				$group_values   = array_merge( $group_values, $group_clause['values'] );
+				$group_sql[]  = $group_clause['sql'];
+				$group_values = array_merge( $group_values, $group_clause['values'] );
 			}
 
 			if ( ! empty( $group_sql ) ) {
 				$clauses[] = '( ' . implode( ' OR ', $group_sql ) . ' )';
-				$values	= array_merge( $values, $group_values );
+				$values    = array_merge( $values, $group_values );
 			}
 		}
 
-		return [ implode( ' AND ', $clauses ), $values ];
+		return array( implode( ' AND ', $clauses ), $values );
 	}
 
 	/**
 	 * Prepare SQL with values when required.
 	 *
-	 * @param string			$sql SQL.
+	 * @param string            $sql SQL.
 	 * @param array<int, mixed> $values Values.
 	 *
 	 * @return string
@@ -692,7 +692,7 @@ class Query {
 	 * @return array<int, string>
 	 */
 	private function infer_formats( array $data ): array {
-		$formats = [];
+		$formats = array();
 		foreach ( $data as $value ) {
 			$formats[] = $this->infer_format( $value );
 		}
@@ -702,10 +702,10 @@ class Query {
 	/**
 	 * Add IN/NOT IN clause.
 	 *
-	 * @param string			$column Column.
+	 * @param string            $column Column.
 	 * @param array<int, mixed> $values Values.
-	 * @param string			$type Placeholder.
-	 * @param bool			  $negate Negate.
+	 * @param string            $type Placeholder.
+	 * @param bool              $negate Negate.
 	 *
 	 * @return self
 	 */
@@ -716,12 +716,12 @@ class Query {
 		}
 
 		$placeholders = implode( ', ', array_fill( 0, count( $values ), $type ) );
-		$operator	 = $negate ? 'NOT IN' : 'IN';
+		$operator     = $negate ? 'NOT IN' : 'IN';
 
-		$this->where_clauses[] = [
-			'sql'	=> $this->sanitize_identifier( $column ) . ' ' . $operator . ' ( ' . $placeholders . ' )',
+		$this->where_clauses[] = array(
+			'sql'    => $this->sanitize_identifier( $column ) . ' ' . $operator . ' ( ' . $placeholders . ' )',
 			'values' => $values,
-		];
+		);
 
 		return $this;
 	}

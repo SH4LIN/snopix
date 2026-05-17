@@ -51,11 +51,8 @@ require_once PIXEL_SCOUT_PLUGIN_DIR . 'includes/infrastructure/class-autoloader.
 
 require_once PIXEL_SCOUT_PLUGIN_DIR . 'includes/infrastructure/functions.php';
 
-register_activation_hook( __FILE__, [ 'PixelScout\Infrastructure\Plugin', 'activate' ] );
-register_deactivation_hook( __FILE__, [ 'PixelScout\Infrastructure\Plugin', 'deactivate' ] );
-register_uninstall_hook( __FILE__, [ 'PixelScout\Infrastructure\Plugin', 'uninstall' ] );
+register_activation_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', 'deactivate' ) );
+register_uninstall_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', 'uninstall' ) );
 
 \PixelScout\Infrastructure\Plugin::instance()->register();
-
-
-

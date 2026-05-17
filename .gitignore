@@ -52,5 +52,8 @@ ruvector.db
 agentdb.rvf
 agentdb.rvf.lock
 
+# Cache
+.phpcs-cache
+
 
 

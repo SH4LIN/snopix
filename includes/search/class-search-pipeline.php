@@ -23,23 +23,23 @@ class Search_Pipeline {
 	private const SCORE_THRESHOLD   = 0.40;
 
 	/**
-	 * @param Index_Repository   $repository Index data access.
-	 * @param Fingerprint_Factory $factory	Fingerprint generator.
-	 * @param Score_Calculator   $calculator Composite score calculator.
-	 * @param Similarity		 $similarity Similarity metrics for pre-filtering.
+	 * @param Index_Repository    $repository Index data access.
+	 * @param Fingerprint_Factory $factory  Fingerprint generator.
+	 * @param Score_Calculator    $calculator Composite score calculator.
+	 * @param Similarity          $similarity Similarity metrics for pre-filtering.
 	 */
 	public function __construct(
-		private Index_Repository	$repository,
+		private Index_Repository $repository,
 		private Fingerprint_Factory $factory,
-		private Score_Calculator	$calculator,
-		private Similarity		  $similarity
+		private Score_Calculator $calculator,
+		private Similarity $similarity
 	) {}
 
 	/**
 	 * Run reverse image search for the given attachment.
 	 *
 	 * @param int $attachment_id Query attachment ID.
-	 * @param int $limit		 Maximum results to return.
+	 * @param int $limit         Maximum results to return.
 	 *
 	 * @return Search_Result[]
 	 */
@@ -47,16 +47,16 @@ class Search_Pipeline {
 		$query_fp = $this->factory->generate( $attachment_id );
 
 		if ( empty( $query_fp ) || ! isset( $query_fp['phash'], $query_fp['color_vector'], $query_fp['edge_vector'] ) ) {
-			return [];
+			return array();
 		}
 
 		$all = $this->repository->get_all_indexed();
 
 		if ( empty( $all ) ) {
-			return [];
+			return array();
 		}
 
-		$scored = [];
+		$scored = array();
 
 		foreach ( $all as $row ) {
 			if ( ! isset( $row['phash'] ) ) {
@@ -73,25 +73,28 @@ class Search_Pipeline {
 				continue;
 			}
 
-			$scored[] = [ 'row' => $row, 'score' => $score ];
+			$scored[] = array(
+				'row'   => $row,
+				'score' => $score,
+			);
 		}
 
 		usort( $scored, static fn( $a, $b ) => $b['score'] <=> $a['score'] );
 		$scored = array_slice( $scored, 0, $limit );
 
-		$results = [];
+		$results = array();
 
 		foreach ( $scored as $item ) {
 			$row   = $item['row'];
 			$score = $item['score'];
-			$id	= (int) $row['attachment_id'];
+			$id    = (int) $row['attachment_id'];
 
 			$src   = wp_get_attachment_image_src( $id, 'full' );
 			$thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
 
-			$url	   = $src ? $src[0] : '';
+			$url       = $src ? $src[0] : '';
 			$thumb_url = $thumb ? $thumb[0] : '';
-			$title	 = get_the_title( $id );
+			$title     = get_the_title( $id );
 
 			$results[] = new Search_Result( $id, $url, $thumb_url, $title, $score );
 		}

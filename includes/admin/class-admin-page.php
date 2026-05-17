@@ -26,10 +26,10 @@ class Admin_Page {
 			__( 'Pixel Scout', 'pixel-scout' ),
 			'manage_options',
 			'pixel-scout',
-			[ $this, 'render' ]
+			array( $this, 'render' )
 		);
 
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 	}
 
 	/**
@@ -47,14 +47,14 @@ class Admin_Page {
 		wp_enqueue_style(
 			'ps-admin',
 			PIXEL_SCOUT_PLUGIN_URL . 'admin/dist/ps-admin.css',
-			[],
+			array(),
 			PIXEL_SCOUT_VERSION
 		);
 
 		wp_enqueue_script(
 			'ps-admin',
 			PIXEL_SCOUT_PLUGIN_URL . 'admin/dist/ps-admin.js',
-			[],
+			array(),
 			PIXEL_SCOUT_VERSION,
 			true
 		);
@@ -62,11 +62,11 @@ class Admin_Page {
 		wp_localize_script(
 			'ps-admin',
 			'ps_data',
-			[
+			array(
 				'rest_url' => esc_url_raw( rest_url( 'ps/v1/' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'is_admin' => current_user_can( 'manage_options' ),
-			]
+			)
 		);
 
 		wp_set_script_translations( 'ps-admin', 'pixel-scout', PIXEL_SCOUT_PLUGIN_DIR . 'languages' );

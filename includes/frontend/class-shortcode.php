@@ -20,7 +20,7 @@ class Shortcode {
 	 * @return void
 	 */
 	public function register(): void {
-		add_shortcode( 'ps_search', [ $this, 'render' ] );
+		add_shortcode( 'ps_search', array( $this, 'render' ) );
 	}
 
 	/**
@@ -34,23 +34,23 @@ class Shortcode {
 		wp_enqueue_style(
 			'ps-search',
 			PIXEL_SCOUT_PLUGIN_URL . 'public/assets/css/search.css',
-			[],
+			array(),
 			PIXEL_SCOUT_VERSION
 		);
 		wp_enqueue_script(
 			'ps-search',
 			PIXEL_SCOUT_PLUGIN_URL . 'public/assets/js/search.js',
-			[],
+			array(),
 			PIXEL_SCOUT_VERSION,
 			true
 		);
 		wp_localize_script(
 			'ps-search',
 			'ps_public',
-			[
+			array(
 				'rest_url' => esc_url_raw( rest_url( 'ps/v1/' ) ),
-				'nonce'	=> wp_create_nonce( 'wp_rest' ),
-			]
+				'nonce'    => wp_create_nonce( 'wp_rest' ),
+			)
 		);
 
 		ob_start();

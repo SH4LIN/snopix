@@ -29,7 +29,7 @@ class Cron_Handler {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'ps_bulk_index_batch', [ $this, 'process_batch' ] );
+		add_action( 'ps_bulk_index_batch', array( $this, 'process_batch' ) );
 	}
 
 	/**

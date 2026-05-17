@@ -23,7 +23,7 @@ class Fingerprint_Factory {
 	private array $processors;
 
 	/**
-	 * @param GD_Loader			 $loader	   GD loader.
+	 * @param GD_Loader             $loader       GD loader.
 	 * @param Processor_Interface[] ...$processors Processors to run.
 	 */
 	public function __construct(
@@ -46,10 +46,10 @@ class Fingerprint_Factory {
 		$gd = $this->loader->load( $attachment_id );
 
 		if ( false === $gd ) {
-			return [];
+			return array();
 		}
 
-		$fingerprint = [];
+		$fingerprint = array();
 
 		foreach ( $this->processors as $processor ) {
 			$fingerprint = array_merge( $fingerprint, $processor->process( $gd, $attachment_id ) );

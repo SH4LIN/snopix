@@ -41,7 +41,7 @@ class Color_Processor implements Processor_Interface {
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, self::THUMB_SIZE, self::THUMB_SIZE );
 		if ( false === $small ) {
-			return [ 'color_vector' => array_fill( 0, 48, 0.0 ) ];
+			return array( 'color_vector' => array_fill( 0, 48, 0.0 ) );
 		}
 
 		$r_bins = array_fill( 0, self::BINS, 0 );
@@ -55,9 +55,9 @@ class Color_Processor implements Processor_Interface {
 				$g   = ( $rgb >> 8 ) & 0xFF;
 				$b   = $rgb & 0xFF;
 
-				$r_bins[ (int) floor( $r / 16.0 ) ]++;
-				$g_bins[ (int) floor( $g / 16.0 ) ]++;
-				$b_bins[ (int) floor( $b / 16.0 ) ]++;
+				++$r_bins[ (int) floor( $r / 16.0 ) ];
+				++$g_bins[ (int) floor( $g / 16.0 ) ];
+				++$b_bins[ (int) floor( $b / 16.0 ) ];
 			}
 		}
 
@@ -69,7 +69,7 @@ class Color_Processor implements Processor_Interface {
 			$this->normalise_bins( $b_bins )
 		);
 
-		return [ 'color_vector' => $vector ];
+		return array( 'color_vector' => $vector );
 	}
 
 	/**

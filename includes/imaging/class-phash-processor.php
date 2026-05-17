@@ -26,7 +26,7 @@ class PHash_Processor implements Processor_Interface {
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, 32, 32 );
 		if ( false === $small ) {
-			return [ 'phash' => str_repeat( '0', 16 ) ];
+			return array( 'phash' => str_repeat( '0', 16 ) );
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
@@ -37,7 +37,7 @@ class PHash_Processor implements Processor_Interface {
 		$dct  = $this->compute_dct( $pixels );
 		$bits = $this->compute_bits( $dct );
 
-		return [ 'phash' => $this->bits_to_hex( $bits ) ];
+		return array( 'phash' => $this->bits_to_hex( $bits ) );
 	}
 
 	/**
@@ -49,10 +49,10 @@ class PHash_Processor implements Processor_Interface {
 	 * @return array<int, array<int, float>>
 	 */
 	private function extract_pixels( $gd, int $size ): array {
-		$pixels = [];
+		$pixels = array();
 		for ( $x = 0; $x < $size; $x++ ) {
 			for ( $y = 0; $y < $size; $y++ ) {
-				$rgb			 = imagecolorat( $gd, $x, $y );
+				$rgb = imagecolorat( $gd, $x, $y );
 				// After greyscale filter all channels are equal; use red channel.
 				$pixels[ $x ][ $y ] = (float) ( ( $rgb >> 16 ) & 0xFF );
 			}
@@ -69,7 +69,7 @@ class PHash_Processor implements Processor_Interface {
 	 */
 	private function compute_dct( array $pixels ): array {
 		$size = 32;
-		$dct  = [];
+		$dct  = array();
 
 		for ( $u = 0; $u < 8; $u++ ) {
 			for ( $v = 0; $v < 8; $v++ ) {
@@ -103,7 +103,7 @@ class PHash_Processor implements Processor_Interface {
 	 * @return array<int, int> 64 bits (0 or 1).
 	 */
 	private function compute_bits( array $dct ): array {
-		$flat = [];
+		$flat = array();
 		for ( $u = 0; $u < 8; $u++ ) {
 			for ( $v = 0; $v < 8; $v++ ) {
 				$flat[] = $dct[ $u ][ $v ];
@@ -112,7 +112,7 @@ class PHash_Processor implements Processor_Interface {
 
 		$mean = array_sum( $flat ) / 64.0;
 
-		$bits = [];
+		$bits = array();
 		foreach ( $flat as $value ) {
 			$bits[] = $value > $mean ? 1 : 0;
 		}

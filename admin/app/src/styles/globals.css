@@ -31,9 +31,9 @@
 }
 
 /* ─── WP admin resets ───────────────────────
-   :where() zeroes specificity so Tailwind
-   utilities always override these rules.
-   ─────────────────────────────────────────── */
+	:where() zeroes specificity so Tailwind
+	utilities always override these rules.
+	─────────────────────────────────────────── */
 @layer base {
 	:where(#pixel-scout-app),
 	:where(#pixel-scout-app) * {

@@ -18,7 +18,7 @@ class Query_Image {
 	/**
 	 * Allowed MIME types for query images.
 	 */
-	private const ALLOWED_MIMES = [ 'image/jpeg', 'image/png', 'image/gif', 'image/webp' ];
+	private const ALLOWED_MIMES = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
 
 	/**
 	 * Maximum allowed file size in bytes (10 MB).
@@ -43,19 +43,19 @@ class Query_Image {
 			return false;
 		}
 
-		$overrides = [ 'test_form' => false ];
-		$upload	= wp_handle_upload( $file, $overrides );
+		$overrides = array( 'test_form' => false );
+		$upload    = wp_handle_upload( $file, $overrides );
 
 		if ( isset( $upload['error'] ) || ! isset( $upload['file'] ) ) {
 			return false;
 		}
 
-		$attachment = [
+		$attachment = array(
 			'post_mime_type' => $upload['type'],
-			'post_title'	 => sanitize_file_name( basename( $upload['file'] ) ),
+			'post_title'     => sanitize_file_name( basename( $upload['file'] ) ),
 			'post_content'   => '',
-			'post_status'	=> 'inherit',
-		];
+			'post_status'    => 'inherit',
+		);
 
 		$attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
 

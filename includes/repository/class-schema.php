@@ -22,7 +22,7 @@ class Schema {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$table_name	  = $wpdb->prefix . 'ps_index';
+		$table_name      = $wpdb->prefix . 'ps_index';
 
 		$sql = "CREATE TABLE {$table_name} (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,

@@ -24,10 +24,10 @@ class Settings {
 		register_setting(
 			'ps_settings',
 			'ps_settings',
-			[
-				'sanitize_callback' => [ $this, 'sanitize' ],
-				'default'		   => [ 'search_visibility' => 'anyone' ],
-			]
+			array(
+				'sanitize_callback' => array( $this, 'sanitize' ),
+				'default'           => array( 'search_visibility' => 'anyone' ),
+			)
 		);
 
 		add_settings_section(
@@ -40,7 +40,7 @@ class Settings {
 		add_settings_field(
 			'ps_search_visibility',
 			__( 'Search visibility', 'pixel-scout' ),
-			[ $this, 'render_visibility_field' ],
+			array( $this, 'render_visibility_field' ),
 			'ps_settings',
 			'ps_general'
 		);
@@ -54,12 +54,12 @@ class Settings {
 	 * @return array<string, string>
 	 */
 	public function sanitize( array $input ): array {
-		$allowed	= [ 'anyone', 'logged_in' ];
+		$allowed    = array( 'anyone', 'logged_in' );
 		$visibility = isset( $input['search_visibility'] ) ? sanitize_key( $input['search_visibility'] ) : 'anyone';
 
-		return [
+		return array(
 			'search_visibility' => in_array( $visibility, $allowed, true ) ? $visibility : 'anyone',
-		];
+		);
 	}
 
 	/**
@@ -68,12 +68,12 @@ class Settings {
 	 * @return void
 	 */
 	public function render_visibility_field(): void {
-		$settings   = get_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
-		$current	= $settings['search_visibility'] ?? 'anyone';
-		$options	= [
-			'anyone'	=> __( 'Anyone', 'pixel-scout' ),
+		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		$current  = $settings['search_visibility'] ?? 'anyone';
+		$options  = array(
+			'anyone'    => __( 'Anyone', 'pixel-scout' ),
 			'logged_in' => __( 'Logged-in users only', 'pixel-scout' ),
-		];
+		);
 
 		foreach ( $options as $value => $label ) {
 			printf(
@@ -91,7 +91,7 @@ class Settings {
 	 * @return string
 	 */
 	public function get_visibility(): string {
-		$settings = get_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
+		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
 		return $settings['search_visibility'] ?? 'anyone';
 	}
 }

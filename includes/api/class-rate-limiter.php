@@ -42,7 +42,10 @@ class Rate_Limiter {
 		if ( false === $data ) {
 			set_transient(
 				$key,
-				[ 'count' => 1, 'expires' => time() + self::WINDOW ],
+				array(
+					'count'   => 1,
+					'expires' => time() + self::WINDOW,
+				),
 				self::WINDOW
 			);
 			return true;
@@ -55,7 +58,10 @@ class Rate_Limiter {
 		$remaining_ttl = max( 1, $data['expires'] - time() );
 		set_transient(
 			$key,
-			[ 'count' => $data['count'] + 1, 'expires' => $data['expires'] ],
+			array(
+				'count'   => $data['count'] + 1,
+				'expires' => $data['expires'],
+			),
 			$remaining_ttl
 		);
 

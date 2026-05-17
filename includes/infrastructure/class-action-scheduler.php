@@ -19,9 +19,9 @@ class Action_Scheduler {
 	/**
 	 * Schedule a single background action.
 	 *
-	 * @param string   $hook  WP action hook to fire.
-	 * @param array	$args  Arguments passed to the hook callback.
-	 * @param int	  $delay Seconds from now to fire (0 = immediately next cron run).
+	 * @param string $hook  WP action hook to fire.
+	 * @param array  $args  Arguments passed to the hook callback.
+	 * @param int    $delay Seconds from now to fire (0 = immediately next cron run).
 	 *
 	 * @return bool True on success.
 	 */

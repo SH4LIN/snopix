@@ -51,7 +51,7 @@ class Similarity {
 	 * @return float Cosine similarity 0.0–1.0.
 	 */
 	public function cosine_similarity( array $a, array $b ): float {
-		$dot  = 0.0;
+		$dot   = 0.0;
 		$mag_a = 0.0;
 		$mag_b = 0.0;
 
@@ -86,7 +86,7 @@ class Similarity {
 	 */
 	private function hex_to_binary( string $hex ): string {
 		$binary = '';
-		$len	= strlen( $hex );
+		$len    = strlen( $hex );
 
 		for ( $i = 0; $i < $len; $i++ ) {
 			$nibble = hexdec( $hex[ $i ] );

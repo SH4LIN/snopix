@@ -26,5 +26,3 @@ delete_option( 'ps_settings' );
 delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
 delete_transient( 'ps_bulk_progress' );
 delete_transient( 'ps_bulk_total' );
-
-

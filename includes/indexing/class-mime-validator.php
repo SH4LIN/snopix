@@ -19,12 +19,12 @@ class Mime_Validator {
 	 *
 	 * @var array<string>
 	 */
-	private const ALLOWED = [
+	private const ALLOWED = array(
 		'image/jpeg',
 		'image/png',
 		'image/gif',
 		'image/webp',
-	];
+	);
 
 	/**
 	 * Check if MIME type is allowed for indexing.

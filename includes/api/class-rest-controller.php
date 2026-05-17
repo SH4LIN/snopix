@@ -26,22 +26,22 @@ class REST_Controller {
 	private const REST_NAMESPACE = 'ps/v1';
 
 	/**
-	 * @param Search_Pipeline  $pipeline	 Search pipeline.
-	 * @param Query_Image	  $query_image  Query image handler.
+	 * @param Search_Pipeline  $pipeline     Search pipeline.
+	 * @param Query_Image      $query_image  Query image handler.
 	 * @param Index_Repository $repository   Index repository.
-	 * @param Bulk_Indexer	 $bulk_indexer Bulk indexer.
-	 * @param Index_Progress   $progress	 Progress tracker.
-	 * @param Rate_Limiter	 $rate_limiter Rate limiter.
-	 * @param Settings		 $settings	 Plugin settings.
+	 * @param Bulk_Indexer     $bulk_indexer Bulk indexer.
+	 * @param Index_Progress   $progress     Progress tracker.
+	 * @param Rate_Limiter     $rate_limiter Rate limiter.
+	 * @param Settings         $settings   Plugin settings.
 	 */
 	public function __construct(
-		private Search_Pipeline  $pipeline,
-		private Query_Image	  $query_image,
+		private Search_Pipeline $pipeline,
+		private Query_Image $query_image,
 		private Index_Repository $repository,
-		private Bulk_Indexer	 $bulk_indexer,
-		private Index_Progress   $progress,
-		private Rate_Limiter	 $rate_limiter,
-		private Settings		 $settings
+		private Bulk_Indexer $bulk_indexer,
+		private Index_Progress $progress,
+		private Rate_Limiter $rate_limiter,
+		private Settings $settings
 	) {}
 
 	/**
@@ -53,84 +53,81 @@ class REST_Controller {
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/search',
-			[
-				'methods'			 => \WP_REST_Server::CREATABLE,
-				'callback'			=> [ $this, 'handle_search' ],
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_search' ),
 				'permission_callback' => '__return_true',
-				'args'				=> [
-					'file' => [ 'required' => true ],
-				],
-			]
+			)
 		);
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/status',
-			[
-				'methods'			 => \WP_REST_Server::READABLE,
-				'callback'			=> [ $this, 'handle_status' ],
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_status' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-			]
+			)
 		);
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/images',
-			[
-				'methods'			 => \WP_REST_Server::READABLE,
-				'callback'			=> [ $this, 'handle_images' ],
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_images' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-				'args'				=> [
-					'page'	 => [
+				'args'                => array(
+					'page'     => array(
 						'sanitize_callback' => 'absint',
-						'default'		   => 1,
-					],
-					'per_page' => [
+						'default'           => 1,
+					),
+					'per_page' => array(
 						'sanitize_callback' => 'absint',
-						'default'		   => 25,
-					],
-					'search'   => [
+						'default'           => 25,
+					),
+					'search'   => array(
 						'sanitize_callback' => 'sanitize_text_field',
-						'default'		   => '',
-					],
-				],
-			]
+						'default'           => '',
+					),
+				),
+			)
 		);
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/reindex',
-			[
-				'methods'			 => \WP_REST_Server::CREATABLE,
-				'callback'			=> [ $this, 'handle_reindex' ],
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_reindex' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-			]
+			)
 		);
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/progress',
-			[
-				'methods'			 => \WP_REST_Server::READABLE,
-				'callback'			=> [ $this, 'handle_progress' ],
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_progress' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-			]
+			)
 		);
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/index/(?P<id>\d+)',
-			[
-				'methods'			 => \WP_REST_Server::DELETABLE,
-				'callback'			=> [ $this, 'handle_delete_index' ],
+			array(
+				'methods'             => \WP_REST_Server::DELETABLE,
+				'callback'            => array( $this, 'handle_delete_index' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-				'args'				=> [
-					'id' => [
+				'args'                => array(
+					'id' => array(
 						'validate_callback' => 'is_numeric',
 						'sanitize_callback' => 'absint',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 
@@ -148,7 +145,7 @@ class REST_Controller {
 			return new \WP_Error(
 				'rate_limited',
 				__( 'Too many requests.', 'pixel-scout' ),
-				[ 'status' => 429 ]
+				array( 'status' => 429 )
 			);
 		}
 
@@ -158,7 +155,7 @@ class REST_Controller {
 			return new \WP_Error(
 				'no_file',
 				__( 'No file provided.', 'pixel-scout' ),
-				[ 'status' => 400 ]
+				array( 'status' => 400 )
 			);
 		}
 
@@ -168,7 +165,7 @@ class REST_Controller {
 			return new \WP_Error(
 				'upload_failed',
 				__( 'File upload failed or unsupported type.', 'pixel-scout' ),
-				[ 'status' => 422 ]
+				array( 'status' => 422 )
 			);
 		}
 
@@ -180,13 +177,13 @@ class REST_Controller {
 
 		return new \WP_REST_Response(
 			array_map(
-				static fn( $r ) => [
-					'id'		=> $r->attachment_id,
-					'url'	   => $r->url,
+				static fn( $r ) => array(
+					'id'        => $r->attachment_id,
+					'url'       => $r->url,
 					'thumbnail' => $r->thumbnail,
-					'title'	 => $r->title,
-					'score'	 => round( $r->score, 4 ),
-				],
+					'title'     => $r->title,
+					'score'     => round( $r->score, 4 ),
+				),
 				$results
 			),
 			200
@@ -213,21 +210,24 @@ class REST_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_images( \WP_REST_Request $request ): \WP_REST_Response {
-		$page	 = absint( $request->get_param( 'page' ) ?: 1 );
+		$page     = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?: 25 );
 		$search   = sanitize_text_field( $request->get_param( 'search' ) ?: '' );
 
 		$rows = $this->repository->get_paginated( $page, $per_page, $search );
 
-		$rows = array_map( static function ( array $row ): array {
-			$id			  = (int) $row['attachment_id'];
-			$row['title']	= get_the_title( $id );
-			$file			= get_attached_file( $id );
-			$row['filename'] = $file ? basename( $file ) : '';
-			$thumb		   = wp_get_attachment_image_src( $id, 'thumbnail' );
-			$row['thumbnail_url'] = $thumb ? $thumb[0] : '';
-			return $row;
-		}, $rows );
+		$rows = array_map(
+			static function ( array $row ): array {
+				$id                   = (int) $row['attachment_id'];
+				$row['title']         = get_the_title( $id );
+				$file                 = get_attached_file( $id );
+				$row['filename']      = $file ? basename( $file ) : '';
+				$thumb                = wp_get_attachment_image_src( $id, 'thumbnail' );
+				$row['thumbnail_url'] = $thumb ? $thumb[0] : '';
+				return $row;
+			},
+			$rows
+		);
 
 		return new \WP_REST_Response( $rows, 200 );
 	}
@@ -241,7 +241,7 @@ class REST_Controller {
 	 */
 	public function handle_reindex( \WP_REST_Request $request ): \WP_REST_Response {
 		$this->bulk_indexer->schedule();
-		return new \WP_REST_Response( [ 'scheduled' => true ], 200 );
+		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
 	}
 
 	/**
@@ -263,17 +263,17 @@ class REST_Controller {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function handle_delete_index( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$id	  = absint( $request->get_param( 'id' ) );
+		$id      = absint( $request->get_param( 'id' ) );
 		$deleted = $this->repository->delete( $id );
 
 		if ( ! $deleted ) {
 			return new \WP_Error(
 				'not_found',
 				__( 'Not found.', 'pixel-scout' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 
-		return new \WP_REST_Response( [ 'deleted' => true ], 200 );
+		return new \WP_REST_Response( array( 'deleted' => true ), 200 );
 	}
 }

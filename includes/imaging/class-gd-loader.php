@@ -20,12 +20,12 @@ class GD_Loader {
 	 *
 	 * @var array<string, callable-string>
 	 */
-	private const SUPPORTED_MIMES = [
+	private const SUPPORTED_MIMES = array(
 		'image/jpeg' => 'imagecreatefromjpeg',
 		'image/png'  => 'imagecreatefrompng',
 		'image/gif'  => 'imagecreatefromgif',
 		'image/webp' => 'imagecreatefromwebp',
-	];
+	);
 
 	/**
 	 * Load a GD resource for the given attachment.
@@ -71,8 +71,8 @@ class GD_Loader {
 	/**
 	 * Resolve MIME type from attachment metadata or file check.
 	 *
-	 * @param int	$attachment_id Attachment ID.
-	 * @param string $file		  Absolute file path.
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $file        Absolute file path.
 	 *
 	 * @return string
 	 */

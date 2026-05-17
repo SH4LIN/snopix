@@ -16,12 +16,12 @@ if ( ! function_exists( 'ps_get_allowed_mime_types' ) ) {
 	 * @return array<string>
 	 */
 	function ps_get_allowed_mime_types(): array {
-		return [
+		return array(
 			'image/jpeg',
 			'image/png',
 			'image/gif',
 			'image/webp',
-		];
+		);
 	}
 }
 
@@ -37,4 +37,3 @@ if ( ! function_exists( 'ps_format_filesize' ) ) {
 		return size_format( max( 0, $bytes ) );
 	}
 }
-

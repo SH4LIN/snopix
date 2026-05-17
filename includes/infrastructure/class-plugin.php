@@ -60,13 +60,13 @@ class Plugin {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
-		add_action( 'plugins_loaded', [ $this, 'maybe_upgrade_db' ] );
-		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
-		add_action( 'init', [ $this, 'register_hooks' ] );
-		add_action( 'init', [ $this, 'register_shortcode' ] );
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
-		add_action( 'admin_menu', [ $this, 'register_admin_page' ] );
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'plugins_loaded', array( $this, 'maybe_upgrade_db' ) );
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action( 'init', array( $this, 'register_hooks' ) );
+		add_action( 'init', array( $this, 'register_shortcode' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
 	}
 
 	/**
@@ -105,19 +105,19 @@ class Plugin {
 		global $wpdb;
 		$repository   = new Index_Repository( $wpdb );
 		$similarity   = new Similarity();
-		$loader	   = new GD_Loader();
-		$factory	  = new Fingerprint_Factory(
+		$loader       = new GD_Loader();
+		$factory      = new Fingerprint_Factory(
 			$loader,
 			new PHash_Processor(),
 			new Color_Processor(),
 			new Edge_Processor()
 		);
 		$calculator   = new Score_Calculator( $similarity );
-		$pipeline	 = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
-		$validator	= new Mime_Validator();
-		$indexer	  = new Image_Indexer( $validator, $factory, $repository );
+		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
+		$validator    = new Mime_Validator();
+		$indexer      = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
-		$settings	 = new Settings();
+		$settings     = new Settings();
 
 		$controller = new REST_Controller(
 			$pipeline,
@@ -138,17 +138,17 @@ class Plugin {
 	 */
 	public function register_hooks(): void {
 		global $wpdb;
-		$repository	= new Index_Repository( $wpdb );
-		$validator	 = new Mime_Validator();
-		$loader		= new GD_Loader();
-		$factory	   = new Fingerprint_Factory(
+		$repository   = new Index_Repository( $wpdb );
+		$validator    = new Mime_Validator();
+		$loader       = new GD_Loader();
+		$factory      = new Fingerprint_Factory(
 			$loader,
 			new PHash_Processor(),
 			new Color_Processor(),
 			new Edge_Processor()
 		);
-		$indexer	   = new Image_Indexer( $validator, $factory, $repository );
-		$bulk_indexer  = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
+		$indexer      = new Image_Indexer( $validator, $factory, $repository );
+		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
 
 		( new Media_Hooks( $indexer ) )->register();
 		( new Cron_Handler( $bulk_indexer ) )->register();

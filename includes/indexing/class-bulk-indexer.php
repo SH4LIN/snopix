@@ -28,15 +28,15 @@ class Bulk_Indexer {
 	public const CRON_HOOK = 'ps_bulk_index_batch';
 
 	/**
-	 * @param Index_Repository   $repository Index repository.
-	 * @param Image_Indexer	  $indexer	Single image indexer.
-	 * @param Index_Progress	 $progress   Progress tracker.
-	 * @param Action_Scheduler   $scheduler  Action scheduler.
+	 * @param Index_Repository $repository Index repository.
+	 * @param Image_Indexer    $indexer  Single image indexer.
+	 * @param Index_Progress   $progress   Progress tracker.
+	 * @param Action_Scheduler $scheduler  Action scheduler.
 	 */
 	public function __construct(
 		private Index_Repository $repository,
-		private Image_Indexer	$indexer,
-		private Index_Progress   $progress,
+		private Image_Indexer $indexer,
+		private Index_Progress $progress,
 		private Action_Scheduler $scheduler
 	) {}
 
@@ -62,7 +62,7 @@ class Bulk_Indexer {
 		$chunks = array_chunk( $ids, self::BATCH_SIZE );
 
 		foreach ( $chunks as $i => $chunk ) {
-			$this->scheduler->schedule( self::CRON_HOOK, [ $chunk ], $i * 60 );
+			$this->scheduler->schedule( self::CRON_HOOK, array( $chunk ), $i * 60 );
 		}
 	}
 

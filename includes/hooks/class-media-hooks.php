@@ -29,8 +29,8 @@ class Media_Hooks {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'add_attachment', [ $this, 'on_upload' ] );
-		add_action( 'delete_attachment', [ $this, 'on_delete' ] );
+		add_action( 'add_attachment', array( $this, 'on_upload' ) );
+		add_action( 'delete_attachment', array( $this, 'on_delete' ) );
 	}
 
 	/**
