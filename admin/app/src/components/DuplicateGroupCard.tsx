@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import {
 	DuplicateGroup,
@@ -14,34 +13,57 @@ function formatBytes(bytes: number): string {
 
 interface Props {
 	group: DuplicateGroup;
+	keepId: number;
+	onKeepChange: (id: number) => void;
+	selected: boolean;
+	onToggleSelect: () => void;
 }
 
-export default function DuplicateGroupCard({ group }: Props) {
-	const [keepId, setKeepId] = useState<number>(group.images[0]?.id ?? 0);
+export default function DuplicateGroupCard({
+	group,
+	keepId,
+	onKeepChange,
+	selected,
+	onToggleSelect,
+}: Props) {
 	const { mutateAsync: deleteAttachment, isPending } = useDeleteAttachment();
 
 	const toDelete = group.images.filter((img) => img.id !== keepId);
 
 	async function handleDelete() {
-		for (const img of toDelete) {
-			await deleteAttachment(img.id);
+		try {
+			for (const img of toDelete) {
+				await deleteAttachment(img.id);
+			}
+		} catch {
+			// hook invalidates query on partial success
 		}
 	}
 
 	return (
-		<div className="ps-card">
+		<div
+			className={`ps-card transition-colors ${selected ? 'ring-2 ring-ps-accent' : ''}`}
+		>
 			<div className="flex justify-between items-center mb-3">
-				<span
-					className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-						group.match_type === 'exact'
-							? 'bg-ps-accent/10 text-ps-accent'
-							: 'bg-ps-muted/10 text-ps-muted'
-					}`}
-				>
-					{group.match_type === 'exact'
-						? __('Exact duplicate', 'pixel-scout')
-						: __('Similar image', 'pixel-scout')}
-				</span>
+				<div className="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={selected}
+						onChange={onToggleSelect}
+						className="w-4 h-4 cursor-pointer accent-[var(--ps-accent,#2271b1)]"
+					/>
+					<span
+						className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+							group.match_type === 'exact'
+								? 'bg-ps-accent/10 text-ps-accent'
+								: 'bg-ps-muted/10 text-ps-muted'
+						}`}
+					>
+						{group.match_type === 'exact'
+							? __('Exact duplicate', 'pixel-scout')
+							: __('Similar image', 'pixel-scout')}
+					</span>
+				</div>
 
 				{toDelete.length > 0 && (
 					<button
@@ -64,7 +86,7 @@ export default function DuplicateGroupCard({ group }: Props) {
 						key={img.id}
 						image={img}
 						isKeep={img.id === keepId}
-						onKeep={() => setKeepId(img.id)}
+						onKeep={() => onKeepChange(img.id)}
 					/>
 				))}
 			</div>

@@ -1,23 +1,81 @@
-import { __ } from '@wordpress/i18n';
+import { useState } from 'react';
+import { __, sprintf } from '@wordpress/i18n';
 import { useStore } from '../store/use-store';
 import {
+	DuplicateGroup,
 	useDuplicates,
 	useStartDuplicateScan,
 	useDuplicateScanProgress,
+	useDeleteAttachment,
 } from '../hooks/use-duplicates';
 import DuplicateGroupCard from './DuplicateGroupCard';
+
+function groupKey(group: DuplicateGroup): string {
+	return String(group.images[0].id);
+}
 
 export default function Duplicates() {
 	const { indexingState, duplicateScanState } = useStore();
 	const { data, isLoading } = useDuplicates();
 	const { mutate: startScan, isPending } = useStartDuplicateScan();
 	const progress = useDuplicateScanProgress();
+	const { mutateAsync: deleteAttachment, isPending: isBulkDeleting } =
+		useDeleteAttachment();
+
+	const [keepIds, setKeepIds] = useState<Record<string, number>>({});
+	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(
+		new Set()
+	);
 
 	const isIndexing = indexingState === 'running';
 	const isScanning =
 		duplicateScanState === 'running' || duplicateScanState === 'done';
 	const groups = data?.groups ?? [];
 	const lastScanned = data?.last_scanned ?? '';
+
+	function getKeepId(group: DuplicateGroup): number {
+		return keepIds[groupKey(group)] ?? group.images[0]?.id ?? 0;
+	}
+
+	function setKeepId(group: DuplicateGroup, id: number) {
+		setKeepIds((prev) => ({ ...prev, [groupKey(group)]: id }));
+	}
+
+	function toggleSelect(group: DuplicateGroup) {
+		const key = groupKey(group);
+		setSelectedGroups((prev) => {
+			const next = new Set(prev);
+			if (next.has(key)) next.delete(key);
+			else next.add(key);
+			return next;
+		});
+	}
+
+	const allSelected =
+		groups.length > 0 && selectedGroups.size === groups.length;
+
+	function toggleSelectAll() {
+		if (allSelected) {
+			setSelectedGroups(new Set());
+		} else {
+			setSelectedGroups(new Set(groups.map(groupKey)));
+		}
+	}
+
+	async function handleBulkDelete() {
+		try {
+			for (const group of groups) {
+				if (!selectedGroups.has(groupKey(group))) continue;
+				const keep = getKeepId(group);
+				for (const img of group.images) {
+					if (img.id !== keep) await deleteAttachment(img.id);
+				}
+			}
+			setSelectedGroups(new Set());
+		} catch {
+			// hook invalidates query on partial success
+		}
+	}
 
 	if (isIndexing) {
 		return (
@@ -105,13 +163,45 @@ export default function Duplicates() {
 
 			{!isScanning && groups.length > 0 && (
 				<div className="flex flex-col gap-4">
-					<p className="text-xs text-ps-muted">
-						{groups.length === 1
-							? __('1 duplicate group found.', 'pixel-scout')
-							: `${groups.length} ${__('duplicate groups found.', 'pixel-scout')}`}
-					</p>
+					<div className="flex items-center justify-between">
+						<label className="flex items-center gap-2 text-xs text-ps-muted cursor-pointer select-none">
+							<input
+								type="checkbox"
+								checked={allSelected}
+								onChange={toggleSelectAll}
+								className="w-4 h-4 cursor-pointer accent-[var(--ps-accent,#2271b1)]"
+							/>
+							{groups.length === 1
+								? __('1 duplicate group found.', 'pixel-scout')
+								: `${groups.length} ${__('duplicate groups found.', 'pixel-scout')}`}
+						</label>
+
+						{selectedGroups.size > 0 && (
+							<button
+								className="ps-btn bg-ps-danger border-ps-danger text-xs"
+								onClick={handleBulkDelete}
+								disabled={isBulkDeleting}
+							>
+								{isBulkDeleting
+									? __('Deleting…', 'pixel-scout')
+									: sprintf(
+											/* translators: %d: number of selected groups */
+											__('Delete %d selected', 'pixel-scout'),
+											selectedGroups.size
+										)}
+							</button>
+						)}
+					</div>
+
 					{groups.map((group) => (
-						<DuplicateGroupCard key={group.images[0].id} group={group} />
+						<DuplicateGroupCard
+							key={group.images[0].id}
+							group={group}
+							keepId={getKeepId(group)}
+							onKeepChange={(id) => setKeepId(group, id)}
+							selected={selectedGroups.has(groupKey(group))}
+							onToggleSelect={() => toggleSelect(group)}
+						/>
 					))}
 				</div>
 			)}
