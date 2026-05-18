@@ -95,8 +95,10 @@ class PHash_Processor implements Processor_Interface {
 	/**
 	 * Compute 64-bit hash from 8×8 DCT block.
 	 *
-	 * All 64 coefficients (including DC [0][0]) are used to compute the mean.
-	 * Each bit is 1 if the coefficient exceeds the mean, otherwise 0.
+	 * Mean is computed across the 63 AC coefficients only (DC at [0][0] excluded).
+	 * The DC coefficient represents overall brightness and is typically an order of
+	 * magnitude larger than the AC terms — including it skews the mean and degrades
+	 * the hash. Each bit is 1 if its coefficient exceeds the AC mean, else 0.
 	 *
 	 * @param array<int, array<int, float>> $dct 8×8 DCT coefficients.
 	 *
@@ -110,7 +112,7 @@ class PHash_Processor implements Processor_Interface {
 			}
 		}
 
-		$mean = array_sum( $flat ) / 64.0;
+		$mean = ( array_sum( $flat ) - $flat[0] ) / 63.0;
 
 		$bits = array();
 		foreach ( $flat as $value ) {

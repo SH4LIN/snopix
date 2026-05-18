@@ -52,7 +52,7 @@ class Score_Calculator {
 
 		$query_color  = $this->decode_vector( $query_fp['color_vector'] );
 		$stored_color = $this->decode_vector( $stored_fp['color_vector'] );
-		$color_score  = $this->similarity->cosine_similarity( $query_color, $stored_color );
+		$color_score  = $this->similarity->bhattacharyya_similarity( $query_color, $stored_color, 3 );
 
 		$query_edge  = $this->decode_vector( $query_fp['edge_vector'] );
 		$stored_edge = $this->decode_vector( $stored_fp['edge_vector'] );

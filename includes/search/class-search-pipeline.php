@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Search_Pipeline {
 
-	private const HAMMING_THRESHOLD = 30;
-	private const SCORE_THRESHOLD   = 0.40;
+	private const HAMMING_THRESHOLD = 12;
+	private const SCORE_THRESHOLD   = 0.94;
 
 	/**
 	 * Constructor.

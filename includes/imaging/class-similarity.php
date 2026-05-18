@@ -76,6 +76,36 @@ class Similarity {
 	}
 
 	/**
+	 * Bhattacharyya coefficient between two normalised histograms.
+	 *
+	 * Better than cosine for histogram comparison: penalises bin-by-bin divergence,
+	 * not just direction. The input vectors are expected to be concatenations of
+	 * per-channel histograms each summing to 1.0; the coefficient is averaged across
+	 * channels so the result stays in [0.0, 1.0] (1.0 = identical distributions).
+	 *
+	 * @param array<int, float> $a       First histogram vector.
+	 * @param array<int, float> $b       Second histogram vector.
+	 * @param int               $channels Number of equal-length sub-histograms concatenated.
+	 *
+	 * @return float Bhattacharyya similarity in [0.0, 1.0].
+	 */
+	public function bhattacharyya_similarity( array $a, array $b, int $channels = 1 ): float {
+		$count = min( count( $a ), count( $b ) );
+		if ( 0 === $count || $channels < 1 ) {
+			return 0.0;
+		}
+
+		$sum = 0.0;
+		for ( $i = 0; $i < $count; $i++ ) {
+			$av   = max( 0.0, (float) $a[ $i ] );
+			$bv   = max( 0.0, (float) $b[ $i ] );
+			$sum += sqrt( $av * $bv );
+		}
+
+		return max( 0.0, min( 1.0, $sum / (float) $channels ) );
+	}
+
+	/**
 	 * Convert a hex string to a binary string where each byte is 0x00 or 0x01.
 	 *
 	 * Using byte-level comparison allows direct XOR via PHP string XOR operator.
