@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { wpLogin } from './helpers';
 
-/**
- * Plugin activation and admin page tests.
- */
 test.describe('Pixel Scout Admin Dashboard (Phase 6)', () => {
-	test.beforeEach(async ({ page, context }) => {
-		// Login if needed
-		// For now, assume we're already authenticated
+	test.beforeEach(async ({ page }) => {
+		await wpLogin( page );
 	});
 
 	test('admin sidebar link exists after activation', async ({ page }) => {

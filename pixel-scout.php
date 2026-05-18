@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: Pixel Scout
- * Plugin URI:  https://example.com
+ * Plugin URI: https://example.com
  * Description: Image similarity search for WordPress media library.
- * Version:\t 0.1.0
- * Author:\t  Pixel Scout
+ * Version: 0.1.0
+ * Author: Pixel Scout
  * Text Domain: pixel-scout
  * Requires at least: 6.0
  * Requires PHP: 8.0

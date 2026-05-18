@@ -71,6 +71,12 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		global $wpdb;
 		$table = $this->get_ps_table();
 
+		// Bypass WP test suite DDL filters so DROP TABLE runs on permanent table.
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+
 		// Ensure table and options exist.
 		Plugin::activate();
 		update_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
@@ -83,6 +89,9 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		// Table should be removed.
 		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 		$this->assertNull( $result );
+
+		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 
 		// Options should be removed.
 		$settings = get_option( 'ps_settings' );

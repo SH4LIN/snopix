@@ -126,10 +126,10 @@ class Query {
 	 */
 	public function select( $fields ): self {
 		if ( is_array( $fields ) ) {
-			$fields = implode( ', ', array_map( 'trim', $fields ) );
+			$this->select_fields = implode( ', ', array_map( array( $this, 'sanitize_identifier' ), array_map( 'trim', $fields ) ) );
+		} else {
+			$this->select_fields = $this->sanitize_identifier( trim( (string) $fields ) );
 		}
-
-		$this->select_fields = trim( (string) $fields );
 		return $this;
 	}
 

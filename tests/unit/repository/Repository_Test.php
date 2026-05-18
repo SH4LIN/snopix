@@ -64,7 +64,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 
 		// Verify row exists.
 		$rows = $this->repo->get_all_indexed();
-		$ids  = wp_list_pluck( $rows, 'attachment_id' );
+		$ids  = array_map( 'intval', wp_list_pluck( $rows, 'attachment_id' ) );
 		$this->assertContains( self::TEST_ATTACHMENT_ID, $ids );
 	}
 
@@ -109,7 +109,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 		$rows = $this->repo->get_all_indexed();
 		$this->assertGreaterThanOrEqual( 2, count( $rows ) );
 
-		$ids = wp_list_pluck( $rows, 'attachment_id' );
+		$ids = array_map( 'intval', wp_list_pluck( $rows, 'attachment_id' ) );
 		$this->assertContains( 100, $ids );
 		$this->assertContains( 200, $ids );
 	}
@@ -133,9 +133,9 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 	 * Test get_counts returns correct counts.
 	 */
 	public function test_get_counts(): void {
-		// Add test posts.
-		$post1_id = self::factory()->attachment->create();
-		$post2_id = self::factory()->attachment->create();
+		// Add test posts with image mime type so Attachment_Query::count() includes them.
+		$post1_id = self::factory()->attachment->create( array( 'post_mime_type' => 'image/jpeg' ) );
+		$post2_id = self::factory()->attachment->create( array( 'post_mime_type' => 'image/jpeg' ) );
 
 		// Index only first one.
 		$this->repo->upsert( $post1_id, $this->get_test_fingerprint() );
@@ -156,8 +156,8 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 	 * Test get_unindexed_ids returns unindexed attachments.
 	 */
 	public function test_get_unindexed_ids(): void {
-		$indexed_id   = self::factory()->attachment->create();
-		$unindexed_id = self::factory()->attachment->create();
+		$indexed_id   = self::factory()->attachment->create( array( 'post_mime_type' => 'image/jpeg' ) );
+		$unindexed_id = self::factory()->attachment->create( array( 'post_mime_type' => 'image/jpeg' ) );
 
 		// Index first one.
 		$this->repo->upsert( $indexed_id, $this->get_test_fingerprint() );

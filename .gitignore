@@ -54,6 +54,7 @@ agentdb.rvf.lock
 
 # Cache
 .phpcs-cache
+.phpunit.result.cache
 
 
 

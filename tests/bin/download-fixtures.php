@@ -21,7 +21,7 @@ $downloaded = 0;
 $skipped    = 0;
 $failed     = 0;
 
-for ( $i = 1; $i <= 100; $i++ ) {
+for ( $i = 1; $i <= 25; $i++ ) {
 	$filename = sprintf( '%s/%03d.jpg', $dest_dir, $i );
 
 	if ( file_exists( $filename ) ) {

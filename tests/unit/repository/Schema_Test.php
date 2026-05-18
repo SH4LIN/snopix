@@ -114,15 +114,25 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test uninstall removes table.
 	 */
 	public function test_uninstall_drops_table(): void {
+		// WP test suite redirects CREATE/DROP TABLE to TEMPORARY TABLE to protect the DB.
+		// Bypass to test real DDL.
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+
+		global $wpdb;
+		$wpdb->query( "DROP TABLE IF EXISTS {$this->table}" );
+
 		$schema = new Schema();
 		$schema->install();
 		$this->assertTableExists( $this->table );
 
 		$schema->uninstall();
 
-		global $wpdb;
 		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $this->table ) );
 		$this->assertNull( $result, "Table $this->table still exists after uninstall" );
+
+		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
 
 	/**
