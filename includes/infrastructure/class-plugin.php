@@ -247,6 +247,7 @@ class Plugin {
 		delete_transient( 'ps_dup_progress' );
 		delete_transient( 'ps_dup_total' );
 		delete_transient( 'ps_dup_status' );
+		delete_transient( 'ps_bulk_pending' );
 
 		self::debug_log( 'Uninstall complete.' );
 	}

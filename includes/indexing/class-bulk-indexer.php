@@ -14,7 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Manages bulk indexing via scheduled cron batches.
+ * Manages bulk indexing via chained cron batches.
+ *
+ * Instead of scheduling all batches upfront with fixed delays, only the first
+ * batch is scheduled immediately. Each batch schedules the next one after it
+ * finishes, so the gap is always BATCH_DELAY seconds from actual completion.
  */
 class Bulk_Indexer {
 	/**
@@ -23,15 +27,25 @@ class Bulk_Indexer {
 	private const BATCH_SIZE = 50;
 
 	/**
+	 * Seconds between consecutive chained batches.
+	 */
+	private const BATCH_DELAY = 60;
+
+	/**
 	 * Cron hook name.
 	 */
 	public const CRON_HOOK = 'ps_bulk_index_batch';
 
 	/**
+	 * Transient key for the pending attachment ID queue.
+	 */
+	public const PENDING_KEY = 'ps_bulk_pending';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Index_Repository $repository Index repository.
-	 * @param Image_Indexer    $indexer  Single image indexer.
+	 * @param Image_Indexer    $indexer    Single image indexer.
 	 * @param Index_Progress   $progress   Progress tracker.
 	 * @param Action_Scheduler $scheduler  Action scheduler.
 	 */
@@ -44,9 +58,6 @@ class Bulk_Indexer {
 
 	/**
 	 * Schedule bulk indexing for all unindexed attachments.
-	 *
-	 * Cancels any in-flight batches before scheduling fresh ones so a
-	 * re-trigger always starts from a clean state.
 	 *
 	 * @return void
 	 */
@@ -67,7 +78,7 @@ class Bulk_Indexer {
 	}
 
 	/**
-	 * Schedule batches for the given attachment IDs.
+	 * Schedule the first batch immediately, storing the rest in a transient queue.
 	 *
 	 * @param array<int> $ids Attachment IDs to schedule.
 	 *
@@ -82,24 +93,41 @@ class Bulk_Indexer {
 		$this->progress->reset();
 		$this->progress->set( 0, count( $ids ) );
 
-		$chunks = array_chunk( $ids, self::BATCH_SIZE );
-
-		foreach ( $chunks as $i => $chunk ) {
-			$this->scheduler->schedule( self::CRON_HOOK, array( $chunk ), $i * 60 );
-		}
+		set_transient( self::PENDING_KEY, array_values( $ids ), DAY_IN_SECONDS );
+		$this->scheduler->schedule( self::CRON_HOOK, array(), 0 );
 	}
 
 	/**
-	 * Process a batch of attachment IDs.
+	 * Process the next batch from the pending queue and chain the following one.
 	 *
-	 * @param array<int> $ids Attachment IDs to process.
+	 * Called by WP-Cron with no args. Reads from the pending transient,
+	 * processes one batch, then schedules the next batch after BATCH_DELAY seconds.
 	 *
 	 * @return void
 	 */
-	public function process_batch( array $ids ): void {
-		foreach ( $ids as $id ) {
+	public function process_batch(): void {
+		$pending = get_transient( self::PENDING_KEY );
+
+		if ( ! is_array( $pending ) || empty( $pending ) ) {
+			return;
+		}
+
+		$batch     = array_slice( $pending, 0, self::BATCH_SIZE );
+		$remaining = array_slice( $pending, self::BATCH_SIZE );
+
+		if ( ! empty( $remaining ) ) {
+			set_transient( self::PENDING_KEY, array_values( $remaining ), DAY_IN_SECONDS );
+		} else {
+			delete_transient( self::PENDING_KEY );
+		}
+
+		foreach ( $batch as $id ) {
 			$this->indexer->index_single( $id );
 			$this->progress->increment();
+		}
+
+		if ( ! empty( $remaining ) ) {
+			$this->scheduler->schedule( self::CRON_HOOK, array(), self::BATCH_DELAY );
 		}
 	}
 }
