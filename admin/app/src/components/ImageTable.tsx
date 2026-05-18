@@ -4,10 +4,21 @@ import { useImages } from '../hooks/use-images';
 import ImageRow from './ImageRow';
 
 export default function ImageTable() {
-	const [page, setPage] = useState(1);
+	const [cursors, setCursors] = useState<number[]>([0]);
 	const [search, setSearch] = useState('');
 	const [lightbox, setLightbox] = useState<string | null>(null);
-	const { data: images, isLoading } = useImages({ page, search });
+	const afterId = cursors[cursors.length - 1];
+	const { data: images, isLoading } = useImages({ afterId, search });
+
+	function goNext() {
+		if (!images || images.length === 0) return;
+		const next = images[images.length - 1].attachment_id;
+		setCursors((prev) => [...prev, next]);
+	}
+
+	function goPrev() {
+		setCursors((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+	}
 
 	useEffect(() => {
 		if (!lightbox) {
@@ -29,7 +40,7 @@ export default function ImageTable() {
 					value={search}
 					onChange={(e) => {
 						setSearch(e.target.value);
-						setPage(1);
+						setCursors([0]);
 					}}
 				/>
 			</div>
@@ -80,18 +91,18 @@ export default function ImageTable() {
 
 			<div className="flex justify-between items-center mt-3 text-[13px] text-ps-muted">
 				<span>
-					{__('Page', 'pixel-scout')} {page}
+					{__('Page', 'pixel-scout')} {cursors.length}
 				</span>
 				<div className="flex gap-2">
 					<button
-						onClick={() => setPage((p) => Math.max(1, p - 1))}
-						disabled={page === 1}
+						onClick={goPrev}
+						disabled={cursors.length <= 1}
 						className="ps-btn py-1 px-2.5 text-[13px]"
 					>
 						&larr;
 					</button>
 					<button
-						onClick={() => setPage((p) => p + 1)}
+						onClick={goNext}
 						disabled={!images || images.length < 25}
 						className="ps-btn py-1 px-2.5 text-[13px]"
 					>

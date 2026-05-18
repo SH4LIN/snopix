@@ -7,6 +7,7 @@
 
 namespace PixelScout\Repository;
 
+use PixelScout\Infrastructure\Attachment_Query;
 use PixelScout\Infrastructure\Query;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -106,28 +107,19 @@ class Index_Repository implements Index_Repository_Interface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	public function get_paginated( int $page, int $per_page, string $search ): array {
+	public function get_paginated( int $after_id, int $per_page, string $search ): array {
 		$query = Query::create()
 			->from( self::TABLE )
 			->select( array( 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ) )
-			->order_by( 'indexed_at', 'DESC' )
-			->paginate( max( 1, $page ), max( 1, $per_page ) );
+			->order_by( 'attachment_id', 'DESC' )
+			->limit( max( 1, $per_page ) );
+
+		if ( $after_id > 0 ) {
+			$query->where( 'attachment_id', $after_id, '<', '%d' );
+		}
 
 		if ( '' !== $search ) {
-			$id_query = new \WP_Query(
-				array(
-					'post_type'              => 'attachment',
-					'post_status'            => 'inherit',
-					's'                      => $search,
-					'search_columns'         => array( 'post_title' ),
-					'posts_per_page'         => -1,
-					'fields'                 => 'ids',
-					'no_found_rows'          => true,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-				)
-			);
-			$ids = array_map( 'absint', (array) $id_query->posts );
+			$ids = Attachment_Query::search_ids( $search );
 			if ( empty( $ids ) ) {
 				return array();
 			}
@@ -149,19 +141,7 @@ class Index_Repository implements Index_Repository_Interface {
 			->select( 'COUNT(*)' )
 			->get_var();
 
-		$total_query = new \WP_Query(
-			array(
-				'post_type'              => 'attachment',
-				'post_mime_type'         => 'image',
-				'post_status'            => 'inherit',
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'no_found_rows'          => false,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-		$total = (int) $total_query->found_posts;
+		$total = Attachment_Query::count();
 
 		return array(
 			'total'   => $total,
@@ -176,17 +156,7 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return array<int>
 	 */
 	public function get_unindexed_ids(): array {
-		$all_ids = get_posts(
-			array(
-				'post_type'              => 'attachment',
-				'post_mime_type'         => 'image',
-				'post_status'            => 'inherit',
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
+		$all_ids = Attachment_Query::get_all_ids();
 
 		if ( empty( $all_ids ) ) {
 			return array();
@@ -199,7 +169,7 @@ class Index_Repository implements Index_Repository_Interface {
 
 		$indexed_ids = is_array( $indexed_ids ) ? array_map( 'absint', $indexed_ids ) : array();
 
-		return array_values( array_diff( array_map( 'absint', $all_ids ), $indexed_ids ) );
+		return array_values( array_diff( $all_ids, $indexed_ids ) );
 	}
 
 	/**

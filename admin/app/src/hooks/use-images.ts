@@ -13,16 +13,16 @@ interface ImageRow {
 }
 
 interface UseImagesParams {
-	page: number;
+	afterId: number;
 	search: string;
 }
 
-export function useImages({ page, search }: UseImagesParams) {
+export function useImages({ afterId, search }: UseImagesParams) {
 	return useQuery<ImageRow[]>({
-		queryKey: ['images', page, search],
+		queryKey: ['images', afterId, search],
 		queryFn: async () => {
 			const params = new URLSearchParams({
-				page: String(page),
+				after_id: String(afterId),
 				per_page: '25',
 				search,
 			});

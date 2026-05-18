@@ -29,15 +29,15 @@ interface Index_Repository_Interface {
 	public function get_all_indexed(): array;
 
 	/**
-	 * Get paginated rows.
+	 * Get paginated rows using keyset cursor.
 	 *
-	 * @param int    $page Current page.
+	 * @param int    $after_id Return rows with attachment_id less than this value. 0 = first page.
 	 * @param int    $per_page Page size.
-	 * @param string $search Search term.
+	 * @param string $search   Search term.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	public function get_paginated( int $page, int $per_page, string $search ): array;
+	public function get_paginated( int $after_id, int $per_page, string $search ): array;
 
 	/**
 	 * Get total/indexed/pending counts.

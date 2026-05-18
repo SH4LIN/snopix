@@ -80,9 +80,9 @@ class REST_Controller {
 				'callback'            => array( $this, 'handle_images' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 				'args'                => array(
-					'page'     => array(
+					'after_id' => array(
 						'sanitize_callback' => 'absint',
-						'default'           => 1,
+						'default'           => 0,
 					),
 					'per_page' => array(
 						'sanitize_callback' => 'absint',
@@ -265,11 +265,11 @@ class REST_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_images( \WP_REST_Request $request ): \WP_REST_Response {
-		$page     = absint( $request->get_param( 'page' ) ?? 1 );
+		$after_id = absint( $request->get_param( 'after_id' ) ?? 0 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?? 25 );
 		$search   = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
 
-		$rows = $this->repository->get_paginated( $page, $per_page, $search );
+		$rows = $this->repository->get_paginated( $after_id, $per_page, $search );
 
 		$rows = array_map(
 			static function ( array $row ): array {
