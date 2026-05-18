@@ -62,10 +62,10 @@ export function useIndexingProgress() {
 
 		if (progress.status === 'done') {
 			setIndexingState('done');
-			resetTimerRef.current = setTimeout(
-				() => setIndexingState('idle'),
-				DONE_RESET_MS
-			);
+			resetTimerRef.current = setTimeout(() => {
+				setIndexingState('idle');
+				window.location.reload();
+			}, DONE_RESET_MS);
 			return;
 		}
 

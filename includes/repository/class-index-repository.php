@@ -213,9 +213,9 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return int Rows deleted.
 	 */
 	public function delete_orphans(): int {
-		$table  = $this->wpdb->prefix . self::TABLE;
-		$posts  = $this->wpdb->posts;
-		$sql    = "DELETE i FROM {$table} i "
+		$table = $this->wpdb->prefix . self::TABLE;
+		$posts = $this->wpdb->posts;
+		$sql   = "DELETE i FROM {$table} i "
 			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
 			. 'WHERE p.ID IS NULL';
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
