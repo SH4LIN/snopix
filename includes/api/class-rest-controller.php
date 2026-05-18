@@ -229,6 +229,8 @@ class REST_Controller {
 				$row['filename']      = $file ? basename( $file ) : '';
 				$thumb                = wp_get_attachment_image_src( $id, 'thumbnail' );
 				$row['thumbnail_url'] = $thumb ? $thumb[0] : '';
+				$full                 = wp_get_attachment_image_src( $id, 'full' );
+				$row['full_url']      = $full ? $full[0] : '';
 				return $row;
 			},
 			$rows

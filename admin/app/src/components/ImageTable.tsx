@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useImages } from '../hooks/use-images';
 import ImageRow from './ImageRow';
@@ -6,7 +6,18 @@ import ImageRow from './ImageRow';
 export default function ImageTable() {
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState('');
+	const [lightbox, setLightbox] = useState<string | null>(null);
 	const { data: images, isLoading } = useImages({ page, search });
+
+	useEffect(() => {
+		if (!lightbox) {
+			return;
+		}
+
+		const close = (e: KeyboardEvent) => e.key === 'Escape' && setLightbox(null);
+		document.addEventListener('keydown', close);
+		return () => document.removeEventListener('keydown', close);
+	}, [lightbox]);
 
 	return (
 		<div className="ps-card">
@@ -22,43 +33,43 @@ export default function ImageTable() {
 				/>
 			</div>
 
-			<table className="ps-table w-full">
-				<thead>
-					<tr>
-						<th></th>
-						<th>{__('File Name', 'pixel-scout')}</th>
-						<th>{__('Dimensions', 'pixel-scout')}</th>
-						<th>{__('Size', 'pixel-scout')}</th>
-						<th>{__('Indexed At', 'pixel-scout')}</th>
-						<th>{__('Status', 'pixel-scout')}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{isLoading && (
+			<div className="overflow-x-auto">
+				<table className="ps-table w-full min-w-[560px]">
+					<thead>
 						<tr>
-							<td
-								colSpan={6}
-								className="text-center text-ps-muted py-6"
-							>
-								{__('Loading…', 'pixel-scout')}
-							</td>
+							<th></th>
+							<th>{__('File Name', 'pixel-scout')}</th>
+							<th>{__('Dimensions', 'pixel-scout')}</th>
+							<th>{__('Size', 'pixel-scout')}</th>
+							<th>{__('Indexed At', 'pixel-scout')}</th>
+							<th>{__('Status', 'pixel-scout')}</th>
 						</tr>
-					)}
-					{images?.map((img) => (
-						<ImageRow key={img.attachment_id} image={img} />
-					))}
-					{!isLoading && images?.length === 0 && (
-						<tr>
-							<td
-								colSpan={6}
-								className="text-center text-ps-muted py-6"
-							>
-								{__('No images found', 'pixel-scout')}
-							</td>
-						</tr>
-					)}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{isLoading && (
+							<tr>
+								<td colSpan={6} className="text-center text-ps-muted py-6">
+									{__('Loading…', 'pixel-scout')}
+								</td>
+							</tr>
+						)}
+						{images?.map((img) => (
+							<ImageRow
+								key={img.attachment_id}
+								image={img}
+								onImageClick={setLightbox}
+							/>
+						))}
+						{!isLoading && images?.length === 0 && (
+							<tr>
+								<td colSpan={6} className="text-center text-ps-muted py-6">
+									{__('No images found', 'pixel-scout')}
+								</td>
+							</tr>
+						)}
+					</tbody>
+				</table>
+			</div>
 
 			<div className="flex justify-between items-center mt-3 text-[13px] text-ps-muted">
 				<span>
@@ -81,6 +92,25 @@ export default function ImageTable() {
 					</button>
 				</div>
 			</div>
+
+			{lightbox && (
+				<div
+					className="fixed inset-0 z-[99999] bg-black/80 flex items-center justify-center"
+					onClick={() => setLightbox(null)}
+				>
+					<button
+						className="absolute top-4 right-4 text-white text-2xl leading-none bg-black/40 rounded-full w-9 h-9 flex items-center justify-center hover:bg-black/70"
+						onClick={() => setLightbox(null)}
+					>
+						&times;
+					</button>
+					<img
+						src={lightbox}
+						className="max-w-[90vw] max-h-[90vh] object-contain rounded-[8px] shadow-xl"
+						onClick={(e) => e.stopPropagation()}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }

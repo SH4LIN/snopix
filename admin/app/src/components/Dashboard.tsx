@@ -9,7 +9,7 @@ export default function Dashboard() {
 	const { data: status } = useIndexStatus();
 
 	return (
-		<div id="pixel-scout-app" className="p-6 max-w-[1200px]">
+		<div id="pixel-scout-app" className="p-6 w-full">
 			<h1 className="text-[28px] font-bold mb-1 text-ps-text">
 				{__('Pixel Scout', 'pixel-scout')}
 			</h1>
@@ -22,7 +22,7 @@ export default function Dashboard() {
 
 			<ReindexButton status={status} />
 
-			<div className="grid grid-cols-[1fr_320px] gap-4 mt-4">
+			<div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 mt-4">
 				<ImageTable />
 				<SearchPreview />
 			</div>
