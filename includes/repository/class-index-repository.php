@@ -114,11 +114,24 @@ class Index_Repository implements Index_Repository_Interface {
 			->paginate( max( 1, $page ), max( 1, $per_page ) );
 
 		if ( '' !== $search ) {
-			$like = '%' . $this->escape_like( $search ) . '%';
-			$query->where_raw(
-				'attachment_id IN ( SELECT ID FROM ' . $this->wpdb->posts . ' WHERE post_title LIKE %s )',
-				array( $like )
+			$id_query = new \WP_Query(
+				array(
+					'post_type'              => 'attachment',
+					'post_status'            => 'inherit',
+					's'                      => $search,
+					'search_columns'         => array( 'post_title' ),
+					'posts_per_page'         => -1,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
 			);
+			$ids = array_map( 'absint', (array) $id_query->posts );
+			if ( empty( $ids ) ) {
+				return array();
+			}
+			$query->where_in( 'attachment_id', $ids );
 		}
 
 		$rows = $query->get( ARRAY_A );
@@ -136,12 +149,19 @@ class Index_Repository implements Index_Repository_Interface {
 			->select( 'COUNT(*)' )
 			->get_var();
 
-		$total = (int) Query::create()
-			->from( $this->wpdb->posts )
-			->select( 'COUNT(*)' )
-			->where( 'post_type', 'attachment', '=', '%s' )
-			->where_raw( 'post_mime_type LIKE %s', array( 'image/%' ) )
-			->get_var();
+		$total_query = new \WP_Query(
+			array(
+				'post_type'              => 'attachment',
+				'post_mime_type'         => 'image',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+		$total = (int) $total_query->found_posts;
 
 		return array(
 			'total'   => $total,
@@ -156,20 +176,30 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return array<int>
 	 */
 	public function get_unindexed_ids(): array {
-		$rows = Query::create()
-			->from( $this->wpdb->posts, 'p' )
-			->select( 'p.ID' )
-			->left_join( self::TABLE, 'idx.attachment_id = p.ID', 'idx' )
-			->where( 'p.post_type', 'attachment', '=', '%s' )
-			->where_raw( 'p.post_mime_type LIKE %s', array( 'image/%' ) )
-			->where_raw( 'idx.attachment_id IS NULL' )
-			->get_col();
+		$all_ids = get_posts(
+			array(
+				'post_type'              => 'attachment',
+				'post_mime_type'         => 'image',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
 
-		if ( ! is_array( $rows ) ) {
+		if ( empty( $all_ids ) ) {
 			return array();
 		}
 
-		return array_map( 'absint', $rows );
+		$indexed_ids = Query::create()
+			->from( self::TABLE )
+			->select( 'attachment_id' )
+			->get_col();
+
+		$indexed_ids = is_array( $indexed_ids ) ? array_map( 'absint', $indexed_ids ) : array();
+
+		return array_values( array_diff( array_map( 'absint', $all_ids ), $indexed_ids ) );
 	}
 
 	/**
