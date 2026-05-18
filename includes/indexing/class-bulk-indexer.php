@@ -52,7 +52,28 @@ class Bulk_Indexer {
 	 */
 	public function schedule(): void {
 		$ids = $this->repository->get_unindexed_ids();
+		$this->schedule_ids( $ids );
+	}
 
+	/**
+	 * Wipe the index and schedule every attachment for fresh indexing.
+	 *
+	 * @return void
+	 */
+	public function schedule_all(): void {
+		$this->repository->clear_all();
+		$ids = $this->repository->get_unindexed_ids();
+		$this->schedule_ids( $ids );
+	}
+
+	/**
+	 * Schedule batches for the given attachment IDs.
+	 *
+	 * @param array<int> $ids Attachment IDs to schedule.
+	 *
+	 * @return void
+	 */
+	private function schedule_ids( array $ids ): void {
 		if ( empty( $ids ) ) {
 			return;
 		}

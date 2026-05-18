@@ -68,7 +68,7 @@ class Index_Repository implements Index_Repository_Interface {
 			->upsert( $insert, $update_columns );
 
 		if ( $result ) {
-			$this->clear_cache();
+			$this->flush_cache();
 		}
 
 		return $result;
@@ -189,8 +189,55 @@ class Index_Repository implements Index_Repository_Interface {
 			return false;
 		}
 
-		$this->clear_cache();
+		$this->flush_cache();
 		return true;
+	}
+
+	/**
+	 * Delete every row in the index table.
+	 *
+	 * @return int Rows deleted.
+	 */
+	public function clear_all(): int {
+		$table = $this->wpdb->prefix . self::TABLE;
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $this->wpdb->query( "DELETE FROM {$table}" );
+
+		$this->flush_cache();
+		return false === $result ? 0 : (int) $result;
+	}
+
+	/**
+	 * Delete index rows whose attachment no longer exists in wp_posts.
+	 *
+	 * @return int Rows deleted.
+	 */
+	public function delete_orphans(): int {
+		$table  = $this->wpdb->prefix . self::TABLE;
+		$posts  = $this->wpdb->posts;
+		$sql    = "DELETE i FROM {$table} i "
+			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
+			. 'WHERE p.ID IS NULL';
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $this->wpdb->query( $sql );
+
+		$this->flush_cache();
+		return false === $result ? 0 : (int) $result;
+	}
+
+	/**
+	 * Count rows whose attachment no longer exists in wp_posts.
+	 *
+	 * @return int
+	 */
+	public function get_orphan_count(): int {
+		$table = $this->wpdb->prefix . self::TABLE;
+		$posts = $this->wpdb->posts;
+		$sql   = "SELECT COUNT(*) FROM {$table} i "
+			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
+			. 'WHERE p.ID IS NULL';
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $this->wpdb->get_var( $sql );
 	}
 
 	/**
@@ -198,7 +245,7 @@ class Index_Repository implements Index_Repository_Interface {
 	 *
 	 * @return void
 	 */
-	private function clear_cache(): void {
+	public function flush_cache(): void {
 		wp_cache_delete( self::CACHE_ALL, self::CACHE_GROUP );
 	}
 

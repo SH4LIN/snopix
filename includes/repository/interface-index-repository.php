@@ -61,4 +61,32 @@ interface Index_Repository_Interface {
 	 * @return bool
 	 */
 	public function delete( int $attachment_id ): bool;
+
+	/**
+	 * Delete every row in the index table.
+	 *
+	 * @return int Rows deleted, or 0 on no-op / failure.
+	 */
+	public function clear_all(): int;
+
+	/**
+	 * Delete rows whose attachment no longer exists in wp_posts.
+	 *
+	 * @return int Rows deleted.
+	 */
+	public function delete_orphans(): int;
+
+	/**
+	 * Count rows whose attachment no longer exists in wp_posts.
+	 *
+	 * @return int
+	 */
+	public function get_orphan_count(): int;
+
+	/**
+	 * Flush internal caches.
+	 *
+	 * @return void
+	 */
+	public function flush_cache(): void;
 }

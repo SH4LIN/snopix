@@ -131,6 +131,56 @@ class REST_Controller {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/reindex-all',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_reindex_all' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/clear-index',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_clear_index' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/orphans',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_orphan_count' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/delete-orphans',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_delete_orphans' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/clear-cache',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_clear_cache' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
 	}
 
 	/**
@@ -278,5 +328,56 @@ class REST_Controller {
 		}
 
 		return new \WP_REST_Response( array( 'deleted' => true ), 200 );
+	}
+
+	/**
+	 * Handle POST /tools/reindex-all — wipe + reindex every attachment.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_reindex_all(): \WP_REST_Response {
+		$this->bulk_indexer->schedule_all();
+		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
+	}
+
+	/**
+	 * Handle POST /tools/clear-index — delete every index row.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_clear_index(): \WP_REST_Response {
+		$deleted = $this->repository->clear_all();
+		$this->progress->reset();
+		return new \WP_REST_Response( array( 'deleted' => $deleted ), 200 );
+	}
+
+	/**
+	 * Handle GET /tools/orphans — count of stale index rows.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_orphan_count(): \WP_REST_Response {
+		return new \WP_REST_Response( array( 'orphans' => $this->repository->get_orphan_count() ), 200 );
+	}
+
+	/**
+	 * Handle POST /tools/delete-orphans — drop rows whose attachment is gone.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_delete_orphans(): \WP_REST_Response {
+		$deleted = $this->repository->delete_orphans();
+		return new \WP_REST_Response( array( 'deleted' => $deleted ), 200 );
+	}
+
+	/**
+	 * Handle POST /tools/clear-cache — flush plugin transients and object cache.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_clear_cache(): \WP_REST_Response {
+		$this->repository->flush_cache();
+		$this->progress->reset();
+		return new \WP_REST_Response( array( 'cleared' => true ), 200 );
 	}
 }
