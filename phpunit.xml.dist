@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
 	bootstrap="tests/bootstrap.php"
-	convertDeprecatedAssertions="true"
 	beStrictAboutTestsThatDoNotTestAnything="true"
 	beStrictAboutOutputDuringTests="true"
 	failOnRisky="true"
 	failOnWarning="true"
-	verbose="true"
 	colors="true"
 >
-	<coverage processUncoveredFiles="true">
+	<source>
 		<include>
 			<directory suffix=".php">includes/infrastructure</directory>
 			<directory suffix=".php">includes/repository</directory>
@@ -21,11 +19,11 @@
 		<exclude>
 			<directory>tests/</directory>
 		</exclude>
-	</coverage>
+	</source>
 
 	<testsuites>
 		<testsuite name="unit">
-			<directory suffix="Test.php">tests/unit/</directory>
+			<directory suffix="_Test.php">tests/unit/</directory>
 		</testsuite>
 	</testsuites>
 
@@ -36,5 +34,3 @@
 		<ini name="xdebug.mode" value="coverage"/>
 	</php>
 </phpunit>
-
-

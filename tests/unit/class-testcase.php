@@ -10,12 +10,21 @@
  */
 class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	/**
+	 * PHPUnit 11 compatibility: getAnnotations() was removed, but WordPress test suite
+	 * checks method_exists($this, 'getAnnotations') before calling parseTestMethodAnnotations().
+	 * Providing it here routes expectDeprecated() to the older safe branch.
+	 */
+	public function getAnnotations(): array {
+		return array( 'class' => array(), 'method' => array() );
+	}
+
+	/**
 	 * Set up before each test.
 	 */
 	public function setUp(): void {
 		parent::setUp();
 		// Ensure plugin is loaded.
-		$this->assertTrue( class_exists( 'Pixel_Scout_Plugin' ), 'Plugin class not loaded' );
+		$this->assertTrue( class_exists( 'PixelScout\Infrastructure\Plugin' ), 'Plugin class not loaded' );
 	}
 
 	/**

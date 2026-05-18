@@ -7,6 +7,8 @@
 
 require_once __DIR__ . '/../class-testcase.php';
 
+use PixelScout\Repository\Schema;
+
 /**
  * Test Schema manager.
  */
@@ -34,7 +36,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 		global $wpdb;
 		$wpdb->query( "DROP TABLE IF EXISTS {$this->table}" );
 
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		$this->assertTableExists( $this->table );
@@ -44,7 +46,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test table has correct columns.
 	 */
 	public function test_table_has_correct_columns(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		global $wpdb;
@@ -73,7 +75,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test table has primary key.
 	 */
 	public function test_table_has_primary_key(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		global $wpdb;
@@ -86,7 +88,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test table has unique constraint on attachment_id.
 	 */
 	public function test_table_has_unique_attachment_id(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		global $wpdb;
@@ -99,7 +101,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test table has index on phash.
 	 */
 	public function test_table_has_phash_index(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		global $wpdb;
@@ -112,7 +114,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test uninstall removes table.
 	 */
 	public function test_uninstall_drops_table(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 		$this->assertTableExists( $this->table );
 
@@ -129,7 +131,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	public function test_install_sets_db_version(): void {
 		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
 
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		$version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION );
@@ -140,7 +142,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test maybe_upgrade skips if version matches.
 	 */
 	public function test_maybe_upgrade_skips_if_current(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		// Update to current version.
@@ -156,7 +158,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test maybe_upgrade triggers if version mismatch.
 	 */
 	public function test_maybe_upgrade_triggers_if_stale(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 		$schema->install();
 
 		// Force old version.
@@ -173,7 +175,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test install is idempotent.
 	 */
 	public function test_install_is_idempotent(): void {
-		$schema = new Pixel_Scout_Schema();
+		$schema = new Schema();
 
 		$schema->install();
 		$rows_after_first = $this->get_row_count();

@@ -7,6 +7,8 @@
 
 require_once __DIR__ . '/../class-testcase.php';
 
+use PixelScout\Infrastructure\Plugin;
+
 /**
  * Test Plugin bootstrap.
  */
@@ -15,11 +17,11 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 	 * Test singleton instance.
 	 */
 	public function test_instance_is_singleton(): void {
-		$instance1 = Pixel_Scout_Plugin::instance();
-		$instance2 = Pixel_Scout_Plugin::instance();
+		$instance1 = Plugin::instance();
+		$instance2 = Plugin::instance();
 
 		$this->assertSame( $instance1, $instance2 );
-		$this->assertInstanceOf( 'Pixel_Scout_Plugin', $instance1 );
+		$this->assertInstanceOf( Plugin::class, $instance1 );
 	}
 
 	/**
@@ -33,7 +35,7 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 
 		// Call activation.
-		Pixel_Scout_Plugin::activate();
+		Plugin::activate();
 
 		// Table should exist.
 		$this->assertTableExists( $table );
@@ -55,7 +57,7 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		$this->assertNotFalse( $timestamp );
 
 		// Call deactivation.
-		Pixel_Scout_Plugin::deactivate();
+		Plugin::deactivate();
 
 		// Event should be cleared.
 		$timestamp = wp_next_scheduled( 'ps_bulk_index_batch' );
@@ -70,13 +72,13 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		$table = $this->get_ps_table();
 
 		// Ensure table and options exist.
-		Pixel_Scout_Plugin::activate();
+		Plugin::activate();
 		update_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
 		set_transient( 'ps_bulk_progress', 50 );
 		set_transient( 'ps_bulk_total', 100 );
 
 		// Call uninstall.
-		Pixel_Scout_Plugin::uninstall();
+		Plugin::uninstall();
 
 		// Table should be removed.
 		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
@@ -101,7 +103,7 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 	 * Test register method doesn't error.
 	 */
 	public function test_register_method(): void {
-		$plugin = Pixel_Scout_Plugin::instance();
+		$plugin = Plugin::instance();
 		$plugin->register();
 		// Just verify no errors are thrown.
 		$this->assertTrue( true );
@@ -113,7 +115,7 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 	public function test_textdomain_loads(): void {
 		// This is hard to test without full WordPress environment,
 		// but we can at least verify the function exists and doesn't error.
-		$plugin = Pixel_Scout_Plugin::instance();
+		$plugin = Plugin::instance();
 		$plugin->load_textdomain();
 		$this->assertTrue( true );
 	}
@@ -125,11 +127,11 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		$table = $this->get_ps_table();
 
 		// First activation.
-		Pixel_Scout_Plugin::activate();
+		Plugin::activate();
 		$this->assertTableExists( $table );
 
 		// Second activation should not error.
-		Pixel_Scout_Plugin::activate();
+		Plugin::activate();
 		$this->assertTableExists( $table );
 	}
 }

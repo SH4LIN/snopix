@@ -5,7 +5,9 @@
  * @package Pixel_Scout
  */
 
-require_once __DIR__ . '/class-testcase.php';
+require_once __DIR__ . '/../class-testcase.php';
+
+use PixelScout\Infrastructure\Query;
 
 /**
  * Test Query builder.
@@ -15,15 +17,15 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test factory constructor.
 	 */
 	public function test_create_returns_instance(): void {
-		$query = Pixel_Scout_Query::create();
-		$this->assertInstanceOf( 'Pixel_Scout_Query', $query );
+		$query = Query::create();
+		$this->assertInstanceOf( Query::class, $query );
 	}
 
 	/**
 	 * Test SELECT builder.
 	 */
 	public function test_select_single_field(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'posts' )
 			->select( 'ID' );
 
@@ -35,7 +37,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test SELECT with multiple fields.
 	 */
 	public function test_select_multiple_fields(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'posts' )
 			->select( [ 'ID', 'post_title', 'post_date' ] );
 
@@ -48,7 +50,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_from_adds_table_prefix(): void {
 		global $wpdb;
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'posts' );
 
 		$sql = $query->build_sql();
@@ -59,7 +61,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test ps_index table prefix.
 	 */
 	public function test_from_ps_index(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' );
 
 		$sql = $query->build_sql();
@@ -70,7 +72,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test WHERE clause.
 	 */
 	public function test_where_condition(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where( 'attachment_id', 42, '=', '%d' );
 
@@ -83,7 +85,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test multiple WHERE clauses (AND).
 	 */
 	public function test_multiple_where_and(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where( 'attachment_id', 42, '=', '%d' )
 			->where( 'phash', 'abc123', '=', '%s' );
@@ -98,7 +100,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test WHERE IN clause.
 	 */
 	public function test_where_in(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where_in( 'attachment_id', [ 1, 2, 3 ], '%d' );
 
@@ -111,7 +113,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test WHERE NOT IN clause.
 	 */
 	public function test_where_not_in(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where_not_in( 'attachment_id', [ 1, 2 ], '%d' );
 
@@ -123,7 +125,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test OR WHERE group.
 	 */
 	public function test_or_where_group(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where( 'mime_type', 'image/gif', '!=', '%s' )
 			->or_where_group( function( $q ) {
@@ -141,7 +143,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test ORDER BY.
 	 */
 	public function test_order_by(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->order_by( 'indexed_at', 'DESC' );
 
@@ -153,7 +155,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test LIMIT.
 	 */
 	public function test_limit(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->limit( 10 );
 
@@ -165,7 +167,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test OFFSET.
 	 */
 	public function test_offset(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->limit( 10 )
 			->offset( 20 );
@@ -179,7 +181,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test paginate helper.
 	 */
 	public function test_paginate(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->paginate( 2, 25 );
 
@@ -192,7 +194,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test GROUP BY.
 	 */
 	public function test_group_by(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->group_by( 'mime_type' );
 
@@ -205,7 +207,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_inner_join(): void {
 		global $wpdb;
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index', 'idx' )
 			->inner_join( 'posts', 'idx.attachment_id = p.ID', 'p' );
 
@@ -218,7 +220,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test LEFT JOIN.
 	 */
 	public function test_left_join(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'posts', 'p' )
 			->left_join( 'ps_index', 'idx.attachment_id = p.ID', 'idx' );
 
@@ -247,7 +249,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test WHERE BETWEEN.
 	 */
 	public function test_where_between(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where_between( 'file_size', 100, 1000, '%d' );
 
@@ -259,7 +261,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test WHERE RAW.
 	 */
 	public function test_where_raw(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->where_raw( 'phash IS NOT NULL', [] );
 
@@ -271,13 +273,13 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 * Test no_cache flag.
 	 */
 	public function test_no_cache_flag(): void {
-		$query = Pixel_Scout_Query::create()
+		$query = Query::create()
 			->from( 'ps_index' )
 			->no_cache();
 
 		$this->assertTrue( $query->is_no_cache() );
 
-		$query2 = Pixel_Scout_Query::create()
+		$query2 = Query::create()
 			->from( 'ps_index' );
 
 		$this->assertFalse( $query2->is_no_cache() );

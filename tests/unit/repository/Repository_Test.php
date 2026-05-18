@@ -7,6 +7,9 @@
 
 require_once __DIR__ . '/../class-testcase.php';
 
+use PixelScout\Repository\Index_Repository;
+use PixelScout\Repository\Schema;
+
 /**
  * Test Repository implementation.
  */
@@ -14,9 +17,9 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 	/**
 	 * Repository instance.
 	 *
-	 * @var Pixel_Scout_Index_Repository
+	 * @var Index_Repository
 	 */
-	private Pixel_Scout_Index_Repository $repo;
+	private Index_Repository $repo;
 
 	/**
 	 * Test attachment ID.
@@ -28,9 +31,9 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
-		$this->repo = new Pixel_Scout_Index_Repository();
-		new Pixel_Scout_Schema(); // Ensure table exists.
-		( new Pixel_Scout_Schema() )->install();
+		global $wpdb;
+		$this->repo = new Index_Repository( $wpdb );
+		( new Schema() )->install();
 	}
 
 	/**

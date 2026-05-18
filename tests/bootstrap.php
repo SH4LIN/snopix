@@ -5,11 +5,16 @@
  * @package Pixel_Scout
  */
 
-// Load WordPress test suite.
-$wp_tests_dir = getenv( 'WP_TESTS_DIR' );
-if ( ! $wp_tests_dir ) {
-	$wp_tests_dir = '/tmp/wordpress-tests-lib';
+// Load PHPUnit polyfills before WordPress test suite to provide removed PHPUnit classes.
+require_once dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+
+// Point to wp-tests-config.php in plugin root.
+if ( ! defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
+	define( 'WP_TESTS_CONFIG_FILE_PATH', dirname( __DIR__ ) . '/wp-tests-config.php' );
 }
+
+// Use vendor wp-phpunit package (PHPUnit 11 compatible) unless overridden.
+$wp_tests_dir = getenv( 'WP_TESTS_DIR' ) ?: dirname( __DIR__ ) . '/vendor/wp-phpunit/wp-phpunit';
 
 if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
 	echo "WordPress test suite not found at $wp_tests_dir\n";
@@ -27,4 +32,3 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 // Start the test suite.
 require_once $wp_tests_dir . '/includes/bootstrap.php';
-

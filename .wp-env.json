@@ -1,24 +1,6 @@
 {
-  "core": "WordPress/WordPress#latest",
+  "core": "WordPress/WordPress#6.7",
   "plugins": ["."],
-  "mu-plugins": [],
-  "themes": [],
   "port": 8000,
-  "env": {
-    "development": {
-      "WORDPRESS_DB_HOST": "mysql",
-      "WORDPRESS_DB_NAME": "wordpress_dev",
-      "WORDPRESS_DB_USER": "wordpress",
-      "WORDPRESS_DB_PASSWORD": "wordpress",
-      "WORDPRESS_TABLE_PREFIX": "ps_"
-    },
-    "tests": {
-      "WORDPRESS_DB_HOST": "mysql_test",
-      "WORDPRESS_DB_NAME": "wordpress_test",
-      "WORDPRESS_DB_USER": "wordpress",
-      "WORDPRESS_DB_PASSWORD": "wordpress",
-      "WORDPRESS_TABLE_PREFIX": "ps_"
-    }
-  }
+  "phpVersion": "8.2"
 }
-
