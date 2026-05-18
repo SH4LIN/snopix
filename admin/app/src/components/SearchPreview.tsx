@@ -113,7 +113,9 @@ export default function SearchPreview() {
 								className="w-full object-contain block max-h-64"
 							/>
 							<div className="flex items-center justify-between px-3 py-2">
-								<span className="text-[12px] text-ps-text truncate">{r.title}</span>
+								<span className="text-[12px] text-ps-text truncate">
+									{r.title}
+								</span>
 								<span className="text-[11px] font-medium text-ps-accent ml-2 shrink-0">
 									{Math.round(r.score * 100)}%
 								</span>

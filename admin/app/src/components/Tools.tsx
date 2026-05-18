@@ -10,7 +10,13 @@ import {
 } from '../hooks/use-tools';
 import { useReindex } from '../hooks/use-reindex';
 
-type ToolKey = 'reindex' | 'reindex-all' | 'clear-index' | 'orphans' | 'cache' | null;
+type ToolKey =
+	| 'reindex'
+	| 'reindex-all'
+	| 'clear-index'
+	| 'orphans'
+	| 'cache'
+	| null;
 
 interface ToolCard {
 	title: string;
@@ -156,7 +162,9 @@ export default function Tools() {
 				setResult(__('Cache cleared.', 'pixel-scout'));
 			}
 		} catch {
-			setResult(__('Action failed. Check console for details.', 'pixel-scout'));
+			setResult(
+				__('Action failed. Check console for details.', 'pixel-scout')
+			);
 		} finally {
 			setActive(null);
 		}
@@ -165,34 +173,41 @@ export default function Tools() {
 	return (
 		<div className="flex flex-col gap-4">
 			{result && (
-				<div className="ps-card text-[13px] text-ps-success">{result}</div>
+				<div className="ps-card text-[13px] text-ps-success">
+					{result}
+				</div>
 			)}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{(Object.keys(cards) as Array<Exclude<ToolKey, null>>).map((key) => {
-					const card = cards[key];
-					return (
-						<div key={key} className="ps-card flex flex-col gap-3">
-							<div>
-								<h3 className="text-[15px] font-semibold text-ps-text mb-1">
-									{card.title}
-								</h3>
-								<p className="text-[13px] text-ps-muted leading-snug">
-									{card.description}
-								</p>
+				{(Object.keys(cards) as Array<Exclude<ToolKey, null>>).map(
+					(key) => {
+						const card = cards[key];
+						return (
+							<div
+								key={key}
+								className="ps-card flex flex-col gap-3"
+							>
+								<div>
+									<h3 className="text-[15px] font-semibold text-ps-text mb-1">
+										{card.title}
+									</h3>
+									<p className="text-[13px] text-ps-muted leading-snug">
+										{card.description}
+									</p>
+								</div>
+								<div className="mt-auto">
+									<button
+										className={`ps-btn ${card.danger ? 'bg-ps-danger border-ps-danger' : ''}`}
+										onClick={() => setActive(key)}
+										disabled={loading}
+									>
+										{card.buttonLabel}
+									</button>
+								</div>
 							</div>
-							<div className="mt-auto">
-								<button
-									className={`ps-btn ${card.danger ? 'bg-ps-danger border-ps-danger' : ''}`}
-									onClick={() => setActive(key)}
-									disabled={loading}
-								>
-									{card.buttonLabel}
-								</button>
-							</div>
-						</div>
-					);
-				})}
+						);
+					}
+				)}
 			</div>
 
 			{active && (

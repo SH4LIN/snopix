@@ -48,8 +48,12 @@ export default function ConfirmModal({
 				className="bg-ps-bg rounded-[12px] shadow-xl max-w-md w-full p-6"
 				onClick={(e) => e.stopPropagation()}
 			>
-				<h3 className="text-[17px] font-semibold text-ps-text mb-2">{title}</h3>
-				<p className="text-[14px] text-ps-muted mb-5 leading-snug">{message}</p>
+				<h3 className="text-[17px] font-semibold text-ps-text mb-2">
+					{title}
+				</h3>
+				<p className="text-[14px] text-ps-muted mb-5 leading-snug">
+					{message}
+				</p>
 				<div className="flex justify-end gap-2">
 					<button
 						className="ps-btn bg-ps-surface text-ps-text border border-ps-border"

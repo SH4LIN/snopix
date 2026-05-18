@@ -28,14 +28,24 @@ function formatBytes(bytes: number): string {
 export default function ImageRow({ image, onImageClick }: Props) {
 	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`;
 	const isIndexed = !!image.phash;
-	const pillClass = isIndexed ? 'ps-pill ps-pill--indexed' : 'ps-pill ps-pill--pending';
-	const label = isIndexed ? __('Indexed', 'pixel-scout') : __('Pending', 'pixel-scout');
-	const date = image.indexed_at ? new Date(image.indexed_at).toLocaleDateString() : '—';
-	const displayName = image.filename || image.title || `ID ${image.attachment_id}`;
+	const pillClass = isIndexed
+		? 'ps-pill ps-pill--indexed'
+		: 'ps-pill ps-pill--pending';
+	const label = isIndexed
+		? __('Indexed', 'pixel-scout')
+		: __('Pending', 'pixel-scout');
+	const date = image.indexed_at
+		? new Date(image.indexed_at).toLocaleDateString()
+		: '—';
+	const displayName =
+		image.filename || image.title || `ID ${image.attachment_id}`;
 	const previewUrl = image.full_url || image.thumbnail_url || '';
 
 	return (
-		<tr onClick={() => window.open(editUrl, '_blank')} className="cursor-pointer">
+		<tr
+			onClick={() => window.open(editUrl, '_blank')}
+			className="cursor-pointer"
+		>
 			<td className="w-14 min-w-[3.5rem]">
 				{previewUrl ? (
 					<img
@@ -56,7 +66,9 @@ export default function ImageRow({ image, onImageClick }: Props) {
 			<td className="text-[13px]">
 				{displayName}
 				<br />
-				<span className="text-ps-muted text-[11px]">{image.mime_type}</span>
+				<span className="text-ps-muted text-[11px]">
+					{image.mime_type}
+				</span>
 			</td>
 			<td className="text-[13px]">
 				{image.width} &times; {image.height}

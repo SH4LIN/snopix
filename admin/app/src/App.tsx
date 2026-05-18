@@ -25,10 +25,16 @@ export default function App() {
 			</p>
 
 			<div className="flex gap-1 border-b border-ps-border mb-6">
-				<button className={tabClass('dashboard')} onClick={() => setTab('dashboard')}>
+				<button
+					className={tabClass('dashboard')}
+					onClick={() => setTab('dashboard')}
+				>
 					{__('Dashboard', 'pixel-scout')}
 				</button>
-				<button className={tabClass('tools')} onClick={() => setTab('tools')}>
+				<button
+					className={tabClass('tools')}
+					onClick={() => setTab('tools')}
+				>
 					{__('Tools', 'pixel-scout')}
 				</button>
 			</div>

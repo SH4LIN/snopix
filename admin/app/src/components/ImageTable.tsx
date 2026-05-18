@@ -14,7 +14,8 @@ export default function ImageTable() {
 			return;
 		}
 
-		const close = (e: KeyboardEvent) => e.key === 'Escape' && setLightbox(null);
+		const close = (e: KeyboardEvent) =>
+			e.key === 'Escape' && setLightbox(null);
 		document.addEventListener('keydown', close);
 		return () => document.removeEventListener('keydown', close);
 	}, [lightbox]);
@@ -48,7 +49,10 @@ export default function ImageTable() {
 					<tbody>
 						{isLoading && (
 							<tr>
-								<td colSpan={6} className="text-center text-ps-muted py-6">
+								<td
+									colSpan={6}
+									className="text-center text-ps-muted py-6"
+								>
 									{__('Loading…', 'pixel-scout')}
 								</td>
 							</tr>
@@ -62,7 +66,10 @@ export default function ImageTable() {
 						))}
 						{!isLoading && images?.length === 0 && (
 							<tr>
-								<td colSpan={6} className="text-center text-ps-muted py-6">
+								<td
+									colSpan={6}
+									className="text-center text-ps-muted py-6"
+								>
 									{__('No images found', 'pixel-scout')}
 								</td>
 							</tr>
