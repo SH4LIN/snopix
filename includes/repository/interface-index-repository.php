@@ -84,6 +84,13 @@ interface Index_Repository_Interface {
 	public function get_orphan_count(): int;
 
 	/**
+	 * Get rows needed for duplicate detection (attachment_id, phash, file_hash).
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_all_with_hash(): array;
+
+	/**
 	 * Flush internal caches.
 	 *
 	 * @return void

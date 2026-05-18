@@ -37,10 +37,12 @@ class Schema {
 			height SMALLINT UNSIGNED DEFAULT 0,
 			mime_type VARCHAR(50) DEFAULT '',
 			file_size BIGINT UNSIGNED DEFAULT 0,
+			file_hash CHAR(32) NOT NULL DEFAULT '',
 			indexed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE KEY attachment_id (attachment_id),
-			KEY idx_phash (phash)
+			KEY idx_phash (phash),
+			KEY idx_file_hash (file_hash)
 		) {$charset_collate};";
 
 		dbDelta( $sql );

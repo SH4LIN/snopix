@@ -59,6 +59,7 @@ class Image_Indexer {
 				'width'     => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
 				'height'    => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
 				'file_size' => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
+				'file_hash' => ( $file && file_exists( $file ) && str_starts_with( $mime, 'image/' ) ) ? (string) md5_file( $file ) : '',
 			)
 		);
 

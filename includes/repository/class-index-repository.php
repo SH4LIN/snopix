@@ -173,6 +173,20 @@ class Index_Repository implements Index_Repository_Interface {
 	}
 
 	/**
+	 * Get rows for duplicate detection: attachment_id, phash, file_hash.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_all_with_hash(): array {
+		$rows = Query::create()
+			->from( self::TABLE )
+			->select( array( 'attachment_id', 'phash', 'file_hash' ) )
+			->get( ARRAY_A );
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+	/**
 	 * Delete index row for attachment.
 	 *
 	 * @param int $attachment_id Attachment ID.

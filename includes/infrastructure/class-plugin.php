@@ -12,7 +12,8 @@ use PixelScout\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Proces
 use PixelScout\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
 use PixelScout\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
 use PixelScout\Hooks\{Media_Hooks, Cron_Handler, Settings};
-use PixelScout\Api\{Rate_Limiter, REST_Controller};
+use PixelScout\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller};
+use PixelScout\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, Duplicate_Cron_Handler};
 use PixelScout\Admin\Admin_Page;
 use PixelScout\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
@@ -129,6 +130,12 @@ class Plugin {
 			new Rate_Limiter()
 		);
 		$controller->register_routes();
+
+		$dup_progress    = new Duplicate_Progress();
+		$dup_finder      = new Duplicate_Finder( $similarity );
+		$dup_scanner     = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
+		$dup_controller  = new Duplicates_REST_Controller( $dup_scanner, $dup_progress, $repository );
+		$dup_controller->register_routes();
 	}
 
 	/**
@@ -139,6 +146,7 @@ class Plugin {
 	public function register_hooks(): void {
 		global $wpdb;
 		$repository   = new Index_Repository( $wpdb );
+		$similarity   = new Similarity();
 		$validator    = new Mime_Validator();
 		$loader       = new GD_Loader();
 		$factory      = new Fingerprint_Factory(
@@ -152,6 +160,17 @@ class Plugin {
 
 		( new Media_Hooks( $indexer ) )->register();
 		( new Cron_Handler( $bulk_indexer ) )->register();
+
+		$dup_progress = new Duplicate_Progress();
+		$dup_finder   = new Duplicate_Finder( $similarity );
+		$dup_scanner  = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
+		( new Duplicate_Cron_Handler( $dup_scanner ) )->register();
+		add_action(
+			Duplicate_Scanner::DAILY_HOOK,
+			static function () use ( $dup_scanner ) {
+				$dup_scanner->schedule();
+			}
+		);
 	}
 
 	/**
@@ -186,6 +205,11 @@ class Plugin {
 		self::instance()->schema->install();
 		self::debug_log( 'Schema installed successfully.' );
 		self::instance()->schema->maybe_upgrade();
+
+		if ( ! wp_next_scheduled( Duplicate_Scanner::DAILY_HOOK ) ) {
+			wp_schedule_event( time(), 'daily', Duplicate_Scanner::DAILY_HOOK );
+		}
+
 		self::debug_log( 'Plugin activation complete.' );
 	}
 
@@ -197,6 +221,8 @@ class Plugin {
 	public static function deactivate(): void {
 		self::debug_log( 'Deactivation hook triggered.' );
 		wp_clear_scheduled_hook( 'ps_bulk_index_batch' );
+		wp_clear_scheduled_hook( Duplicate_Scanner::CRON_HOOK );
+		wp_clear_scheduled_hook( Duplicate_Scanner::DAILY_HOOK );
 		self::debug_log( 'Scheduled events cleared.' );
 	}
 
@@ -213,9 +239,14 @@ class Plugin {
 
 		delete_option( 'ps_settings' );
 		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
+		delete_option( 'ps_duplicate_results' );
+		delete_option( 'ps_duplicate_last_scanned' );
 		delete_transient( 'ps_bulk_progress' );
 		delete_transient( 'ps_bulk_total' );
 		delete_transient( 'ps_bulk_status' );
+		delete_transient( 'ps_dup_progress' );
+		delete_transient( 'ps_dup_total' );
+		delete_transient( 'ps_dup_status' );
 
 		self::debug_log( 'Uninstall complete.' );
 	}

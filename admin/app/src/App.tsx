@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import Dashboard from './components/Dashboard';
 import Tools from './components/Tools';
+import Duplicates from './components/Duplicates';
 
-type Tab = 'dashboard' | 'tools';
+type Tab = 'dashboard' | 'duplicates' | 'tools';
 
 export default function App() {
 	const [tab, setTab] = useState<Tab>('dashboard');
@@ -32,6 +33,12 @@ export default function App() {
 					{__('Dashboard', 'pixel-scout')}
 				</button>
 				<button
+					className={tabClass('duplicates')}
+					onClick={() => setTab('duplicates')}
+				>
+					{__('Duplicates', 'pixel-scout')}
+				</button>
+				<button
 					className={tabClass('tools')}
 					onClick={() => setTab('tools')}
 				>
@@ -39,7 +46,9 @@ export default function App() {
 				</button>
 			</div>
 
-			{tab === 'dashboard' ? <Dashboard /> : <Tools />}
+			{tab === 'dashboard' && <Dashboard />}
+			{tab === 'duplicates' && <Duplicates />}
+			{tab === 'tools' && <Tools />}
 		</div>
 	);
 }

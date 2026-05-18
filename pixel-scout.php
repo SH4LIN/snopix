@@ -22,7 +22,7 @@ if ( ! defined( 'PIXEL_SCOUT_VERSION' ) ) {
 }
 
 if ( ! defined( 'PIXEL_SCOUT_DB_VERSION' ) ) {
-	define( 'PIXEL_SCOUT_DB_VERSION', '1.0.0' );
+	define( 'PIXEL_SCOUT_DB_VERSION', '1.1.0' );
 }
 
 if ( ! defined( 'PIXEL_SCOUT_FILE' ) ) {
