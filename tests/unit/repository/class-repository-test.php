@@ -199,18 +199,19 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 	 * Test get_paginated returns correct page.
 	 */
 	public function test_get_paginated(): void {
-		// Insert several rows.
-		for ( $i = 1; $i <= 5; $i++ ) {
+		// Insert several rows with IDs that won't conflict.
+		for ( $i = 1000; $i <= 1004; $i++ ) {
 			$fp = $this->get_test_fingerprint();
 			$this->repo->upsert( $i, $fp );
 		}
 
-		// Get page 1 (2 per page).
-		$page1 = $this->repo->get_paginated( 1, 2, '' );
+		// First page — no cursor.
+		$page1 = $this->repo->get_paginated( 0, 2, '' );
 		$this->assertLessThanOrEqual( 2, count( $page1 ) );
 
-		// Get page 2 (2 per page).
-		$page2 = $this->repo->get_paginated( 2, 2, '' );
+		// Second page — cursor is the last attachment_id from page 1.
+		$cursor = ! empty( $page1 ) ? (int) $page1[ count( $page1 ) - 1 ]['attachment_id'] : 0;
+		$page2  = $this->repo->get_paginated( $cursor, 2, '' );
 		$this->assertLessThanOrEqual( 2, count( $page2 ) );
 	}
 
@@ -228,7 +229,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 
 		$this->repo->upsert( $post_id, $this->get_test_fingerprint() );
 
-		$results = $this->repo->get_paginated( 1, 10, 'Alpha' );
+		$results = $this->repo->get_paginated( 0, 10, 'Alpha' );
 		$this->assertGreaterThanOrEqual( 1, count( $results ) );
 	}
 

@@ -99,11 +99,11 @@ class Index_Repository implements Index_Repository_Interface {
 	}
 
 	/**
-	 * Get paginated index rows.
+	 * Get paginated index rows using keyset cursor.
 	 *
-	 * @param int    $page Current page.
+	 * @param int    $after_id Return rows with attachment_id less than this value. 0 = first page.
 	 * @param int    $per_page Rows per page.
-	 * @param string $search Search term.
+	 * @param string $search   Search term.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
@@ -249,14 +249,4 @@ class Index_Repository implements Index_Repository_Interface {
 		wp_cache_delete( self::CACHE_ALL, self::CACHE_GROUP );
 	}
 
-	/**
-	 * Escape LIKE values.
-	 *
-	 * @param string $value Input value.
-	 *
-	 * @return string
-	 */
-	private function escape_like( string $value ): string {
-		return $this->wpdb->esc_like( $value );
-	}
 }

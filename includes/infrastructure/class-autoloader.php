@@ -65,9 +65,9 @@ class Autoloader {
 	 *
 	 * @param string $class_name Full namespaced class name.
 	 *
-	 * @return string|null Absolute path or null if not resolvable.
+	 * @return string Absolute path.
 	 */
-	private static function locate( string $class_name ): ?string {
+	private static function locate( string $class_name ): string {
 		$relative = substr( $class_name, strlen( 'PixelScout\\' ) );
 		$parts    = explode( '\\', $relative );
 		$short    = array_pop( $parts );

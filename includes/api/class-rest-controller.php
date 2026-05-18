@@ -10,7 +10,6 @@ namespace PixelScout\Api;
 use PixelScout\Search\{Search_Pipeline, Query_Image};
 use PixelScout\Repository\Index_Repository;
 use PixelScout\Indexing\{Bulk_Indexer, Index_Progress};
-use PixelScout\Hooks\Settings;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,7 +33,6 @@ class REST_Controller {
 	 * @param Bulk_Indexer     $bulk_indexer Bulk indexer.
 	 * @param Index_Progress   $progress     Progress tracker.
 	 * @param Rate_Limiter     $rate_limiter Rate limiter.
-	 * @param Settings         $settings   Plugin settings.
 	 */
 	public function __construct(
 		private Search_Pipeline $pipeline,
@@ -42,8 +40,7 @@ class REST_Controller {
 		private Index_Repository $repository,
 		private Bulk_Indexer $bulk_indexer,
 		private Index_Progress $progress,
-		private Rate_Limiter $rate_limiter,
-		private Settings $settings
+		private Rate_Limiter $rate_limiter
 	) {}
 
 	/**

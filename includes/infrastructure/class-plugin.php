@@ -120,16 +120,13 @@ class Plugin {
 		$validator    = new Mime_Validator();
 		$indexer      = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
-		$settings     = new Settings();
-
 		$controller = new REST_Controller(
 			$pipeline,
 			new Query_Image(),
 			$repository,
 			$bulk_indexer,
 			new Index_Progress(),
-			new Rate_Limiter(),
-			$settings
+			new Rate_Limiter()
 		);
 		$controller->register_routes();
 	}
