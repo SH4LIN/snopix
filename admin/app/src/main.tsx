@@ -1,8 +1,65 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+	createRootRoute,
+	createRoute,
+	createRouter,
+	RouterProvider,
+	createHashHistory,
+	redirect,
+} from '@tanstack/react-router';
 import App from './App';
+import Dashboard from './components/Dashboard';
+import Duplicates from './components/Duplicates';
+import Tools from './components/Tools';
 import './styles/globals.css';
+
+const rootRoute = createRootRoute({ component: App });
+
+const indexRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/',
+	beforeLoad: () => {
+		throw redirect({ to: '/dashboard' });
+	},
+});
+
+const dashboardRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/dashboard',
+	component: Dashboard,
+});
+
+const duplicatesRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/duplicates',
+	component: Duplicates,
+});
+
+const toolsRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/tools',
+	component: Tools,
+});
+
+const routeTree = rootRoute.addChildren([
+	indexRoute,
+	dashboardRoute,
+	duplicatesRoute,
+	toolsRoute,
+]);
+
+const router = createRouter({
+	routeTree,
+	history: createHashHistory(),
+});
+
+declare module '@tanstack/react-router' {
+	interface Register {
+		router: typeof router;
+	}
+}
 
 const container = document.getElementById('ps-root');
 if (container) {
@@ -12,7 +69,7 @@ if (container) {
 	createRoot(container).render(
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
-				<App />
+				<RouterProvider router={router} />
 			</QueryClientProvider>
 		</React.StrictMode>
 	);
