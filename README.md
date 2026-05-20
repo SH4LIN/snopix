@@ -1,248 +1,220 @@
 # Pixel Scout
 
-Image similarity search for WordPress media library.
+Reverse image search and duplicate detection for the WordPress media library.
 
-**Version:** 0.1.0 (Phase 1 - Infrastructure)  
-**Requires:** WordPress 6.0+, PHP 8.0+  
+**Version:** 0.1.0
+**Requires:** WordPress 6.0+, PHP 8.0+
 **License:** GPLv2 or later
 
----
-
-## Quick start
-
-### Installation
-
-1. Clone/download into `wp-content/plugins/pixel-scout`
-2. Activate plugin in WordPress Admin
-3. Or use WP-CLI: `wp plugin activate pixel-scout`
-
-### First-time verification
-
-After activation, run Phase 1 smoke test:
-
-```bash
-wp eval-file wp-content/plugins/pixel-scout/includes/test-phase1.php
-```
-
-Expected output: all 5 tests pass, table created, sample record inserted/deleted.
-
-See [PHASE1_VERIFICATION.md](./PHASE1_VERIFICATION.md) for details.
+> ⚠️ **Early-stage software.** Pixel Scout is in active development. The
+> features below work, but ranking thresholds, duplicate clustering, and the
+> index schema are still being tuned. Expect occasional false positives in
+> search and duplicate detection, and possible breaking changes between
+> 0.x releases. Please test on a staging site before deploying to
+> production, and treat results as advisory rather than authoritative.
 
 ---
 
-## Testing
+## What it does
 
-Pixel Scout includes comprehensive unit tests (PHPUnit + wp-phpunit) and E2E tests (Playwright).
+* **Reverse-image search.** Drop an image on the admin dashboard or the
+  `[ps_search]` shortcode and Pixel Scout returns the visually closest
+  attachments already in your library.
+* **Duplicate detection.** Scans your indexed media for near-identical groups
+  and lets you pick one to keep + bulk-delete the rest.
+* **Background indexing.** Bulk fingerprint generation runs in chained
+  WP-Cron batches — no PHP timeouts on large libraries.
+* **REST + shortcode.** Public `POST /wp-json/ps/v1/search` (rate-limited) for
+  the front-end shortcode; full admin REST surface gated by `manage_options`.
 
-### Quick start
+How it scores: each indexed attachment carries a 64-bit pHash, a 48-element
+RGB histogram, and a 32-element Sobel edge histogram. A probe image is
+fingerprinted the same way and ranked against the index with a composite
+score of `0.40·pHash + 0.35·colour + 0.25·edge`, after a Hamming pre-filter
+on the pHash to keep the inner loop cheap.
+
+Supported formats: `image/jpeg`, `image/png`, `image/gif`, `image/webp`,
+`image/bmp`.
+
+---
+
+## Install (from source)
 
 ```bash
-# Install all dependencies
-./setup-tests.sh
-
-# Run all tests
-composer test
-npm run test:e2e
+git clone https://github.com/your-org/pixel-scout wp-content/plugins/pixel-scout
+cd wp-content/plugins/pixel-scout
+composer install
+( cd admin/app && npm ci && npm run build )
+wp plugin activate pixel-scout
 ```
 
-### Unit tests (Phase 1 ✅)
+Then go to **Media → Pixel Scout** and click **Index Remaining** to
+fingerprint any attachments already in the library.
 
-- Query builder: 25+ tests covering SELECT, INSERT, UPDATE, DELETE, UPSERT, joins, pagination
-- Schema manager: 12+ tests for table creation, upgrades, idempotency
-- Repository: 20+ tests for data access, caching, concurrent operations
-- Plugin lifecycle: 8+ tests for activation, deactivation, uninstall
-
-Run with:
-```bash
-composer test                # All tests
-composer test-coverage       # With coverage report
-composer lint                # Code standards (PHPCS + WPCS)
-```
-
-### E2E tests (Phases 6–7)
-
-- Admin dashboard tests (skipped until Phase 6)
-- Frontend shortcode tests (skipped until Phase 7)
-- Responsive design tests
-
-Run with:
-```bash
-npm run test:e2e             # All tests
-npm run test:e2e:ui          # Interactive UI
-npm run test:e2e:headed      # Visible browser
-```
-
-See [TESTING.md](./TESTING.md) for comprehensive testing guide.
+For a packaged release zip, see the **Build a release zip** section below or
+download the artifact from a GitHub Actions run of the `Build Release Zip`
+workflow.
 
 ---
 
 ## Architecture
 
-**Domain-driven design** with 3 core business domains:
+Plugin source lives under `includes/` and is grouped by domain:
 
-- **Imaging** — Pixel data, GD operations, fingerprint math
-- **Search** — Query pipeline, similarity scoring, result ranking
-- **Indexing** — Ingestion, bulk jobs, progress tracking
+| Layer | Path | Purpose |
+| --- | --- | --- |
+| Imaging | `includes/imaging/` | GD loader, pHash / colour / edge processors, similarity metrics |
+| Search | `includes/search/` | Fingerprint factory, scoring, pipeline, query-image upload |
+| Indexing | `includes/indexing/` | Single + bulk indexers, progress transients, MIME validator |
+| Duplicates | `includes/duplicates/` | Finder, scanner cron, progress tracking |
+| Repository | `includes/repository/` | DB schema + `$wpdb`-bound index access |
+| API | `includes/api/` | REST controllers + rate limiter |
+| Hooks | `includes/hooks/` | WordPress integration (cron, media, settings) |
+| Admin | `includes/admin/` + `admin/app/` | Dashboard page (PHP) + React app (TSX/Vite) |
+| Frontend | `includes/frontend/` + `public/` | `[ps_search]` shortcode + widget JS/CSS |
+| Infrastructure | `includes/infrastructure/` | Autoloader, plugin bootstrap, attachment query helpers |
 
-Plus supporting layers:
-
-- **Infrastructure** — Query builder, plugin bootstrap, utilities
-- **Repository** — Database access only, zero business logic
-- **Hooks** — WordPress integration, event wiring only
-- **API** — REST endpoints + rate limiting
-- **Admin/Public** — UI layers (React dashboard + vanilla shortcode)
-
-See [plan.md](./plan.md) for full specifications.
-
----
-
-## File structure
-
-```
-pixel-scout/
-├── pixel-scout.php                plugin header, constants, autoloader
-├── uninstall.php                  cleanup on plugin removal
-├── plan.md                         full project spec
-├── PHASE1_VERIFICATION.md         smoke test docs
-├── .gitignore                      build output, deps
-│
-├── includes/
-│   ├── infrastructure/            plugin bootstrap, query builder
-│   │   ├── class-plugin.php
-│   │   ├── class-query.php        fluent SQL builder
-│   │   └── functions.php          helper functions
-│   │
-│   ├── repository/                DB layer only
-│   │   ├── class-schema.php       table creation
-│   │   ├── class-index-repository.php
-│   │   └── interface-repository.php
-│   │
-│   ├── imaging/                   (Phase 2) pixel algorithms
-│   ├── search/                    (Phase 3) similarity pipeline
-│   ├── indexing/                  (Phase 4) bulk indexing
-│   ├── api/                       (Phase 5) REST endpoints
-│   └── hooks/                     (Phase 5) WordPress integration
-│
-├── admin/                         (Phase 6) WordPress admin
-│   ├── class-admin-page.php
-│   ├── views/admin-root.php
-│   └── app/                       React app (TypeScript)
-│       ├── vite.config.ts
-│       ├── src/
-│       │   ├── main.tsx
-│       │   ├── App.tsx
-│       │   ├── components/
-│       │   ├── hooks/
-│       │   └── store/
-│       └── dist/                  (git-ignored) Vite build output
-│
-├── public/                        (Phase 7) frontend shortcode
-│   ├── class-shortcode.php
-│   └── assets/
-│       ├── js/search.js
-│       ├── css/search.css
-│
-└── languages/                     i18n translations
-    └── pixel-scout.pot
-```
+The admin app is a Vite-built React 18 SPA (TanStack Query + TanStack
+Router + Zustand) that lives under `admin/app/`. Only the built bundle
+under `admin/app/dist/` ships in the release zip.
 
 ---
 
-## Development workflow
+## REST API
 
-### Currently building (Phase 1 ✅)
+Base namespace: `ps/v1`.
 
-- [x] Plugin bootstrap, constants, autoloader
-- [x] Infrastructure: Query builder, Plugin class, helpers
-- [x] Repository layer: interface, implementation, schema
-- [x] Smoke test script + WP_DEBUG logging
-- [x] Updated plan.md for TypeScript/TSX
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/search` | public (rate-limited 10/60s) | Reverse-image search; multipart `file=`. |
+| `GET`  | `/status` | `manage_options` | Total / indexed / pending counts. |
+| `GET`  | `/images` | `manage_options` | Paginated indexed-attachment list. |
+| `POST` | `/reindex` | `manage_options` | Schedule index of pending attachments. |
+| `GET`  | `/progress` | `manage_options` | Indexing job progress. |
+| `DELETE` | `/index/{id}` | `manage_options` | Remove one row from the index. |
+| `POST` | `/tools/reindex-all` | `manage_options` | Wipe + rebuild every fingerprint. |
+| `POST` | `/tools/clear-index` | `manage_options` | Delete all fingerprints. |
+| `POST` | `/tools/delete-orphans` | `manage_options` | Remove rows whose attachment is gone. |
+| `POST` | `/tools/clear-cache` | `manage_options` | Flush plugin transients. |
+| `GET`  | `/tools/orphans` | `manage_options` | Orphan-row count. |
+| `GET`  | `/duplicates` | `manage_options` | Cached duplicate groups. |
+| `POST` | `/duplicates/scan` | `manage_options` | Start a fresh duplicate scan. |
+| `GET`  | `/duplicates/progress` | `manage_options` | Duplicate scan progress. |
+| `DELETE` | `/duplicates/attachment/{id}` | `manage_options` | Delete one attachment from a group. |
 
-### Next: Phase 2 (Imaging domain)
+The `POST /search` endpoint responds with `422 unprocessable_image` when the
+uploaded file can't be fingerprinted (corrupted bytes or unsupported MIME),
+so the UI can distinguish a broken upload from a legitimately empty result
+set.
 
-- [ ] GD loader
-- [ ] pHash processor (DCT + fingerprinting)
-- [ ] Color vector processor (RGB histogram)
-- [ ] Edge vector processor (Sobel gradient)
-- [ ] Similarity helpers (Hamming, cosine distance)
+---
 
-### Testing
+## Front-end shortcode
 
-Phase 1 smoke test validates Query builder and schema:
+```text
+[ps_search]
+```
+
+Drops a search widget anywhere on the front end. Visibility is configurable
+under **Settings → Connectors → Pixel Scout** — either `anyone` (default) or
+`logged-in`.
+
+---
+
+## Testing
 
 ```bash
-# WP-CLI
-wp eval-file wp-content/plugins/pixel-scout/includes/test-phase1.php
+composer install
+composer test            # PHPUnit unit tests
+composer lint            # PHPCS (WordPress Coding Standards)
+composer analyse         # PHPStan level 5
 
-# Or activate in WordPress Admin and check wp-content/debug.log
+npm --prefix admin/app ci
+npm --prefix admin/app run build
+npx playwright test      # End-to-end (Playwright)
 ```
 
-No external dependencies (no Composer, no NPM yet).
+The PHPUnit suite uses the `wp-phpunit` test scaffold and a MySQL service
+container (see `.github/workflows/ci.yml` for the CI configuration that
+provisions WordPress core and the test database).
+
+A reproducible reverse-image-search regression suite lives under
+`tests/fixtures/images/run_search_tests.py` — see `TEST_REPORT.md` for the
+matrix and findings.
 
 ---
 
-## Coding standards
+## Continuous integration
 
-All code follows **WordPress Coding Standards (WPCS)**. Run linter:
+`.github/workflows/ci.yml` runs on every PR and push to `main` / `development`:
+
+| Job | What it runs |
+| --- | --- |
+| `phpcs` | `composer lint` on PHP 8.1 |
+| `phpstan` | `composer analyse` on PHP 8.1 |
+| `phpunit` | `composer test` across PHP 8.0 / 8.1 / 8.2 / 8.3 |
+
+---
+
+## Build a release zip
+
+`.github/workflows/release.yml` produces a WordPress.org-deployable zip on
+either of:
+
+* a push of a tag matching `v*` (e.g. `git tag v0.2.0 && git push --tags`),
+  which also attaches the zip to a GitHub release; or
+* a manual run from **Actions → Build Release Zip → Run workflow**.
+
+The build runs `npm ci && npm run build` for the admin app, then `rsync`s
+the source tree through `.distignore` to strip dev artifacts (tests, vendor,
+configs, `node_modules`, etc.) before zipping. The final archive is ~500 KB
+and contains only `pixel-scout.php`, `uninstall.php`, `readme.txt`,
+`includes/`, `admin/app/dist/`, `admin/app/views/`, and `public/`.
+
+To build locally:
 
 ```bash
-composer lint         # Summary
-composer lint-fix     # Auto-fix
-composer lint-strict  # Including WordPress-Extra
+( cd admin/app && npm ci && npm run build )
+rsync -a --exclude-from=.distignore --exclude=build ./ build/pixel-scout/
+( cd build && zip -rq pixel-scout-0.1.0.zip pixel-scout )
 ```
-
-All PHP code follows **WordPress Coding Standards (WPCS)**:
-
-- Class names: `Pixel_Scout_Module_Class`
-- Methods: `snake_case()`
-- Constants: `PIXEL_SCOUT_VERSION`
-- Hooks: `ps_action_name`, `ps_filter_name`
-- Options: `ps_settings`, `ps_bulk_progress`
-- Database table: `{prefix}ps_index`
-- REST namespace: `ps/v1`
-- Text domain: `pixel-scout`
-
-All user-facing strings are i18n-wrapped with `__()`, `esc_html__()`, etc.
-
----
-
-## Performance targets
-
-- Upload image → fingerprints in DB: **< 2s**
-- Search 500 images: **< 500ms**
-- Search 5,000 images: **< 2s**
-- Bulk index 500 images via WP-Cron: **no timeout**
 
 ---
 
 ## Roadmap
 
-| Phase | Focus | Status |
-|-------|-------|--------|
-| 1 | Infrastructure (Query, schema, plugin bootstrap) | ✅ Done |
-| 2 | Imaging domain (GD, fingerprinting, similarity math) | — |
-| 3 | Search domain (pipeline, scoring, results ranking) | — |
-| 4 | Indexing domain (bulk jobs, progress) | — |
-| 5 | REST API + hooks + settings | — |
-| 6 | React admin dashboard (TypeScript) | — |
-| 7 | Frontend shortcode search UI | — |
-| 8 | Hardening + performance tuning | — |
+| Area | Status |
+| --- | --- |
+| pHash + colour + edge fingerprinting | ✅ Implemented |
+| Reverse-image search (admin + shortcode) | ✅ Implemented |
+| Bulk WP-Cron indexing | ✅ Implemented |
+| Duplicate detection + bulk delete | ✅ Implemented |
+| Admin React UI (Dashboard / Duplicates / Tools) | ✅ Implemented |
+| CI: PHPCS + PHPStan + PHPUnit matrix | ✅ Implemented |
+| Threshold tuning across more real-world libraries | ⏳ Ongoing |
+| WordPress.org `readme.txt` polishing + screenshots | ⏳ In progress |
+| Localisation files (`languages/pixel-scout.pot`) | ⏳ Pending |
+| BMP indexing parity with other formats | ⏳ Newly added, watching |
+| Performance audit on libraries > 10k attachments | ⏳ Pending |
 
 ---
 
 ## Contributing
 
-- Follow WPCS on every file
-- Escape all output, sanitize all input
-- Constructor DI only, no globals in services
-- No `$wpdb` calls outside Repository classes
-- No `add_action` inside domain/service classes
-- Test via the Phase 1 smoke script before committing
+* Follow WordPress Coding Standards (`composer lint`).
+* Escape all output; sanitise all input.
+* Keep `$wpdb` calls inside repository classes only.
+* Don't register `add_action` / `add_filter` from domain or service classes —
+  bind hooks in `includes/hooks/` or in `Plugin::register()`.
+* Add or update PHPUnit tests for any new public behaviour.
+
+The plugin is pre-1.0 and the search/duplicate thresholds are still being
+tuned; if you hit a case where Pixel Scout misranks or misses an obvious
+match, please open an issue with the source and probe images and a snippet
+of the response payload.
 
 ---
 
 ## License
 
-GNU General Public License v2 or later
-
-
+GNU General Public License v2 or later. See `LICENSE`.

@@ -1,0 +1,105 @@
+# Files and directories excluded from the WordPress.org distribution zip.
+# See .github/workflows/release.yml — every pattern below is fed to rsync
+# via --exclude-from.
+
+# VCS / repository metadata
+.git
+.gitignore
+.gitattributes
+.github
+
+# Editor / OS metadata
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Local dev environments
+.wp-env
+.wp-env.json
+wp-env.override.json
+.env
+.env.*
+.env.example
+
+# Build tooling at the repo root
+node_modules
+package.json
+package-lock.json
+yarn.lock
+tsconfig.json
+tsconfig.node.json
+env.d.ts
+playwright.config.ts
+
+# Composer (plugin uses its own autoloader; no runtime deps)
+composer.json
+composer.lock
+vendor
+
+# Lint / static-analysis configs
+phpcs.xml
+phpcs.xml.dist
+phpstan.neon
+phpstan.neon.dist
+phpstan-bootstrap.php
+.phpcs-cache
+.phpunit.result.cache
+
+# Test suite
+tests
+phpunit.xml
+phpunit.xml.dist
+playwright-report
+test-results
+coverage
+.nyc_output
+
+# Admin app sources — only the built dist/ ships
+admin/app/src
+admin/app/node_modules
+admin/app/package.json
+admin/app/package-lock.json
+admin/app/yarn.lock
+admin/app/vite.config.ts
+admin/app/tsconfig.json
+admin/app/tsconfig.node.json
+admin/app/eslint.config.js
+admin/app/postcss.config.js
+admin/app/tailwind.config.ts
+admin/app/tailwind.config.js
+admin/app/index.html
+admin/app/.gitignore
+admin/app/README.md
+
+# Documentation / scratch files that don't belong in the deployed plugin
+README.md
+TEST_REPORT.md
+plan.md
+design
+design-preview.png
+docs
+
+# Dev databases & misc artifacts
+ruvector.db
+agentdb.rvf
+agentdb.rvf.lock
+*.log
+setup-tests.sh
+docker-compose.yml
+.playwright-mcp
+.claude
+
+# Anything starting with a dot at the build root
+.distignore
+
+# Test bootstrap config
+wp-tests-config.php
+
+# Prettier config
+.prettierrc
+.prettierrc.*
+.prettierignore
