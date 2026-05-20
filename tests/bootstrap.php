@@ -23,7 +23,14 @@ if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
 
 require_once $wp_tests_dir . '/includes/functions.php';
 
-// Bootstrap the plugin.
+/**
+ * Bootstrap the plugin under the WP test harness.
+ *
+ * Hooked onto `muplugins_loaded` so the plugin loads after WordPress core
+ * but before any test fixtures are created.
+ *
+ * @return void
+ */
 function _manually_load_plugin() {
 	require_once dirname( dirname( __FILE__ ) ) . '/pixel-scout.php';
 }

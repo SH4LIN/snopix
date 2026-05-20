@@ -1,8 +1,12 @@
-import { test, expect } from '@playwright/test';
-
 /**
- * Frontend shortcode [ps_search] tests.
+ * Playwright end-to-end tests for the [ps_search] frontend shortcode.
+ *
+ * Covers rendering of the drop-zone, drag-and-drop upload, score badges, the
+ * "no results" empty state, click-through to the media library, visibility
+ * gating (anyone vs logged-in), error states, skeleton loading and the
+ * responsive layout on mobile / tablet viewports.
  */
+import { test, expect } from '@playwright/test';
 test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to page with [ps_search] shortcode

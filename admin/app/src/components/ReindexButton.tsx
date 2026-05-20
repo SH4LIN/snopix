@@ -11,6 +11,20 @@ interface Props {
 	status?: Status;
 }
 
+/**
+ * "Index Remaining" CTA + live progress bar shown on the Dashboard.
+ *
+ * The button is enabled only while indexing is idle and the status payload
+ * reports at least one pending attachment. Once the user clicks it,
+ * {@link useReindex} kicks off the bulk job and the row swaps to a progress bar
+ * driven by {@link useIndexingProgress}. Stalled and done states are surfaced
+ * inline beneath the bar.
+ *
+ * @param {Props}    props        Component props.
+ * @param {Status=}  props.status Latest status payload from `/wp-json/ps/v1/status`.
+ *
+ * @return {JSX.Element}
+ */
 export default function ReindexButton({ status }: Props) {
 	const { indexingState, setIndexingState } = useStore();
 	const { mutate: startReindex, isPending } = useReindex();

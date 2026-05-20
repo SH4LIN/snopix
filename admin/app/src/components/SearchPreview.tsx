@@ -12,12 +12,31 @@ interface SearchResultItem {
 	attachment_url: string;
 }
 
+/**
+ * Reverse-image search side panel rendered next to the indexed-image table.
+ *
+ * Accepts a single image via drag-drop or click-to-browse, POSTs it to
+ * `/wp-json/ps/v1/search`, and renders the top six matches with their
+ * composite score. Falls back to a "no similar images" message on empty
+ * results and a generic error string on any HTTP failure.
+ *
+ * @return {JSX.Element}
+ */
 export default function SearchPreview() {
 	const [results, setResults] = useState<SearchResultItem[] | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
+	/**
+	 * Upload a single image to the search endpoint and update local state with
+	 * the response. Resets `results`, `error` and shows the loading indicator
+	 * for the duration of the request.
+	 *
+	 * @param {File} file Image selected via input or drag-drop.
+	 *
+	 * @return {Promise<void>}
+	 */
 	async function handleFile(file: File) {
 		setLoading(true);
 		setError(null);

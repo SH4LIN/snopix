@@ -10,6 +10,14 @@ interface ProgressResponse {
 	status: 'idle' | 'running' | 'done';
 }
 
+/**
+ * Sync the Zustand store with any in-flight indexing or duplicate-scan jobs at
+ * boot. Runs two one-shot `/progress` REST fetches and, if either reports a
+ * running job, flips the matching state to `'running'` so the rest of the UI
+ * picks up where the previous session left off.
+ *
+ * @return {void}
+ */
 function useInitProgress() {
 	const { setIndexingState, setDuplicateScanState } = useStore();
 
@@ -46,12 +54,28 @@ function useInitProgress() {
 	}, [dupeProgress, setDuplicateScanState]);
 }
 
+/**
+ * Top-level admin app shell.
+ *
+ * Renders the Pixel Scout heading and the Dashboard / Duplicates / Tools tab
+ * strip. The active route's component is rendered into the router `<Outlet />`.
+ * Also bootstraps the global progress store via {@link useInitProgress}.
+ *
+ * @return {JSX.Element}
+ */
 export default function App() {
 	useInitProgress();
 
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+	/**
+	 * Compute the Tailwind class list for a single tab button.
+	 *
+	 * @param {string} path Router path the tab navigates to.
+	 *
+	 * @return {string} Space-separated class string with active-state styling applied.
+	 */
 	const tabClass = (path: string) => {
 		const active = pathname === path;
 		return `px-4 py-2 text-[14px] font-medium border-b-2 cursor-pointer transition-colors ${

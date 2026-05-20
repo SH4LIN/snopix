@@ -1,3 +1,12 @@
+/**
+ * Pixel Scout reverse-image search widget for front-end shortcode.
+ *
+ * Renders into the markup emitted by `Frontend\Shortcode::render()`. Wires the
+ * drop-zone / file-input pair to a multipart upload against
+ * `/wp-json/ps/v1/search` and paints the returned matches as clickable cards.
+ *
+ * @package Pixel_Scout
+ */
 (function () {
 	'use strict';
 
@@ -30,6 +39,12 @@
 		if (file) handleFile(file);
 	});
 
+	/**
+	 * Render four placeholder skeleton cards while the search request is in
+	 * flight. Clears the previous results and hides any prior error.
+	 *
+	 * @return {void}
+	 */
 	function showSkeleton() {
 		results.hidden = false;
 		errorEl.hidden = true;
@@ -44,6 +59,15 @@
 		results.appendChild(grid);
 	}
 
+	/**
+	 * Paint the result list returned by `/wp-json/ps/v1/search`. Each card
+	 * opens the matching attachment URL in a new tab when clicked. Falls back
+	 * to a "no results" paragraph when the response is empty.
+	 *
+	 * @param {Array<{id:number,url:string,thumbnail:string,title:string,score:number,attachment_url:string}>} items Search results from the REST endpoint.
+	 *
+	 * @return {void}
+	 */
 	function showResults(items) {
 		results.innerHTML = '';
 		if (!items.length) {
@@ -81,12 +105,27 @@
 		results.hidden = false;
 	}
 
+	/**
+	 * Replace the result panel with a single error message.
+	 *
+	 * @param {string} msg Localised, user-facing error string.
+	 *
+	 * @return {void}
+	 */
 	function showError(msg) {
 		errorEl.textContent = msg;
 		errorEl.hidden = false;
 		results.hidden = true;
 	}
 
+	/**
+	 * Upload a single image to `/wp-json/ps/v1/search` and pipe the response
+	 * into {@link showResults} (or {@link showError} on failure).
+	 *
+	 * @param {File} file Image selected via input or drag-drop.
+	 *
+	 * @return {Promise<void>}
+	 */
 	async function handleFile(file) {
 		errorEl.hidden = true;
 		showSkeleton();
@@ -109,9 +148,25 @@
 	}
 
 	// XSS prevention helpers
+	/**
+	 * Escape single and double quotes for safe inclusion in an HTML attribute.
+	 *
+	 * @param {*} str Arbitrary value coerced to a string.
+	 *
+	 * @return {string} Escaped attribute-safe string.
+	 */
 	function escAttr(str) {
 		return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 	}
+	/**
+	 * Validate a URL via the WHATWG `URL` parser and return its serialised
+	 * form. Returns `'#'` for any input the parser rejects so a malformed URL
+	 * never reaches the DOM.
+	 *
+	 * @param {string} str Untrusted URL string.
+	 *
+	 * @return {string} Safe URL or the `'#'` fallback.
+	 */
 	function escUrl(str) {
 		try { return new URL(str).href; } catch { return '#'; }
 	}

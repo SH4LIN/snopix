@@ -35,6 +35,15 @@ export interface DuplicateScanProgress {
 
 const DONE_RESET_MS = 3_000;
 
+/**
+ * Lightweight wrapper around `fetch` that injects the WP REST nonce and the
+ * Pixel Scout REST base URL. Caller-supplied `init` fields override defaults.
+ *
+ * @param {string}       path REST sub-path appended to `ps_data.rest_url`.
+ * @param {RequestInit=} init Optional Fetch init overrides.
+ *
+ * @return {Promise<Response>} Raw fetch response — callers must inspect `ok`.
+ */
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
 	return fetch(`${ps_data.rest_url}${path}`, {
 		headers: { 'X-WP-Nonce': ps_data.nonce },
@@ -42,6 +51,14 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
 	});
 }
 
+/**
+ * Fetch the cached duplicate-scan result via `GET /wp-json/ps/v1/duplicates`.
+ *
+ * Cached for 60 s on the client to keep the Duplicates tab responsive while
+ * the user toggles between routes.
+ *
+ * @return {import('@tanstack/react-query').UseQueryResult<DuplicatesData>}
+ */
 export function useDuplicates() {
 	return useQuery<DuplicatesData>({
 		queryKey: ['duplicates'],
@@ -54,6 +71,13 @@ export function useDuplicates() {
 	});
 }
 
+/**
+ * Mutation that POSTs to `/wp-json/ps/v1/duplicates/scan` to schedule a fresh
+ * duplicate-detection job. On success flips the duplicate-scan state to
+ * `'running'` so the polling hook starts firing.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
+ */
 export function useStartDuplicateScan() {
 	const { setDuplicateScanState } = useStore();
 	const qc = useQueryClient();
@@ -71,6 +95,13 @@ export function useStartDuplicateScan() {
 	});
 }
 
+/**
+ * Poll `/wp-json/ps/v1/duplicates/progress` while a scan is running and drive
+ * the running → done → idle transition. After completion the `/duplicates`
+ * query is invalidated so the new group list is fetched.
+ *
+ * @return {DuplicateScanProgress|undefined} Latest progress payload or undefined while idle.
+ */
 export function useDuplicateScanProgress() {
 	const { duplicateScanState, setDuplicateScanState } = useStore();
 	const isRunning = duplicateScanState === 'running';
@@ -109,6 +140,13 @@ export function useDuplicateScanProgress() {
 	return progress;
 }
 
+/**
+ * Mutation that deletes a single attachment via
+ * `DELETE /wp-json/ps/v1/duplicates/attachment/{id}`. Used by both the
+ * per-group delete button and the bulk-delete pass.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, number>}
+ */
 export function useDeleteAttachment() {
 	const qc = useQueryClient();
 

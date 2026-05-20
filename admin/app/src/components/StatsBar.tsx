@@ -10,6 +10,17 @@ interface Props {
 	status?: Status;
 }
 
+/**
+ * Three-card metrics row shown at the top of the Dashboard.
+ *
+ * Displays the current `total`, `indexed`, and `pending` counts from
+ * `/wp-json/ps/v1/status`. Falls back to em-dashes while data is still loading.
+ *
+ * @param {Props}   props        Component props.
+ * @param {Status=} props.status Status payload from `/status`. Undefined while loading.
+ *
+ * @return {JSX.Element}
+ */
 export default function StatsBar({ status }: Props) {
 	const cards = [
 		{

@@ -24,11 +24,21 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 
 	private static string $fixtures_dir;
 
+	/**
+	 * Resolve the fixture image directory once for the whole class.
+	 *
+	 * @return void
+	 */
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
 	}
 
+	/**
+	 * Build a fresh PHash_Processor and Similarity helper before each test.
+	 *
+	 * @return void
+	 */
 	public function setUp(): void {
 		parent::setUp();
 		$this->processor = new PHash_Processor();
@@ -37,12 +47,30 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Helpers ───────────────────────────────────────────────────────────
 
+	/**
+	 * Create a rectangular GD resource filled with a single RGB colour.
+	 *
+	 * @param int $r Red channel value 0–255.
+	 * @param int $g Green channel value 0–255.
+	 * @param int $b Blue channel value 0–255.
+	 * @param int $w Image width in pixels.
+	 * @param int $h Image height in pixels.
+	 *
+	 * @return \GdImage
+	 */
 	private function solid_gd( int $r, int $g, int $b, int $w = 100, int $h = 100 ) {
 		$img = imagecreatetruecolor( $w, $h );
 		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
 		return $img;
 	}
 
+	/**
+	 * Generate a 1-pixel black/white checkerboard GD resource for maximum entropy.
+	 *
+	 * @param int $size Pixel size of one side. Defaults to 64.
+	 *
+	 * @return \GdImage
+	 */
 	private function checkerboard_gd( int $size = 64 ) {
 		$img = imagecreatetruecolor( $size, $size );
 		$w   = imagecolorallocate( $img, 255, 255, 255 );
@@ -55,6 +83,13 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		return $img;
 	}
 
+	/**
+	 * Load a fixture image by Picsum ID (1–100) into a GD resource.
+	 *
+	 * @param int $id Fixture image index (1–100).
+	 *
+	 * @return \GdImage|false GD resource on success, false if the fixture is missing.
+	 */
 	private function load_fixture( int $id ) {
 		$path = sprintf( '%s/%03d.jpg', self::$fixtures_dir, $id );
 		if ( ! file_exists( $path ) ) {
@@ -63,12 +98,22 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		return imagecreatefromjpeg( $path );
 	}
 
+	/**
+	 * Whether the optional Picsum fixture images have been downloaded.
+	 *
+	 * @return bool
+	 */
 	private function fixtures_available(): bool {
 		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
 	}
 
 	// ── Output format ─────────────────────────────────────────────────────
 
+	/**
+	 * Output array must contain the `phash` key.
+	 *
+	 * @return void
+	 */
 	public function test_returns_phash_key(): void {
 		$gd     = $this->solid_gd( 128, 128, 128 );
 		$result = $this->processor->process( $gd, 1 );
@@ -76,6 +121,11 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertArrayHasKey( 'phash', $result );
 	}
 
+	/**
+	 * pHash output must be a 16-character lower-case hex string (64 bits).
+	 *
+	 * @return void
+	 */
 	public function test_phash_is_16_char_hex_string(): void {
 		$gd   = $this->solid_gd( 200, 100, 50 );
 		$hash = $this->processor->process( $gd, 1 )['phash'];
@@ -85,6 +135,11 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Determinism ───────────────────────────────────────────────────────
 
+	/**
+	 * Hashing the same image twice must yield identical pHashes.
+	 *
+	 * @return void
+	 */
 	public function test_same_image_produces_identical_hash(): void {
 		$gd    = $this->solid_gd( 100, 150, 200 );
 		$hash1 = $this->processor->process( $gd, 1 )['phash'];
@@ -95,6 +150,11 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Discriminability ─────────────────────────────────────────────────
 
+	/**
+	 * Visually distinct images must produce distinct pHashes.
+	 *
+	 * @return void
+	 */
 	public function test_different_images_produce_different_hashes(): void {
 		$red   = $this->solid_gd( 255, 0, 0 );
 		$blue  = $this->solid_gd( 0, 0, 255 );
@@ -105,6 +165,12 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertNotSame( $hash1, $hash2 );
 	}
 
+	/**
+	 * A flat image vs a checkerboard must differ by more than 8 bits of Hamming
+	 * distance — i.e. the two are clearly perceived as different by pHash.
+	 *
+	 * @return void
+	 */
 	public function test_solid_vs_checkerboard_high_hamming(): void {
 		$solid   = $this->solid_gd( 128, 128, 128 );
 		$checker = $this->checkerboard_gd();
@@ -118,6 +184,12 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Fixture-based tests (skipped if not downloaded) ───────────────────
 
+	/**
+	 * Every fixture image must hash to the 16-char hex format. Skipped if
+	 * fixtures are not present.
+	 *
+	 * @return void
+	 */
 	public function test_fixture_images_produce_valid_hashes(): void {
 		if ( ! $this->fixtures_available() ) {
 			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
@@ -138,6 +210,12 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		}
 	}
 
+	/**
+	 * Re-loading and re-hashing the same fixture file must produce the same
+	 * pHash both times. Skipped if fixtures are not present.
+	 *
+	 * @return void
+	 */
 	public function test_same_fixture_image_produces_identical_hash(): void {
 		if ( ! $this->fixtures_available() ) {
 			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
@@ -152,6 +230,13 @@ class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertSame( $hash1, $hash2 );
 	}
 
+	/**
+	 * Sanity check: across the first 20 fixture images, at least half of all
+	 * pairs should have Hamming distance > 5. Guards against a regression that
+	 * collapses unrelated images into identical hashes.
+	 *
+	 * @return void
+	 */
 	public function test_fixture_images_are_pairwise_discriminable(): void {
 		if ( ! $this->fixtures_available() ) {
 			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );

@@ -17,28 +17,58 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 	private Color_Processor $processor;
 	private static string $fixtures_dir;
 
+	/**
+	 * Resolve the fixture image directory once for the whole class.
+	 *
+	 * @return void
+	 */
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
 	}
 
+	/**
+	 * Build a fresh Color_Processor instance before each test.
+	 *
+	 * @return void
+	 */
 	public function setUp(): void {
 		parent::setUp();
 		$this->processor = new Color_Processor();
 	}
 
+	/**
+	 * Create a square GD resource filled with a single RGB colour.
+	 *
+	 * @param int $r    Red channel value 0–255.
+	 * @param int $g    Green channel value 0–255.
+	 * @param int $b    Blue channel value 0–255.
+	 * @param int $size Pixel size of one side. Defaults to 100.
+	 *
+	 * @return \GdImage
+	 */
 	private function solid_gd( int $r, int $g, int $b, int $size = 100 ) {
 		$img = imagecreatetruecolor( $size, $size );
 		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
 		return $img;
 	}
 
+	/**
+	 * Whether the optional Picsum fixture images have been downloaded.
+	 *
+	 * @return bool
+	 */
 	private function fixtures_available(): bool {
 		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
 	}
 
 	// ── Output format ─────────────────────────────────────────────────────
 
+	/**
+	 * Output array must contain the `color_vector` key.
+	 *
+	 * @return void
+	 */
 	public function test_returns_color_vector_key(): void {
 		$gd     = $this->solid_gd( 128, 128, 128 );
 		$result = $this->processor->process( $gd, 1 );
@@ -46,6 +76,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertArrayHasKey( 'color_vector', $result );
 	}
 
+	/**
+	 * Color vector must be a flat 48-element list (16 bins × RGB).
+	 *
+	 * @return void
+	 */
 	public function test_color_vector_has_48_elements(): void {
 		$gd     = $this->solid_gd( 200, 100, 50 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
@@ -53,6 +88,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertCount( 48, $vector );
 	}
 
+	/**
+	 * Every element of the colour vector must be a float (normalised bin frequency).
+	 *
+	 * @return void
+	 */
 	public function test_all_values_are_float(): void {
 		$gd     = $this->solid_gd( 100, 150, 200 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
@@ -64,6 +104,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Normalisation ─────────────────────────────────────────────────────
 
+	/**
+	 * Each per-channel histogram (R, G, B) must sum to exactly 1.0.
+	 *
+	 * @return void
+	 */
 	public function test_channel_histograms_sum_to_one(): void {
 		$gd     = $this->solid_gd( 200, 100, 50 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
@@ -76,6 +121,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 		}
 	}
 
+	/**
+	 * All normalised bin values must lie in [0, 1].
+	 *
+	 * @return void
+	 */
 	public function test_all_values_in_range_0_to_1(): void {
 		$gd     = $this->solid_gd( 123, 45, 67 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
@@ -88,6 +138,12 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Semantic correctness ──────────────────────────────────────────────
 
+	/**
+	 * A solid red image must peak in the last red bin (value 255 → bin 15) and
+	 * concentrate all green/blue mass in bin 0.
+	 *
+	 * @return void
+	 */
 	public function test_solid_red_image_peaks_in_red_channel(): void {
 		$gd     = $this->solid_gd( 255, 0, 0 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
@@ -106,6 +162,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Determinism ───────────────────────────────────────────────────────
 
+	/**
+	 * Processing the same GD resource twice must yield identical vectors.
+	 *
+	 * @return void
+	 */
 	public function test_same_image_returns_identical_vector(): void {
 		$gd = $this->solid_gd( 75, 150, 225 );
 		$v1 = $this->processor->process( $gd, 1 )['color_vector'];
@@ -116,6 +177,11 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Discriminability ─────────────────────────────────────────────────
 
+	/**
+	 * Visually distinct colours must produce distinct colour vectors.
+	 *
+	 * @return void
+	 */
 	public function test_red_and_blue_images_have_different_vectors(): void {
 		$red  = $this->solid_gd( 255, 0, 0 );
 		$blue = $this->solid_gd( 0, 0, 255 );
@@ -128,6 +194,13 @@ class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Fixture-based ─────────────────────────────────────────────────────
 
+	/**
+	 * Sweep the 100-image Picsum fixture set and confirm every produced vector
+	 * has the right length and per-channel normalisation. Skips silently when
+	 * fixtures have not been downloaded.
+	 *
+	 * @return void
+	 */
 	public function test_fixture_images_produce_valid_color_vectors(): void {
 		if ( ! $this->fixtures_available() ) {
 			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );

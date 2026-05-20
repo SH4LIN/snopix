@@ -13,6 +13,26 @@ interface Props {
 	onCancel: () => void;
 }
 
+/**
+ * Generic confirm-or-cancel modal used by destructive tool actions.
+ *
+ * Clicking the backdrop or pressing Escape cancels (unless `loading` is true).
+ * The confirm button switches to a destructive red style when `danger` is set
+ * and shows a loading label while the parent's confirm handler is in flight.
+ *
+ * @param {Props}    props              Component props.
+ * @param {boolean}  props.open         Whether the modal is currently shown.
+ * @param {string}   props.title        Heading shown in the modal.
+ * @param {string}   props.message      Body copy beneath the heading.
+ * @param {string=}  props.confirmText  Optional override for the confirm-button label.
+ * @param {string=}  props.cancelText   Optional override for the cancel-button label.
+ * @param {boolean=} props.danger       Render the confirm button in the danger style.
+ * @param {boolean=} props.loading      Disable both buttons and show a working label.
+ * @param {() => void} props.onConfirm  Fired when the user clicks the confirm button.
+ * @param {() => void} props.onCancel   Fired when the user cancels (button, backdrop, or Escape).
+ *
+ * @return {JSX.Element|null}
+ */
 export default function ConfirmModal({
 	open,
 	title,
@@ -26,6 +46,14 @@ export default function ConfirmModal({
 }: Props) {
 	useEffect(() => {
 		if (!open) return;
+		/**
+		 * Dismiss the modal when the user presses Escape (unless a confirm
+		 * action is already in flight).
+		 *
+		 * @param {KeyboardEvent} e Native keyboard event.
+		 *
+		 * @return {void}
+		 */
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape' && !loading) onCancel();
 		};

@@ -1,3 +1,11 @@
+/**
+ * Legacy Tailwind JS configuration kept alongside `tailwind.config.ts` for
+ * tooling that still autoloads the `.js` variant.
+ *
+ * Maps the same `ps-*` colour tokens used by the typed config (see
+ * `tailwind.config.ts`) but resolved at runtime via CSS variables so the host
+ * page's theme can override them.
+ */
 export default {
 	content: ['./src/**/*.{js,jsx,ts,tsx}'],
 	theme: {

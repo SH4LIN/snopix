@@ -3,6 +3,15 @@ import { useStore } from '../store/use-store';
 
 declare const ps_data: { rest_url: string; nonce: string };
 
+/**
+ * Issue an authenticated POST to a Pixel Scout REST endpoint and return the
+ * decoded JSON body. Throws on a non-2xx status so React Query treats the call
+ * as a failed mutation.
+ *
+ * @param {string} path REST sub-path appended to `ps_data.rest_url`.
+ *
+ * @return {Promise<T>} Parsed JSON response body.
+ */
 async function post<T>(path: string): Promise<T> {
 	const res = await fetch(`${ps_data.rest_url}${path}`, {
 		method: 'POST',
@@ -12,6 +21,14 @@ async function post<T>(path: string): Promise<T> {
 	return res.json();
 }
 
+/**
+ * Issue an authenticated GET to a Pixel Scout REST endpoint and return the
+ * decoded JSON body. Throws on a non-2xx status.
+ *
+ * @param {string} path REST sub-path appended to `ps_data.rest_url`.
+ *
+ * @return {Promise<T>} Parsed JSON response body.
+ */
 async function get<T>(path: string): Promise<T> {
 	const res = await fetch(`${ps_data.rest_url}${path}`, {
 		headers: { 'X-WP-Nonce': ps_data.nonce },
@@ -20,6 +37,13 @@ async function get<T>(path: string): Promise<T> {
 	return res.json();
 }
 
+/**
+ * Mutation that triggers a full wipe-and-reindex via
+ * `POST /wp-json/ps/v1/tools/reindex-all`. Sets the indexing state to
+ * `'running'` and invalidates every status-driven query on success.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<{scheduled: boolean}, Error, void>}
+ */
 export function useReindexAll() {
 	const { setIndexingState } = useStore();
 	const qc = useQueryClient();
@@ -34,6 +58,13 @@ export function useReindexAll() {
 	});
 }
 
+/**
+ * Mutation that empties the entire fingerprint table via
+ * `POST /wp-json/ps/v1/tools/clear-index`. Returns the deletion count for the
+ * Tools tab to display.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<{deleted: number}, Error, void>}
+ */
 export function useClearIndex() {
 	const qc = useQueryClient();
 	return useMutation({
@@ -46,6 +77,12 @@ export function useClearIndex() {
 	});
 }
 
+/**
+ * Mutation that removes index rows whose backing attachment no longer exists,
+ * via `POST /wp-json/ps/v1/tools/delete-orphans`.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<{deleted: number}, Error, void>}
+ */
 export function useDeleteOrphans() {
 	const qc = useQueryClient();
 	return useMutation({
@@ -58,6 +95,13 @@ export function useDeleteOrphans() {
 	});
 }
 
+/**
+ * Mutation that flushes plugin caches and progress transients via
+ * `POST /wp-json/ps/v1/tools/clear-cache`. Invalidates every cached query so
+ * the UI re-reads from the server.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<{cleared: boolean}, Error, void>}
+ */
 export function useClearCache() {
 	const qc = useQueryClient();
 	return useMutation({
@@ -68,6 +112,13 @@ export function useClearCache() {
 	});
 }
 
+/**
+ * Poll `/wp-json/ps/v1/tools/orphans` every 30 s for the current orphan-row
+ * count so the Tools tab can render the actionable number on the
+ * "Delete Orphans" card.
+ *
+ * @return {import('@tanstack/react-query').UseQueryResult<{orphans: number}>}
+ */
 export function useOrphanCount() {
 	return useQuery<{ orphans: number }>({
 		queryKey: ['orphans'],

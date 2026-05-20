@@ -1,3 +1,12 @@
+/**
+ * Tailwind configuration for the Pixel Scout admin app.
+ *
+ * Defines the Apple-inspired `ps-*` colour palette (background, surface,
+ * accent, danger, …), the san-serif font stack, the card/input/pill radii,
+ * card shadow, default transition duration/easing, the `ps-spin` and
+ * `ps-progress` keyframe animations, and a `scale.press` utility used by
+ * pressable buttons.
+ */
 import type { Config } from "tailwindcss";
 
 const config: Config = {

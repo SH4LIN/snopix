@@ -5,6 +5,13 @@ import {
 	useDeleteAttachment,
 } from '../hooks/use-duplicates';
 
+/**
+ * Render a byte count using 1024-based units (B / KB / MB), 1-decimal precision.
+ *
+ * @param {number} bytes Raw byte count from the indexer.
+ *
+ * @return {string} Human-friendly string such as `"512 B"`, `"3.4 KB"`, `"12.1 MB"`.
+ */
 function formatBytes(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`;
 	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -19,6 +26,20 @@ interface Props {
 	onToggleSelect: () => void;
 }
 
+/**
+ * One card per duplicate group: header pill + bulk-delete CTA + horizontal
+ * carousel of {@link ImageCard} tiles. The user clicks any tile to mark it the
+ * "keep" image; the bulk-delete button removes the others.
+ *
+ * @param {Props}                       props                Component props.
+ * @param {DuplicateGroup}              props.group          Group payload from `/duplicates`.
+ * @param {number}                      props.keepId         Currently-selected keep attachment id.
+ * @param {(id: number) => void}        props.onKeepChange   Fired when a different tile is chosen as keep.
+ * @param {boolean}                     props.selected       Whether this group is in the bulk-delete selection.
+ * @param {() => void}                  props.onToggleSelect Toggle selection from the bulk row.
+ *
+ * @return {JSX.Element}
+ */
 export default function DuplicateGroupCard({
 	group,
 	keepId,
@@ -30,6 +51,13 @@ export default function DuplicateGroupCard({
 
 	const toDelete = group.images.filter((img) => img.id !== keepId);
 
+	/**
+	 * Delete every non-keep attachment in this group, one at a time. Errors
+	 * from individual deletions are swallowed because the hook re-fetches the
+	 * duplicate list and any residue is shown on re-render.
+	 *
+	 * @return {Promise<void>}
+	 */
 	async function handleDelete() {
 		try {
 			for (const img of toDelete) {
@@ -100,6 +128,19 @@ interface ImageCardProps {
 	onKeep: () => void;
 }
 
+/**
+ * Single image tile inside a duplicate group's carousel.
+ *
+ * Clicking the tile promotes it to the "Keep" image for the parent group. The
+ * selected tile is outlined in the accent colour and labelled "Keep".
+ *
+ * @param {ImageCardProps} props        Component props.
+ * @param {DuplicateImage} props.image  Attachment metadata for the tile.
+ * @param {boolean}        props.isKeep Whether this tile is the current keep choice.
+ * @param {() => void}     props.onKeep Fired when the tile is clicked.
+ *
+ * @return {JSX.Element}
+ */
 function ImageCard({ image, isKeep, onKeep }: ImageCardProps) {
 	return (
 		<div

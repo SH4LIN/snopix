@@ -19,12 +19,31 @@ interface Props {
 	onImageClick: (url: string) => void;
 }
 
+/**
+ * Render a byte count using 1024-based units (B / KB / MB), 1-decimal precision.
+ *
+ * @param {number} bytes Raw byte count from the indexer.
+ *
+ * @return {string} Human-friendly string such as `"512 B"`, `"3.4 KB"`, `"12.1 MB"`.
+ */
 function formatBytes(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`;
 	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
 	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+/**
+ * Render one row of the `ImageTable` grid for a single attachment.
+ *
+ * Clicking the row opens the attachment's WP edit screen in a new tab; clicking
+ * the thumbnail invokes `onImageClick` so the parent can mount its lightbox.
+ *
+ * @param {Props} props              Component props.
+ * @param {ImageData} props.image    Attachment row payload from the `/images` REST endpoint.
+ * @param {(url: string) => void} props.onImageClick Callback fired with the full-size URL when the thumbnail is clicked.
+ *
+ * @return {JSX.Element}
+ */
 export default function ImageRow({ image, onImageClick }: Props) {
 	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`;
 	const isIndexed = !!image.phash;

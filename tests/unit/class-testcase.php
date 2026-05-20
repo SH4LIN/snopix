@@ -10,16 +10,23 @@
  */
 class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	/**
-	 * PHPUnit 11 compatibility: getAnnotations() was removed, but WordPress test suite
-	 * checks method_exists($this, 'getAnnotations') before calling parseTestMethodAnnotations().
-	 * Providing it here routes expectDeprecated() to the older safe branch.
+	 * PHPUnit 11 compatibility shim.
+	 *
+	 * PHPUnit 11 removed `getAnnotations()`, but the WordPress test suite still
+	 * checks `method_exists($this, 'getAnnotations')` before calling
+	 * `parseTestMethodAnnotations()`. Providing this stub routes
+	 * `expectDeprecated()` to the older safe branch.
+	 *
+	 * @return array<string, array<string, mixed>>
 	 */
 	public function getAnnotations(): array {
 		return array( 'class' => array(), 'method' => array() );
 	}
 
 	/**
-	 * Set up before each test.
+	 * Per-test setup. Verifies the plugin class is autoloaded before running.
+	 *
+	 * @return void
 	 */
 	public function setUp(): void {
 		parent::setUp();
@@ -28,7 +35,9 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tear down after each test.
+	 * Per-test teardown. Flushes the object cache to keep tests isolated.
+	 *
+	 * @return void
 	 */
 	public function tearDown(): void {
 		parent::tearDown();
@@ -36,7 +45,9 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper to clear all Pixel Scout transients.
+	 * Clear every transient written by Pixel Scout's bulk indexer.
+	 *
+	 * @return void
 	 */
 	protected function clear_ps_transients(): void {
 		delete_transient( 'ps_bulk_progress' );
@@ -54,9 +65,11 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Assert table exists.
+	 * Assert that a database table is present in the current MySQL schema.
 	 *
-	 * @param string $table Table name.
+	 * @param string $table Fully-qualified table name (including $wpdb prefix).
+	 *
+	 * @return void
 	 */
 	protected function assertTableExists( string $table ): void {
 		global $wpdb;
@@ -65,10 +78,12 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Assert row count matches.
+	 * Assert that a table contains the expected number of rows.
 	 *
-	 * @param int    $expected Expected count.
-	 * @param string $table Table name.
+	 * @param int    $expected Expected row count.
+	 * @param string $table    Fully-qualified table name (including $wpdb prefix).
+	 *
+	 * @return void
 	 */
 	protected function assertRowCount( int $expected, string $table ): void {
 		global $wpdb;

@@ -1,3 +1,10 @@
+/**
+ * ESLint flat-config for the Pixel Scout admin app.
+ *
+ * Combines `@eslint/js` recommended rules with `typescript-eslint`'s
+ * recommended rules, layers in the React Hooks + React Refresh plugins, and
+ * disables stylistic rules that conflict with Prettier.
+ */
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'

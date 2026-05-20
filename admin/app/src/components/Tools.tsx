@@ -28,6 +28,16 @@ interface ToolCard {
 	danger: boolean;
 }
 
+/**
+ * "Tools" tab — destructive and maintenance index actions.
+ *
+ * Renders one card per action (index missing, full reindex, clear index,
+ * delete orphans, clear cache). Each card opens a {@link ConfirmModal} before
+ * invoking the matching mutation hook; the result toast is shown at the top of
+ * the panel.
+ *
+ * @return {JSX.Element}
+ */
 export default function Tools() {
 	const [active, setActive] = useState<ToolKey>(null);
 	const [result, setResult] = useState<string | null>(null);
@@ -130,6 +140,14 @@ export default function Tools() {
 		deleteOrphans.isPending ||
 		clearCache.isPending;
 
+	/**
+	 * Invoke the mutation hook for the requested tool action and surface a
+	 * localized result string. Always closes the confirm modal afterwards.
+	 *
+	 * @param {Exclude<ToolKey, null>} key Identifier of the tool to execute.
+	 *
+	 * @return {Promise<void>}
+	 */
 	async function run(key: Exclude<ToolKey, null>) {
 		setResult(null);
 		try {

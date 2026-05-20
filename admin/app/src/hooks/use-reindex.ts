@@ -14,6 +14,14 @@ const STALL_MS = 45_000;
 const DONE_RESET_MS = 3_000;
 const STALLED_RESET_MS = 5_000;
 
+/**
+ * Fetch the current indexing progress envelope.
+ *
+ * Hits `GET /wp-json/ps/v1/progress` and throws on a non-2xx response so React
+ * Query treats it as an error.
+ *
+ * @return {Promise<Progress>} Done/total counters and a status discriminator.
+ */
 async function fetchProgress(): Promise<Progress> {
 	const res = await fetch(`${ps_data.rest_url}progress`, {
 		headers: { 'X-WP-Nonce': ps_data.nonce },
@@ -22,6 +30,13 @@ async function fetchProgress(): Promise<Progress> {
 	return res.json();
 }
 
+/**
+ * Poll `/progress` while indexing is running and drive the indexing state
+ * machine (running → done → idle, or running → stalled → idle after 45 s of
+ * no counter movement). Returns the latest progress payload for UI use.
+ *
+ * @return {Progress|undefined} Latest progress payload, or undefined while idle.
+ */
 export function useIndexingProgress() {
 	const { indexingState, setIndexingState } = useStore();
 	const isRunning = indexingState === 'running';
@@ -84,6 +99,13 @@ export function useIndexingProgress() {
 	return progress;
 }
 
+/**
+ * Mutation that POSTs to `/wp-json/ps/v1/reindex` to start an "index missing"
+ * background job. On success flips the global state to `'running'` and
+ * invalidates the `/status` query so the counter updates immediately.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
+ */
 export function useReindex() {
 	const { setIndexingState } = useStore();
 	const qc = useQueryClient();

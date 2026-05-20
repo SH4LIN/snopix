@@ -10,10 +10,26 @@ import {
 } from '../hooks/use-duplicates';
 import DuplicateGroupCard from './DuplicateGroupCard';
 
+/**
+ * Stable React key for a duplicate group derived from the first image's id.
+ *
+ * @param {DuplicateGroup} group Duplicate group from `/duplicates`.
+ *
+ * @return {string} Group identifier suitable for use as a `key` prop.
+ */
 function groupKey(group: DuplicateGroup): string {
 	return String(group.images[0].id);
 }
 
+/**
+ * Duplicates tab — scans for and resolves visually identical attachments.
+ *
+ * Shows the latest scan status (with a progress bar while running) and a list
+ * of groups returned by the scanner. The user picks one image per group to
+ * keep and can bulk-delete the rest. Disabled while an indexing job is active.
+ *
+ * @return {JSX.Element}
+ */
 export default function Duplicates() {
 	const { indexingState, duplicateScanState } = useStore();
 	const { data, isLoading } = useDuplicates();
@@ -33,14 +49,39 @@ export default function Duplicates() {
 	const groups = data?.groups ?? [];
 	const lastScanned = data?.last_scanned ?? '';
 
+	/**
+	 * Resolve the attachment id the user currently wants to keep for a group.
+	 * Falls back to the first image in the group when no explicit selection has
+	 * been made yet.
+	 *
+	 * @param {DuplicateGroup} group Group to inspect.
+	 *
+	 * @return {number} Attachment id of the keep target (0 when group is empty).
+	 */
 	function getKeepId(group: DuplicateGroup): number {
 		return keepIds[groupKey(group)] ?? group.images[0]?.id ?? 0;
 	}
 
+	/**
+	 * Record the chosen keep-id for a duplicate group so the bulk-delete pass
+	 * knows which attachment to skip.
+	 *
+	 * @param {DuplicateGroup} group Group being updated.
+	 * @param {number}         id    Attachment id to keep.
+	 *
+	 * @return {void}
+	 */
 	function setKeepId(group: DuplicateGroup, id: number) {
 		setKeepIds((prev) => ({ ...prev, [groupKey(group)]: id }));
 	}
 
+	/**
+	 * Toggle whether a group is part of the bulk-delete selection set.
+	 *
+	 * @param {DuplicateGroup} group Group to add or remove from selection.
+	 *
+	 * @return {void}
+	 */
 	function toggleSelect(group: DuplicateGroup) {
 		const key = groupKey(group);
 		setSelectedGroups((prev) => {
@@ -54,6 +95,12 @@ export default function Duplicates() {
 	const allSelected =
 		groups.length > 0 && selectedGroups.size === groups.length;
 
+	/**
+	 * Select every group or clear the selection, depending on the current state
+	 * of the "select all" checkbox.
+	 *
+	 * @return {void}
+	 */
 	function toggleSelectAll() {
 		if (allSelected) {
 			setSelectedGroups(new Set());
@@ -62,6 +109,13 @@ export default function Duplicates() {
 		}
 	}
 
+	/**
+	 * Delete every non-keep attachment across the currently selected groups,
+	 * then clear the selection. Errors from individual deletions are swallowed
+	 * because the underlying hook re-fetches the list and surfaces residue.
+	 *
+	 * @return {Promise<void>}
+	 */
 	async function handleBulkDelete() {
 		try {
 			for (const group of groups) {

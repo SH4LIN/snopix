@@ -17,22 +17,49 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 	private Edge_Processor $processor;
 	private static string $fixtures_dir;
 
+	/**
+	 * Resolve the fixture image directory once for the whole class.
+	 *
+	 * @return void
+	 */
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
 	}
 
+	/**
+	 * Build a fresh Edge_Processor instance before each test.
+	 *
+	 * @return void
+	 */
 	public function setUp(): void {
 		parent::setUp();
 		$this->processor = new Edge_Processor();
 	}
 
+	/**
+	 * Create a square GD resource filled with a single RGB colour.
+	 *
+	 * @param int $r    Red channel value 0–255.
+	 * @param int $g    Green channel value 0–255.
+	 * @param int $b    Blue channel value 0–255.
+	 * @param int $size Pixel size of one side. Defaults to 100.
+	 *
+	 * @return \GdImage
+	 */
 	private function solid_gd( int $r, int $g, int $b, int $size = 100 ) {
 		$img = imagecreatetruecolor( $size, $size );
 		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
 		return $img;
 	}
 
+	/**
+	 * Generate a black/white pixel-checkerboard GD resource for maximum edge density.
+	 *
+	 * @param int $size Pixel size of one side. Defaults to 100.
+	 *
+	 * @return \GdImage
+	 */
 	private function high_contrast_gd( int $size = 100 ) {
 		$img = imagecreatetruecolor( $size, $size );
 		$w   = imagecolorallocate( $img, 255, 255, 255 );
@@ -45,12 +72,22 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 		return $img;
 	}
 
+	/**
+	 * Whether the optional Picsum fixture images have been downloaded.
+	 *
+	 * @return bool
+	 */
 	private function fixtures_available(): bool {
 		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
 	}
 
 	// ── Output format ─────────────────────────────────────────────────────
 
+	/**
+	 * Output array must contain the `edge_vector` key.
+	 *
+	 * @return void
+	 */
 	public function test_returns_edge_vector_key(): void {
 		$gd     = $this->solid_gd( 128, 128, 128 );
 		$result = $this->processor->process( $gd, 1 );
@@ -58,6 +95,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertArrayHasKey( 'edge_vector', $result );
 	}
 
+	/**
+	 * Edge vector must be a flat 32-element histogram of gradient orientations.
+	 *
+	 * @return void
+	 */
 	public function test_edge_vector_has_32_elements(): void {
 		$gd     = $this->solid_gd( 200, 100, 50 );
 		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
@@ -65,6 +107,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertCount( 32, $vector );
 	}
 
+	/**
+	 * Every element of the edge vector must be a float.
+	 *
+	 * @return void
+	 */
 	public function test_all_values_are_float(): void {
 		$gd     = $this->solid_gd( 100, 150, 200 );
 		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
@@ -76,6 +123,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Normalisation ─────────────────────────────────────────────────────
 
+	/**
+	 * Normalised edge values must lie in [0, 1].
+	 *
+	 * @return void
+	 */
 	public function test_values_in_range_0_to_1(): void {
 		$gd     = $this->high_contrast_gd();
 		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
@@ -88,6 +140,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Semantic correctness ──────────────────────────────────────────────
 
+	/**
+	 * A solid (flat) image has no gradient: the entire edge histogram must be ~0.
+	 *
+	 * @return void
+	 */
 	public function test_solid_image_has_near_zero_edges(): void {
 		$gd     = $this->solid_gd( 200, 200, 200 );
 		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
@@ -97,6 +154,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 		$this->assertEqualsWithDelta( 0.0, $sum, 1e-6 );
 	}
 
+	/**
+	 * High-contrast checkerboard must accumulate strictly more edge mass than a flat image.
+	 *
+	 * @return void
+	 */
 	public function test_high_contrast_image_has_higher_edges_than_solid(): void {
 		$solid   = $this->solid_gd( 128, 128, 128 );
 		$checker = $this->high_contrast_gd();
@@ -109,6 +171,11 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Determinism ───────────────────────────────────────────────────────
 
+	/**
+	 * Processing the same GD resource twice must yield identical edge vectors.
+	 *
+	 * @return void
+	 */
 	public function test_same_image_returns_identical_vector(): void {
 		$gd = $this->high_contrast_gd();
 		$v1 = $this->processor->process( $gd, 1 )['edge_vector'];
@@ -119,6 +186,13 @@ class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
 
 	// ── Fixture-based ─────────────────────────────────────────────────────
 
+	/**
+	 * Sweep the 100-image Picsum fixture set and confirm every produced edge
+	 * vector has the right length and per-element bounds. Skipped when fixtures
+	 * have not been downloaded.
+	 *
+	 * @return void
+	 */
 	public function test_fixture_images_produce_valid_edge_vectors(): void {
 		if ( ! $this->fixtures_available() ) {
 			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );

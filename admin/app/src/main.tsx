@@ -1,3 +1,11 @@
+/**
+ * Pixel Scout admin app entry point.
+ *
+ * Wires React Query, TanStack Router (hash history) and the App shell into the
+ * `#ps-root` container injected by `includes/admin/class-admin-page.php`.
+ * Defines the four hash routes: `/` → redirect, `/dashboard`, `/duplicates`,
+ * `/tools`.
+ */
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

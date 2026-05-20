@@ -8,6 +8,14 @@ interface IndexStatus {
 	pending: number;
 }
 
+/**
+ * Poll the indexing counters every 30 s from `GET /wp-json/ps/v1/status`.
+ *
+ * Consumed by the Dashboard `StatsBar` and `ReindexButton` so they always
+ * reflect the live ratio of indexed vs pending attachments.
+ *
+ * @return {import('@tanstack/react-query').UseQueryResult<IndexStatus>}
+ */
 export function useIndexStatus() {
 	return useQuery<IndexStatus>({
 		queryKey: ['status'],

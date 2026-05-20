@@ -1,3 +1,11 @@
+/**
+ * Playwright end-to-end test for the full indexing pipeline.
+ *
+ * Uploads the Picsum fixture set via the REST media endpoint, runs the bulk
+ * indexer (via WP-CLI cron triggers), verifies the per-image phash payload
+ * lands in the index table, and finally exercises `/wp-json/ps/v1/search` to
+ * confirm the round-trip indexer → search behaviour on a real database.
+ */
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';

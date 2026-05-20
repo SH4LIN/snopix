@@ -3,6 +3,16 @@ import { __ } from '@wordpress/i18n';
 import { useImages } from '../hooks/use-images';
 import ImageRow from './ImageRow';
 
+/**
+ * Paginated table of indexed image attachments with a title/filename search box
+ * and a lightbox overlay for the clicked thumbnail.
+ *
+ * Pagination uses a keyset cursor stack: each "next" pushes the last row's
+ * attachment_id onto the stack so "previous" can pop back to the earlier page
+ * without re-querying. Search debouncing is handled inside {@link useImages}.
+ *
+ * @return {JSX.Element}
+ */
 export default function ImageTable() {
 	const [cursors, setCursors] = useState<number[]>([0]);
 	const [search, setSearch] = useState('');
@@ -10,12 +20,24 @@ export default function ImageTable() {
 	const afterId = cursors[cursors.length - 1];
 	const { data: images, isLoading } = useImages({ afterId, search });
 
+	/**
+	 * Push the last visible row's `attachment_id` onto the cursor stack so the
+	 * next `useImages` call fetches the page after it.
+	 *
+	 * @return {void}
+	 */
 	function goNext() {
 		if (!images || images.length === 0) return;
 		const next = images[images.length - 1].attachment_id;
 		setCursors((prev) => [...prev, next]);
 	}
 
+	/**
+	 * Pop the current cursor off the stack to return to the previous page. No-op
+	 * when already on the first page.
+	 *
+	 * @return {void}
+	 */
 	function goPrev() {
 		setCursors((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
 	}
@@ -25,6 +47,13 @@ export default function ImageTable() {
 			return;
 		}
 
+		/**
+		 * Close the lightbox when the user presses Escape.
+		 *
+		 * @param {KeyboardEvent} e Native keyboard event.
+		 *
+		 * @return {void}
+		 */
 		const close = (e: KeyboardEvent) =>
 			e.key === 'Escape' && setLightbox(null);
 		document.addEventListener('keydown', close);

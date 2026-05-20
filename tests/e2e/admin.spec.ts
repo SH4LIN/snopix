@@ -1,3 +1,11 @@
+/**
+ * Playwright end-to-end tests for the Pixel Scout wp-admin dashboard.
+ *
+ * Covers the admin sidebar link, dashboard stats, image table, search
+ * preview, reindex button, and the Settings panel. Most cases are currently
+ * marked `test.skip` pending stable Phase 6/7 fixtures; the live cases serve
+ * as smoke tests that the plugin activates and registers its admin route.
+ */
 import { test, expect } from '@playwright/test';
 import { wpLogin } from './helpers';
 

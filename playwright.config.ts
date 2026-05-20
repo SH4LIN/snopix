@@ -1,3 +1,12 @@
+/**
+ * Playwright configuration for the Pixel Scout end-to-end test suite.
+ *
+ * Runs the specs in `tests/e2e/` against five browser/device projects:
+ * Chromium, Firefox, WebKit, plus the Mobile Chrome (Pixel 5) and Mobile Safari
+ * (iPhone 12) viewports. The base URL is read from the `WORDPRESS_URL`
+ * environment variable so the same suite can target Local, Docker, or CI
+ * installations of WordPress.
+ */
 import { defineConfig, devices } from '@playwright/test';
 
 /**
