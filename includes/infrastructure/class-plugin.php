@@ -64,7 +64,6 @@ class Plugin {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_upgrade_db' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_action( 'init', array( $this, 'register_hooks' ) );
@@ -201,9 +200,7 @@ class Plugin {
 	 * @return void
 	 */
 	public static function activate(): void {
-		self::debug_log( 'Activation hook triggered.' );
 		self::instance()->schema->install();
-		self::debug_log( 'Schema installed successfully.' );
 		self::instance()->schema->maybe_upgrade();
 
 		if ( ! wp_next_scheduled( Duplicate_Scanner::DAILY_HOOK ) ) {
@@ -219,11 +216,9 @@ class Plugin {
 	 * @return void
 	 */
 	public static function deactivate(): void {
-		self::debug_log( 'Deactivation hook triggered.' );
 		wp_clear_scheduled_hook( 'ps_bulk_index_batch' );
 		wp_clear_scheduled_hook( Duplicate_Scanner::CRON_HOOK );
 		wp_clear_scheduled_hook( Duplicate_Scanner::DAILY_HOOK );
-		self::debug_log( 'Scheduled events cleared.' );
 	}
 
 	/**
@@ -232,8 +227,6 @@ class Plugin {
 	 * @return void
 	 */
 	public static function uninstall(): void {
-		self::debug_log( 'Uninstall routine triggered.' );
-
 		$schema = new Schema();
 		$schema->uninstall();
 
@@ -248,16 +241,5 @@ class Plugin {
 		delete_transient( 'ps_dup_total' );
 		delete_transient( 'ps_dup_status' );
 		delete_transient( 'ps_bulk_pending' );
-
-		self::debug_log( 'Uninstall complete.' );
-	}
-
-	/**
-	 * Load plugin text domain.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain( 'pixel-scout', false, dirname( plugin_basename( PIXEL_SCOUT_FILE ) ) . '/languages' );
 	}
 }

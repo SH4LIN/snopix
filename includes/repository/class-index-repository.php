@@ -227,15 +227,16 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return int Rows deleted.
 	 */
 	public function delete_orphans(): int {
-		$table = $this->wpdb->prefix . self::TABLE;
-		$posts = $this->wpdb->posts;
+		$table = esc_sql( $this->wpdb->prefix . self::TABLE );
+		$posts = esc_sql( $this->wpdb->posts );
 		// Table identifiers come from $wpdb only and contain no user input;
 		// $wpdb->prepare() is not needed because the query has no parameters.
-		$sql = "DELETE i FROM {$table} i "
-			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
-			. 'WHERE p.ID IS NULL';
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $this->wpdb->query( $sql );
+		$result = $this->wpdb->query(
+			"DELETE i FROM {$table} i "
+			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
+			. 'WHERE p.ID IS NULL'
+		);
 
 		$this->flush_cache();
 		return false === $result ? 0 : (int) $result;
@@ -247,15 +248,16 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return int
 	 */
 	public function get_orphan_count(): int {
-		$table = $this->wpdb->prefix . self::TABLE;
-		$posts = $this->wpdb->posts;
+		$table = esc_sql( $this->wpdb->prefix . self::TABLE );
+		$posts = esc_sql( $this->wpdb->posts );
 		// Table identifiers come from $wpdb only and contain no user input;
 		// $wpdb->prepare() is not needed because the query has no parameters.
-		$sql = "SELECT COUNT(*) FROM {$table} i "
-			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
-			. 'WHERE p.ID IS NULL';
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		return (int) $this->wpdb->get_var( $sql );
+		return (int) $this->wpdb->get_var(
+			"SELECT COUNT(*) FROM {$table} i "
+			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
+			. 'WHERE p.ID IS NULL'
+		);
 	}
 
 	/**

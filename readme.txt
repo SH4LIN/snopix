@@ -2,7 +2,7 @@
 Contributors: pixelscout
 Tags: image-search, reverse-image-search, similarity-search, duplicates, media-library
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 6.9
 Requires PHP: 8.0
 Stable tag: 0.1.0
 License: GPLv2 or later

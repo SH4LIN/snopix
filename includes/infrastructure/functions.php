@@ -9,23 +9,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'ps_get_allowed_mime_types' ) ) {
+if ( ! function_exists( 'pixel_scout_get_allowed_mime_types' ) ) {
 	/**
 	 * Get image MIME types allowed by Pixel Scout.
 	 *
 	 * @return array<string>
 	 */
-	function ps_get_allowed_mime_types(): array {
+	function pixel_scout_get_allowed_mime_types(): array {
 		return array(
 			'image/jpeg',
 			'image/png',
 			'image/gif',
 			'image/webp',
+			'image/bmp',
 		);
 	}
 }
 
-if ( ! function_exists( 'ps_format_filesize' ) ) {
+if ( ! function_exists( 'pixel_scout_format_filesize' ) ) {
 	/**
 	 * Format byte size for admin output.
 	 *
@@ -33,7 +34,7 @@ if ( ! function_exists( 'ps_format_filesize' ) ) {
 	 *
 	 * @return string
 	 */
-	function ps_format_filesize( int $bytes ): string {
+	function pixel_scout_format_filesize( int $bytes ): string {
 		return size_format( max( 0, $bytes ) );
 	}
 }
