@@ -229,10 +229,12 @@ class Index_Repository implements Index_Repository_Interface {
 	public function delete_orphans(): int {
 		$table = $this->wpdb->prefix . self::TABLE;
 		$posts = $this->wpdb->posts;
-		$sql   = "DELETE i FROM {$table} i "
+		// Table identifiers come from $wpdb only and contain no user input;
+		// $wpdb->prepare() is not needed because the query has no parameters.
+		$sql = "DELETE i FROM {$table} i "
 			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
 			. 'WHERE p.ID IS NULL';
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $this->wpdb->query( $sql );
 
 		$this->flush_cache();
@@ -247,10 +249,12 @@ class Index_Repository implements Index_Repository_Interface {
 	public function get_orphan_count(): int {
 		$table = $this->wpdb->prefix . self::TABLE;
 		$posts = $this->wpdb->posts;
-		$sql   = "SELECT COUNT(*) FROM {$table} i "
+		// Table identifiers come from $wpdb only and contain no user input;
+		// $wpdb->prepare() is not needed because the query has no parameters.
+		$sql = "SELECT COUNT(*) FROM {$table} i "
 			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
 			. 'WHERE p.ID IS NULL';
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		return (int) $this->wpdb->get_var( $sql );
 	}
 
@@ -262,5 +266,4 @@ class Index_Repository implements Index_Repository_Interface {
 	public function flush_cache(): void {
 		wp_cache_delete( self::CACHE_ALL, self::CACHE_GROUP );
 	}
-
 }

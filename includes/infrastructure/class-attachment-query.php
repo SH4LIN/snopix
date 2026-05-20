@@ -101,10 +101,11 @@ class Attachment_Query {
 		$after_id = 0;
 
 		do {
-			$batch    = static::get_ids( $after_id, self::BATCH_SIZE );
-			$ids      = array_merge( $ids, $batch );
-			$after_id = empty( $batch ) ? 0 : (int) end( $batch );
-		} while ( count( $batch ) === self::BATCH_SIZE );
+			$batch       = static::get_ids( $after_id, self::BATCH_SIZE );
+			$batch_count = count( $batch );
+			$ids         = array_merge( $ids, $batch );
+			$after_id    = empty( $batch ) ? 0 : (int) end( $batch );
+		} while ( self::BATCH_SIZE === $batch_count );
 
 		return $ids;
 	}

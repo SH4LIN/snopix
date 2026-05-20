@@ -121,7 +121,7 @@ class Plugin {
 		$validator    = new Mime_Validator();
 		$indexer      = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
-		$controller = new REST_Controller(
+		$controller   = new REST_Controller(
 			$pipeline,
 			new Query_Image(),
 			$repository,
@@ -131,10 +131,10 @@ class Plugin {
 		);
 		$controller->register_routes();
 
-		$dup_progress    = new Duplicate_Progress();
-		$dup_finder      = new Duplicate_Finder( $similarity );
-		$dup_scanner     = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
-		$dup_controller  = new Duplicates_REST_Controller( $dup_scanner, $dup_progress, $repository );
+		$dup_progress   = new Duplicate_Progress();
+		$dup_finder     = new Duplicate_Finder( $similarity );
+		$dup_scanner    = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
+		$dup_controller = new Duplicates_REST_Controller( $dup_scanner, $dup_progress, $repository );
 		$dup_controller->register_routes();
 	}
 

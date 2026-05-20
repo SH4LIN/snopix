@@ -44,6 +44,8 @@ class Search_Pipeline {
 	 * @param int $limit         Maximum results to return.
 	 *
 	 * @return Search_Result[]
+	 *
+	 * @throws \RuntimeException When the query image cannot be fingerprinted.
 	 */
 	public function search( int $attachment_id, int $limit = 20 ): array {
 		$query_fp = $this->factory->generate( $attachment_id );

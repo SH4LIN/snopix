@@ -108,7 +108,7 @@ class Duplicate_Finder {
 		// Union-Find initialisation: each node is its own root.
 		$parent = array();
 		foreach ( $rows as $row ) {
-			$id           = (int) $row['attachment_id'];
+			$id            = (int) $row['attachment_id'];
 			$parent[ $id ] = $id;
 		}
 
@@ -128,7 +128,7 @@ class Duplicate_Finder {
 		// Collect groups by root.
 		$groups = array();
 		foreach ( $rows as $row ) {
-			$root            = $this->find_root( $parent, (int) $row['attachment_id'] );
+			$root              = $this->find_root( $parent, (int) $row['attachment_id'] );
 			$groups[ $root ][] = $row;
 		}
 
@@ -155,15 +155,15 @@ class Duplicate_Finder {
 	/**
 	 * Find root with path compression.
 	 *
-	 * @param array<int, int> $parent Parent map (passed by reference).
-	 * @param int             $id     Node ID.
+	 * @param array<int, int> $parents Parent map (passed by reference).
+	 * @param int             $id      Node ID.
 	 *
 	 * @return int Root ID.
 	 */
-	private function find_root( array &$parent, int $id ): int {
-		while ( $parent[ $id ] !== $id ) {
-			$parent[ $id ] = $parent[ $parent[ $id ] ];
-			$id            = $parent[ $id ];
+	private function find_root( array &$parents, int $id ): int {
+		while ( $parents[ $id ] !== $id ) {
+			$parents[ $id ] = $parents[ $parents[ $id ] ];
+			$id             = $parents[ $id ];
 		}
 		return $id;
 	}
@@ -171,17 +171,17 @@ class Duplicate_Finder {
 	/**
 	 * Union two nodes.
 	 *
-	 * @param array<int, int> $parent Parent map (passed by reference).
-	 * @param int             $a      First node.
-	 * @param int             $b      Second node.
+	 * @param array<int, int> $parents Parent map (passed by reference).
+	 * @param int             $a       First node.
+	 * @param int             $b       Second node.
 	 *
 	 * @return void
 	 */
-	private function union( array &$parent, int $a, int $b ): void {
-		$ra = $this->find_root( $parent, $a );
-		$rb = $this->find_root( $parent, $b );
+	private function union( array &$parents, int $a, int $b ): void {
+		$ra = $this->find_root( $parents, $a );
+		$rb = $this->find_root( $parents, $b );
 		if ( $ra !== $rb ) {
-			$parent[ $ra ] = $rb;
+			$parents[ $ra ] = $rb;
 		}
 	}
 }

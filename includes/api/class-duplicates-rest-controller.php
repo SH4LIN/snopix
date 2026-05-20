@@ -95,7 +95,7 @@ class Duplicates_REST_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_get(): \WP_REST_Response {
-		$groups  = $this->scanner->get_results();
+		$groups   = $this->scanner->get_results();
 		$enriched = array_values(
 			array_filter(
 				array_map( array( $this, 'enrich_group' ), $groups ),
@@ -197,6 +197,7 @@ class Duplicates_REST_Controller {
 			$file  = get_attached_file( $id );
 			$meta  = wp_get_attachment_metadata( $id );
 			$meta  = is_array( $meta ) ? $meta : array();
+			$mime  = get_post_mime_type( $id );
 
 			$images[] = array(
 				'id'            => $id,
@@ -205,7 +206,7 @@ class Duplicates_REST_Controller {
 				'file_size'     => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
 				'width'         => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
 				'height'        => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
-				'mime_type'     => get_post_mime_type( $id ) ?: '',
+				'mime_type'     => $mime ? $mime : '',
 				'thumbnail_url' => $thumb ? $thumb[0] : '',
 				'full_url'      => $full ? $full[0] : '',
 			);

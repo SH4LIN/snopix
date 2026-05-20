@@ -13,6 +13,9 @@
  * @package Pixel_Scout
  */
 
+use PixelScout\Infrastructure\Autoloader;
+use PixelScout\Infrastructure\Plugin;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -22,7 +25,7 @@ if ( ! defined( 'PIXEL_SCOUT_VERSION' ) ) {
 }
 
 if ( ! defined( 'PIXEL_SCOUT_DB_VERSION' ) ) {
-	define( 'PIXEL_SCOUT_DB_VERSION', '1.1.0' );
+	define( 'PIXEL_SCOUT_DB_VERSION', '0.1.0' );
 }
 
 if ( ! defined( 'PIXEL_SCOUT_FILE' ) ) {
@@ -47,7 +50,7 @@ if ( ! defined( 'PIXEL_SCOUT_TABLE' ) ) {
 }
 
 require_once PIXEL_SCOUT_PLUGIN_DIR . 'includes/infrastructure/class-autoloader.php';
-\PixelScout\Infrastructure\Autoloader::init( PIXEL_SCOUT_PLUGIN_DIR . 'includes' );
+Autoloader::init( PIXEL_SCOUT_PLUGIN_DIR . 'includes' );
 
 require_once PIXEL_SCOUT_PLUGIN_DIR . 'includes/infrastructure/functions.php';
 
@@ -55,4 +58,4 @@ register_activation_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', '
 register_deactivation_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', 'deactivate' ) );
 register_uninstall_hook( __FILE__, array( 'PixelScout\Infrastructure\Plugin', 'uninstall' ) );
 
-\PixelScout\Infrastructure\Plugin::instance()->register();
+Plugin::instance()->register();
