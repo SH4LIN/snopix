@@ -57,5 +57,5 @@ agentdb.rvf.lock
 .phpcs-cache
 .phpunit.result.cache
 
-
-
+# Release build output
+build/

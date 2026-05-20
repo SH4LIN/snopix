@@ -77,6 +77,7 @@ admin/app/README.md
 
 # Documentation / scratch files that don't belong in the deployed plugin
 README.md
+CONTRIBUTING.md
 TEST_REPORT.md
 plan.md
 design
@@ -103,3 +104,6 @@ wp-tests-config.php
 .prettierrc
 .prettierrc.*
 .prettierignore
+
+# Build script — only needed during release, not at runtime
+bin
