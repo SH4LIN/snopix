@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Search_Pipeline {
 
-	private const HAMMING_THRESHOLD = 12;
-	private const SCORE_THRESHOLD   = 0.94;
+	private const HAMMING_THRESHOLD = 20;
+	private const SCORE_THRESHOLD   = 0.85;
 
 	/**
 	 * Constructor.
@@ -49,7 +49,7 @@ class Search_Pipeline {
 		$query_fp = $this->factory->generate( $attachment_id );
 
 		if ( empty( $query_fp ) || ! isset( $query_fp['phash'], $query_fp['color_vector'], $query_fp['edge_vector'] ) ) {
-			return array();
+			throw new \RuntimeException( 'unfingerprintable' );
 		}
 
 		$all = $this->repository->get_all_indexed();

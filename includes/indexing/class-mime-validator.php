@@ -24,6 +24,7 @@ class Mime_Validator {
 		'image/png',
 		'image/gif',
 		'image/webp',
+		'image/bmp',
 	);
 
 	/**

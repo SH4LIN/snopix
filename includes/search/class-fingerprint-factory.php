@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Fingerprint_Factory {
 
+	private const MAX_WORKING_DIM = 512;
+
 	/**
 	 * Registered image processors.
 	 *
@@ -51,6 +53,20 @@ class Fingerprint_Factory {
 
 		if ( false === $gd ) {
 			return array();
+		}
+
+		$w   = imagesx( $gd );
+		$h   = imagesy( $gd );
+		$max = max( $w, $h );
+
+		if ( $max > self::MAX_WORKING_DIM ) {
+			$scale   = self::MAX_WORKING_DIM / $max;
+			$resized = imagescale( $gd, (int) round( $w * $scale ), (int) round( $h * $scale ) );
+
+			if ( false !== $resized ) {
+				imagedestroy( $gd ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
+				$gd = $resized;
+			}
 		}
 
 		$fingerprint = array();

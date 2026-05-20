@@ -25,6 +25,7 @@ class GD_Loader {
 		'image/png'  => 'imagecreatefrompng',
 		'image/gif'  => 'imagecreatefromgif',
 		'image/webp' => 'imagecreatefromwebp',
+		'image/bmp'  => 'imagecreatefrombmp',
 	);
 
 	/**

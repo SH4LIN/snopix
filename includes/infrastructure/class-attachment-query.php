@@ -110,7 +110,7 @@ class Attachment_Query {
 	}
 
 	/**
-	 * Search image attachment IDs by post title.
+	 * Search image attachment IDs by post title or attached filename.
 	 *
 	 * Capped at SEARCH_LIMIT rows — title search is user-driven and bounded.
 	 *
@@ -119,7 +119,7 @@ class Attachment_Query {
 	 * @return array<int>
 	 */
 	public static function search_ids( string $title ): array {
-		$query = new \WP_Query(
+		$title_query = new \WP_Query(
 			array(
 				'post_type'              => 'attachment',
 				'post_status'            => 'inherit',
@@ -133,6 +133,34 @@ class Attachment_Query {
 			)
 		);
 
-		return array_map( 'absint', (array) $query->posts );
+		$file_ids = array();
+
+		if ( '' !== $title ) {
+			$file_query = new \WP_Query(
+				array(
+					'post_type'              => 'attachment',
+					'post_status'            => 'inherit',
+					'posts_per_page'         => self::SEARCH_LIMIT,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						array(
+							'key'     => '_wp_attached_file',
+							'value'   => $title,
+							'compare' => 'LIKE',
+						),
+					),
+				)
+			);
+
+			$file_ids = (array) $file_query->posts;
+		}
+
+		$ids = array_unique( array_merge( (array) $title_query->posts, $file_ids ) );
+		$ids = array_slice( $ids, 0, self::SEARCH_LIMIT );
+
+		return array_map( 'absint', $ids );
 	}
 }

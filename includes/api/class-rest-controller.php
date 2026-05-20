@@ -212,14 +212,20 @@ class REST_Controller {
 
 		if ( false === $attachment_id ) {
 			return new \WP_Error(
-				'upload_failed',
-				__( 'File upload failed or unsupported type.', 'pixel-scout' ),
+				'unprocessable_image',
+				__( 'Could not process image.', 'pixel-scout' ),
 				array( 'status' => 422 )
 			);
 		}
 
 		try {
 			$results = $this->pipeline->search( $attachment_id );
+		} catch ( \RuntimeException $e ) {
+			return new \WP_Error(
+				'unprocessable_image',
+				__( 'Could not process image.', 'pixel-scout' ),
+				array( 'status' => 422 )
+			);
 		} finally {
 			$this->query_image->cleanup( $attachment_id );
 		}

@@ -18,7 +18,7 @@ class Query_Image {
 	/**
 	 * Allowed MIME types for query images.
 	 */
-	private const ALLOWED_MIMES = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
+	private const ALLOWED_MIMES = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp' );
 
 	/**
 	 * Maximum allowed file size in bytes (10 MB).
