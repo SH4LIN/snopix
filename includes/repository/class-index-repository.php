@@ -89,6 +89,7 @@ class Index_Repository implements Index_Repository_Interface {
 		$rows = Query::create()
 			->from( self::TABLE )
 			->select( array( 'attachment_id', 'phash', 'color_vector', 'edge_vector', 'indexed_at' ) )
+			->where( 'error_code', '', '=', '%s' )
 			->order_by( 'indexed_at', 'DESC' )
 			->get( ARRAY_A );
 
@@ -96,6 +97,88 @@ class Index_Repository implements Index_Repository_Interface {
 		wp_cache_set( self::CACHE_ALL, $rows, self::CACHE_GROUP, 5 * MINUTE_IN_SECONDS );
 
 		return $rows;
+	}
+
+	/**
+	 * Fetch indexed rows whose pHash is within `$max_distance` Hamming bits of
+	 * the query hash. Computed in MySQL via `BIT_COUNT(CONV(...) ^ CONV(...))`
+	 * so the entire ps_index table never has to land in PHP.
+	 *
+	 * @param string $query_phash 16-char lowercase hex query hash.
+	 * @param int    $max_distance Maximum Hamming distance to return.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_candidates_for_hamming( string $query_phash, int $max_distance ): array {
+		$query_phash = strtolower( $query_phash );
+		if ( 16 !== strlen( $query_phash ) || ! ctype_xdigit( $query_phash ) ) {
+			return array();
+		}
+
+		$index_table = esc_sql( $this->wpdb->prefix . self::TABLE );
+
+		// CONV(hex,16,10) is limited to 18-digit unsigned, so 64-bit pHashes
+		// must be split into two 32-bit halves and the popcount summed.
+		$query_high = substr( $query_phash, 0, 8 );
+		$query_low  = substr( $query_phash, 8, 8 );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$sql = $this->wpdb->prepare(
+			"SELECT attachment_id, phash, color_vector, edge_vector, indexed_at "
+			. "FROM {$index_table} "
+			. "WHERE error_code = '' "
+			. 'AND phash <> %s '
+			. 'AND ('
+			. 'BIT_COUNT(CONV(SUBSTRING(phash, 1, 8), 16, 10) ^ CONV(%s, 16, 10))'
+			. ' + '
+			. 'BIT_COUNT(CONV(SUBSTRING(phash, 9, 8), 16, 10) ^ CONV(%s, 16, 10))'
+			. ') <= %d',
+			'',
+			$query_high,
+			$query_low,
+			$max_distance
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+	/**
+	 * Record that an attachment could not be indexed (unsupported MIME or
+	 * unfingerprintable bytes).
+	 *
+	 * Stores a row with empty fingerprints and a non-empty `error_code` so
+	 * the dashboard can surface a "failed" count and the bulk indexer does
+	 * not retry the attachment on every pass.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $error_code    Short machine-readable failure reason.
+	 *
+	 * @return bool
+	 */
+	public function mark_failed( int $attachment_id, string $error_code ): bool {
+		$result = Query::create()
+			->from( self::TABLE )
+			->upsert(
+				array(
+					'attachment_id' => $attachment_id,
+					'phash'         => '',
+					'color_vector'  => null,
+					'edge_vector'   => null,
+					'file_hash'     => '',
+					'error_code'    => $error_code,
+					'indexed_at'    => current_time( 'mysql' ),
+				),
+				array( 'phash', 'color_vector', 'edge_vector', 'file_hash', 'error_code', 'indexed_at' )
+			);
+
+		if ( $result ) {
+			$this->flush_cache();
+		}
+
+		return $result;
 	}
 
 	/**
@@ -110,7 +193,7 @@ class Index_Repository implements Index_Repository_Interface {
 	public function get_paginated( int $after_id, int $per_page, string $search ): array {
 		$query = Query::create()
 			->from( self::TABLE )
-			->select( array( 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at' ) )
+			->select( array( 'attachment_id', 'phash', 'mime_type', 'file_size', 'width', 'height', 'indexed_at', 'error_code' ) )
 			->order_by( 'attachment_id', 'DESC' )
 			->limit( max( 1, $per_page ) );
 
@@ -138,6 +221,13 @@ class Index_Repository implements Index_Repository_Interface {
 	public function get_counts(): array {
 		$indexed = (int) Query::create()
 			->from( self::TABLE )
+			->where( 'error_code', '', '=', '%s' )
+			->select( 'COUNT(*)' )
+			->get_var();
+
+		$failed = (int) Query::create()
+			->from( self::TABLE )
+			->where( 'error_code', '', '!=', '%s' )
 			->select( 'COUNT(*)' )
 			->get_var();
 
@@ -146,7 +236,8 @@ class Index_Repository implements Index_Repository_Interface {
 		return array(
 			'total'   => $total,
 			'indexed' => $indexed,
-			'pending' => max( 0, $total - $indexed ),
+			'failed'  => $failed,
+			'pending' => max( 0, $total - $indexed - $failed ),
 		);
 	}
 
@@ -156,20 +247,21 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return array<int>
 	 */
 	public function get_unindexed_ids(): array {
-		$all_ids = Attachment_Query::get_all_ids();
+		$index_table = esc_sql( $this->wpdb->prefix . self::TABLE );
+		$posts_table = esc_sql( $this->wpdb->posts );
+		// Identifiers come from $wpdb; the query has no user-controlled
+		// parameters, so $wpdb->prepare() is not needed.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $this->wpdb->get_col(
+			"SELECT p.ID FROM {$posts_table} p "
+			. "LEFT JOIN {$index_table} i ON p.ID = i.attachment_id "
+			. "WHERE p.post_type = 'attachment' "
+			. "AND p.post_mime_type LIKE 'image/%' "
+			. 'AND i.attachment_id IS NULL '
+			. 'ORDER BY p.ID ASC'
+		);
 
-		if ( empty( $all_ids ) ) {
-			return array();
-		}
-
-		$indexed_ids = Query::create()
-			->from( self::TABLE )
-			->select( 'attachment_id' )
-			->get_col();
-
-		$indexed_ids = is_array( $indexed_ids ) ? array_map( 'absint', $indexed_ids ) : array();
-
-		return array_values( array_diff( $all_ids, $indexed_ids ) );
+		return is_array( $rows ) ? array_map( 'absint', $rows ) : array();
 	}
 
 	/**
@@ -181,6 +273,7 @@ class Index_Repository implements Index_Repository_Interface {
 		$rows = Query::create()
 			->from( self::TABLE )
 			->select( array( 'attachment_id', 'phash', 'file_hash' ) )
+			->where( 'error_code', '', '=', '%s' )
 			->get( ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();

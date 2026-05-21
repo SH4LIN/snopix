@@ -22,6 +22,29 @@ interface Index_Repository_Interface {
 	public function upsert( int $attachment_id, array $fingerprint ): bool;
 
 	/**
+	 * Record an unindexable attachment so the dashboard can surface a
+	 * "failed" count and the bulk indexer skips it next time.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $error_code    Short machine-readable failure reason.
+	 *
+	 * @return bool
+	 */
+	public function mark_failed( int $attachment_id, string $error_code ): bool;
+
+	/**
+	 * Fetch indexed rows within `$max_distance` Hamming bits of the query
+	 * pHash. Used as a SQL-side pre-filter in the search pipeline so the
+	 * entire ps_index table never lands in PHP.
+	 *
+	 * @param string $query_phash  16-char lowercase hex query hash.
+	 * @param int    $max_distance Maximum Hamming distance to return.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_candidates_for_hamming( string $query_phash, int $max_distance ): array;
+
+	/**
 	 * Get all indexed rows.
 	 *
 	 * @return array<int, array<string, mixed>>

@@ -54,20 +54,19 @@ class Search_Pipeline {
 			throw new \RuntimeException( 'unfingerprintable' );
 		}
 
-		$all = $this->repository->get_all_indexed();
+		$candidates = $this->repository->get_candidates_for_hamming(
+			(string) $query_fp['phash'],
+			self::HAMMING_THRESHOLD
+		);
 
-		if ( empty( $all ) ) {
+		if ( empty( $candidates ) ) {
 			return array();
 		}
 
 		$scored = array();
 
-		foreach ( $all as $row ) {
+		foreach ( $candidates as $row ) {
 			if ( ! isset( $row['phash'] ) ) {
-				continue;
-			}
-
-			if ( $this->similarity->hamming_distance( $query_fp['phash'], $row['phash'] ) > self::HAMMING_THRESHOLD ) {
 				continue;
 			}
 
@@ -85,6 +84,15 @@ class Search_Pipeline {
 
 		usort( $scored, static fn( $a, $b ) => $b['score'] <=> $a['score'] );
 		$scored = array_slice( $scored, 0, $limit );
+
+		if ( empty( $scored ) ) {
+			return array();
+		}
+
+		// Prime the post + attachment-meta object cache for the result IDs in
+		// one shot so the per-result hydration below only hits the cache.
+		$result_ids = array_map( static fn( $item ) => (int) $item['row']['attachment_id'], $scored );
+		_prime_post_caches( $result_ids, true, true );
 
 		$results = array();
 

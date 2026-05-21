@@ -29,6 +29,15 @@ class Score_Calculator {
 	public function __construct( private Similarity $similarity ) {}
 
 	/**
+	 * Per-request memo of decoded vectors. Keyed by the SHA-1 of the encoded
+	 * payload (cheap and collision-free in practice). Cleared at the end of
+	 * the request when the calculator instance is GC'd.
+	 *
+	 * @var array<string, array<int, float>>
+	 */
+	private array $decode_cache = array();
+
+	/**
 	 * Calculate the composite similarity score between two fingerprint arrays.
 	 *
 	 * Color_vector and edge_vector may be JSON-encoded strings (as stored in DB).
@@ -71,11 +80,22 @@ class Score_Calculator {
 	 * @return array<int, float>
 	 */
 	private function decode_vector( mixed $value ): array {
-		if ( is_string( $value ) ) {
-			$decoded = json_decode( $value, true );
-			return is_array( $decoded ) ? $decoded : array();
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+		if ( ! is_string( $value ) || '' === $value ) {
+			return array();
 		}
 
-		return is_array( $value ) ? $value : array();
+		$key = sha1( $value );
+		if ( isset( $this->decode_cache[ $key ] ) ) {
+			return $this->decode_cache[ $key ];
+		}
+
+		$decoded = json_decode( $value, true );
+		$vector  = is_array( $decoded ) ? $decoded : array();
+
+		$this->decode_cache[ $key ] = $vector;
+		return $vector;
 	}
 }

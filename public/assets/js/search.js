@@ -139,8 +139,21 @@
 				headers: { 'X-WP-Nonce': ps_public.nonce },
 				body: fd,
 			});
-			if (!res.ok) throw new Error('HTTP ' + res.status);
-			const data = await res.json();
+			const data = await res.json().catch(() => null);
+
+			if (!res.ok) {
+				const message = data && typeof data.message === 'string'
+					? data.message
+					: 'Something went wrong. Try a different image.';
+				showError(message);
+				return;
+			}
+
+			if (!Array.isArray(data)) {
+				showError('Unexpected response from the server.');
+				return;
+			}
+
 			showResults(data);
 		} catch (err) {
 			showError('Something went wrong. Try a different image.');

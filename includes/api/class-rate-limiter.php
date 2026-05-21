@@ -36,7 +36,7 @@ class Rate_Limiter {
 	 * @return bool True if allowed, false if rate-limited.
 	 */
 	public function is_allowed( string $ip ): bool {
-		$key  = 'ps_rl_' . md5( $ip );
+		$key  = self::transient_key( $ip );
 		$data = get_transient( $key );
 
 		if ( false === $data ) {
@@ -66,5 +66,60 @@ class Rate_Limiter {
 		);
 
 		return true;
+	}
+
+	/**
+	 * Resolve the effective client IP to limit on.
+	 *
+	 * `REMOTE_ADDR` is always the immediate peer — behind any reverse proxy
+	 * that is the proxy itself, which would coalesce every visitor into one
+	 * bucket. When the request is forwarded by a configured trusted proxy
+	 * (constant `PIXEL_SCOUT_TRUSTED_PROXIES`, a comma-separated list of IPs)
+	 * we walk `X-Forwarded-For` right-to-left and return the first entry that
+	 * is not in the trust list.
+	 *
+	 * @return string Client IP, or empty string when none can be determined.
+	 */
+	public static function resolve_client_ip(): string {
+		$remote = isset( $_SERVER['REMOTE_ADDR'] )
+			? trim( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+			: '';
+
+		$trusted_raw = defined( 'PIXEL_SCOUT_TRUSTED_PROXIES' ) ? (string) PIXEL_SCOUT_TRUSTED_PROXIES : '';
+		if ( '' === $trusted_raw || '' === $remote ) {
+			return $remote;
+		}
+
+		$trusted = array_filter( array_map( 'trim', explode( ',', $trusted_raw ) ) );
+		if ( ! in_array( $remote, $trusted, true ) ) {
+			return $remote;
+		}
+
+		$forwarded = isset( $_SERVER['HTTP_X_FORWARDED_FOR'] )
+			? (string) wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] )
+			: '';
+		if ( '' === $forwarded ) {
+			return $remote;
+		}
+
+		$chain = array_reverse( array_filter( array_map( 'trim', explode( ',', $forwarded ) ) ) );
+		foreach ( $chain as $candidate ) {
+			if ( ! in_array( $candidate, $trusted, true ) && filter_var( $candidate, FILTER_VALIDATE_IP ) ) {
+				return $candidate;
+			}
+		}
+		return $remote;
+	}
+
+	/**
+	 * Build the transient key for an IP. Plugin-namespaced to avoid collisions
+	 * with anything else writing to the `ps_rl_*` space.
+	 *
+	 * @param string $ip Client IP.
+	 *
+	 * @return string
+	 */
+	private static function transient_key( string $ip ): string {
+		return 'pixel_scout_ratelimit_' . hash( 'sha256', $ip );
 	}
 }

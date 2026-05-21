@@ -113,6 +113,12 @@ export default function App() {
 				>
 					{__('Tools', 'pixel-scout')}
 				</button>
+				<button
+					className={tabClass('/settings')}
+					onClick={() => navigate({ to: '/settings' })}
+				>
+					{__('Settings', 'pixel-scout')}
+				</button>
 			</div>
 
 			<Outlet />

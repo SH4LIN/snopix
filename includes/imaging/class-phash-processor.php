@@ -68,20 +68,23 @@ class PHash_Processor implements Processor_Interface {
 	 * @return array<int, array<int, float>> 8×8 DCT coefficients.
 	 */
 	private function compute_dct( array $pixels ): array {
-		$size = 32;
-		$dct  = array();
+		$size  = 32;
+		$table = self::cosine_table();
+		$dct   = array();
 
 		for ( $u = 0; $u < 8; $u++ ) {
+			$cos_u = $table[ $u ];
 			for ( $v = 0; $v < 8; $v++ ) {
-				$cu  = ( 0 === $u ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
-				$cv  = ( 0 === $v ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
-				$sum = 0.0;
+				$cos_v = $table[ $v ];
+				$cu    = ( 0 === $u ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
+				$cv    = ( 0 === $v ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
+				$sum   = 0.0;
 
 				for ( $x = 0; $x < $size; $x++ ) {
+					$cx  = $cos_u[ $x ];
+					$row = $pixels[ $x ];
 					for ( $y = 0; $y < $size; $y++ ) {
-						$sum += $pixels[ $x ][ $y ]
-							* cos( M_PI * ( 2.0 * $x + 1.0 ) * $u / 64.0 )
-							* cos( M_PI * ( 2.0 * $y + 1.0 ) * $v / 64.0 );
+						$sum += $row[ $y ] * $cx * $cos_v[ $y ];
 					}
 				}
 
@@ -90,6 +93,31 @@ class PHash_Processor implements Processor_Interface {
 		}
 
 		return $dct;
+	}
+
+	/**
+	 * Lazy-initialised 8×32 lookup of cos(pi · (2x + 1) · u / 64).
+	 *
+	 * The DCT inner loop calls `cos()` 131k times per image when computed
+	 * naively. Caching the values once per PHP process turns the loop into
+	 * pure floating-point multiplies.
+	 *
+	 * @return array<int, array<int, float>> Cosine table indexed by [u][x].
+	 */
+	private static function cosine_table(): array {
+		static $table = null;
+		if ( null !== $table ) {
+			return $table;
+		}
+		$table = array();
+		for ( $u = 0; $u < 8; $u++ ) {
+			$row = array();
+			for ( $x = 0; $x < 32; $x++ ) {
+				$row[ $x ] = cos( M_PI * ( 2.0 * $x + 1.0 ) * $u / 64.0 );
+			}
+			$table[ $u ] = $row;
+		}
+		return $table;
 	}
 
 	/**

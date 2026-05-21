@@ -55,7 +55,17 @@ class REST_Controller {
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'handle_search' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => static function () {
+					$settings   = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+					$visibility = isset( $settings['search_visibility'] ) && 'logged_in' === $settings['search_visibility']
+						? 'logged_in'
+						: 'anyone';
+
+					if ( 'logged_in' === $visibility ) {
+						return is_user_logged_in();
+					}
+					return true;
+				},
 			)
 		);
 
@@ -178,6 +188,31 @@ class REST_Controller {
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 			)
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/settings',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'handle_get_settings' ),
+					'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'handle_update_settings' ),
+					'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+					'args'                => array(
+						'search_visibility' => array(
+							'type'              => 'string',
+							'required'          => false,
+							'sanitize_callback' => 'sanitize_key',
+							'validate_callback' => static fn( $v ) => in_array( $v, array( 'anyone', 'logged_in' ), true ),
+						),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -188,9 +223,9 @@ class REST_Controller {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function handle_search( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ) );
+		$ip = Rate_Limiter::resolve_client_ip();
 
-		if ( ! $this->rate_limiter->is_allowed( $ip ) ) {
+		if ( '' !== $ip && ! $this->rate_limiter->is_allowed( $ip ) ) {
 			return new \WP_Error(
 				'rate_limited',
 				__( 'Too many requests.', 'pixel-scout' ),
@@ -273,6 +308,13 @@ class REST_Controller {
 		$search   = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
 
 		$rows = $this->repository->get_paginated( $after_id, $per_page, $search );
+
+		if ( ! empty( $rows ) ) {
+			$ids = array_map( static fn( $r ) => (int) $r['attachment_id'], $rows );
+			// Prime the post + postmeta object cache so the hydration loop only
+			// hits the cache instead of N+1 SQL per row.
+			_prime_post_caches( $ids, true, true );
+		}
 
 		$rows = array_map(
 			static function ( array $row ): array {
@@ -382,5 +424,56 @@ class REST_Controller {
 		$this->repository->flush_cache();
 		$this->progress->reset();
 		return new \WP_REST_Response( array( 'cleared' => true ), 200 );
+	}
+
+	/**
+	 * Handle GET /settings — return the current ps_settings option.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_get_settings(): \WP_REST_Response {
+		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		if ( ! is_array( $settings ) ) {
+			$settings = array( 'search_visibility' => 'anyone' );
+		}
+
+		$visibility = isset( $settings['search_visibility'] ) && 'logged_in' === $settings['search_visibility']
+			? 'logged_in'
+			: 'anyone';
+
+		return new \WP_REST_Response(
+			array(
+				'search_visibility' => $visibility,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Handle POST /settings — persist a sanitised ps_settings payload.
+	 *
+	 * @param \WP_REST_Request $request REST request.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_update_settings( \WP_REST_Request $request ): \WP_REST_Response {
+		$current = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		if ( ! is_array( $current ) ) {
+			$current = array( 'search_visibility' => 'anyone' );
+		}
+
+		$visibility = $request->get_param( 'search_visibility' );
+		if ( in_array( $visibility, array( 'anyone', 'logged_in' ), true ) ) {
+			$current['search_visibility'] = $visibility;
+		}
+
+		update_option( 'ps_settings', $current );
+
+		return new \WP_REST_Response(
+			array(
+				'search_visibility' => $current['search_visibility'] ?? 'anyone',
+			),
+			200
+		);
 	}
 }

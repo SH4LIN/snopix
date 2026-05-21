@@ -63,10 +63,17 @@ class Fingerprint_Factory {
 			$scale   = self::MAX_WORKING_DIM / $max;
 			$resized = imagescale( $gd, (int) round( $w * $scale ), (int) round( $h * $scale ) );
 
-			if ( false !== $resized ) {
-				imagedestroy( $gd ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
-				$gd = $resized;
+			if ( false === $resized ) {
+				// A failed pre-downscale means we cannot uphold the 512 px
+				// working-size invariant. Bail rather than fingerprinting
+				// the original — callers treat the empty array as
+				// "unprocessable" and surface 422 to the client.
+				$this->loader->destroy( $gd );
+				return array();
 			}
+
+			imagedestroy( $gd ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
+			$gd = $resized;
 		}
 
 		$fingerprint = array();

@@ -72,4 +72,16 @@ class Duplicate_Progress {
 		delete_transient( self::KEY_TOTAL );
 		delete_transient( self::KEY_STATUS );
 	}
+
+	/**
+	 * Mark the scan as fully complete regardless of the internal counters.
+	 * Called by the scanner once every batch has executed.
+	 *
+	 * @return void
+	 */
+	public function mark_done(): void {
+		$total = (int) get_transient( self::KEY_TOTAL );
+		set_transient( self::KEY_DONE, max( 1, $total ), DAY_IN_SECONDS );
+		set_transient( self::KEY_STATUS, 'done', DAY_IN_SECONDS );
+	}
 }

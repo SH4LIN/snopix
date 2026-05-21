@@ -8,11 +8,17 @@ interface ImageData {
 	height: number;
 	indexed_at: string;
 	phash: string;
+	error_code?: string;
 	title?: string;
 	filename?: string;
 	thumbnail_url?: string;
 	full_url?: string;
 }
+
+const ERROR_LABELS: Record<string, string> = {
+	unsupported_mime: 'Unsupported format',
+	unfingerprintable: 'Corrupt / unreadable',
+};
 
 interface Props {
 	image: ImageData;
@@ -46,13 +52,18 @@ function formatBytes(bytes: number): string {
  */
 export default function ImageRow({ image, onImageClick }: Props) {
 	const editUrl = `/wp-admin/post.php?post=${image.attachment_id}&action=edit`;
-	const isIndexed = !!image.phash;
-	const pillClass = isIndexed
-		? 'ps-pill ps-pill--indexed'
-		: 'ps-pill ps-pill--pending';
-	const label = isIndexed
-		? __('Indexed', 'pixel-scout')
-		: __('Pending', 'pixel-scout');
+	const isFailed = !!image.error_code;
+	const isIndexed = !isFailed && !!image.phash;
+	const pillClass = isFailed
+		? 'ps-pill ps-pill--failed'
+		: isIndexed
+			? 'ps-pill ps-pill--indexed'
+			: 'ps-pill ps-pill--pending';
+	const label = isFailed
+		? __(ERROR_LABELS[image.error_code ?? ''] ?? 'Failed', 'pixel-scout')
+		: isIndexed
+			? __('Indexed', 'pixel-scout')
+			: __('Pending', 'pixel-scout');
 	const date = image.indexed_at
 		? new Date(image.indexed_at).toLocaleDateString()
 		: '—';

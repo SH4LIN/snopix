@@ -41,12 +41,14 @@ class Image_Indexer {
 		$mime = get_post_mime_type( $attachment_id );
 
 		if ( ! $this->validator->is_allowed( $mime ) ) {
+			$this->repository->mark_failed( $attachment_id, 'unsupported_mime' );
 			return false;
 		}
 
 		$fingerprint = $this->factory->generate( $attachment_id );
 
 		if ( empty( $fingerprint ) ) {
+			$this->repository->mark_failed( $attachment_id, 'unfingerprintable' );
 			return false;
 		}
 
@@ -55,11 +57,12 @@ class Image_Indexer {
 		$fingerprint = array_merge(
 			$fingerprint,
 			array(
-				'mime_type' => $mime,
-				'width'     => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
-				'height'    => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
-				'file_size' => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
-				'file_hash' => ( $file && file_exists( $file ) && str_starts_with( $mime, 'image/' ) ) ? (string) md5_file( $file ) : '',
+				'mime_type'  => $mime,
+				'width'      => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
+				'height'     => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
+				'file_size'  => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
+				'file_hash'  => ( $file && file_exists( $file ) && str_starts_with( $mime, 'image/' ) ) ? (string) md5_file( $file ) : '',
+				'error_code' => '',
 			)
 		);
 

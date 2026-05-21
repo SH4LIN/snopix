@@ -4,6 +4,7 @@ interface Status {
 	total: number;
 	indexed: number;
 	pending: number;
+	failed: number;
 }
 
 interface Props {
@@ -38,10 +39,15 @@ export default function StatsBar({ status }: Props) {
 			value: status?.pending ?? '—',
 			className: 'text-ps-warning',
 		},
+		{
+			label: __('Failed', 'pixel-scout'),
+			value: status?.failed ?? '—',
+			className: 'text-ps-danger',
+		},
 	];
 
 	return (
-		<div className="grid grid-cols-3 gap-3 mb-4">
+		<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
 			{cards.map(({ label, value, className }) => (
 				<div key={label} className="ps-card">
 					<div className={`text-[32px] font-bold ${className}`}>

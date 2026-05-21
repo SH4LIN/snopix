@@ -33,6 +33,41 @@ class Duplicate_Finder {
 	public function __construct( private Similarity $similarity ) {}
 
 	/**
+	 * Hamming distance between two pHash hex strings.
+	 *
+	 * Public wrapper used by `Duplicate_Scanner` for cross-batch pairwise
+	 * comparison; the existing `find()` flow uses the same metric internally.
+	 *
+	 * @param string $a First 16-char hex pHash.
+	 * @param string $b Second 16-char hex pHash.
+	 *
+	 * @return int
+	 */
+	public function hamming_distance_for_scanner( string $a, string $b ): int {
+		return $this->similarity->hamming_distance( $a, $b );
+	}
+
+	/**
+	 * Hamming threshold the scanner uses when unioning candidates.
+	 *
+	 * @return int
+	 */
+	public static function scanner_phash_threshold(): int {
+		return self::PHASH_THRESHOLD;
+	}
+
+	/**
+	 * Public exact-hash grouping used by the scanner's finalisation step.
+	 *
+	 * @param array<int, array<string, mixed>> $rows Rows with `file_hash`.
+	 *
+	 * @return array<int, array<int, array<string, mixed>>>
+	 */
+	public function scanner_group_by_file_hash( array $rows ): array {
+		return $this->group_by_hash( $rows );
+	}
+
+	/**
 	 * Find duplicate groups from indexed rows.
 	 *
 	 * @param array<int, array<string, mixed>> $rows Rows with attachment_id, phash, file_hash.

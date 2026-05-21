@@ -6,6 +6,7 @@ interface IndexStatus {
 	total: number;
 	indexed: number;
 	pending: number;
+	failed: number;
 }
 
 /**

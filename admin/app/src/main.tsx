@@ -21,6 +21,7 @@ import App from './App';
 import Dashboard from './components/Dashboard';
 import Duplicates from './components/Duplicates';
 import Tools from './components/Tools';
+import Settings from './components/Settings';
 import './styles/globals.css';
 
 const rootRoute = createRootRoute({ component: App });
@@ -51,11 +52,18 @@ const toolsRoute = createRoute({
 	component: Tools,
 });
 
+const settingsRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/settings',
+	component: Settings,
+});
+
 const routeTree = rootRoute.addChildren([
 	indexRoute,
 	dashboardRoute,
 	duplicatesRoute,
 	toolsRoute,
+	settingsRoute,
 ]);
 
 const router = createRouter({

@@ -45,5 +45,6 @@ export function useImages({ afterId, search }: UseImagesParams) {
 			if (!res.ok) throw new Error('Failed to fetch images');
 			return res.json();
 		},
+		staleTime: 30_000,
 	});
 }

@@ -121,9 +121,30 @@ class Bulk_Indexer {
 			delete_transient( self::PENDING_KEY );
 		}
 
-		foreach ( $batch as $id ) {
-			$this->indexer->index_single( $id );
-			$this->progress->increment();
+		// Prime the post + postmeta object cache for the batch so per-image
+		// metadata reads inside Image_Indexer hit the cache, not SQL.
+		$batch_ids = array_map( 'absint', $batch );
+		if ( ! empty( $batch_ids ) ) {
+			_prime_post_caches( $batch_ids, true, true );
+		}
+
+		$succeeded = 0;
+		foreach ( $batch_ids as $id ) {
+			if ( $this->indexer->index_single( $id ) ) {
+				++$succeeded;
+			}
+		}
+
+		// Increment once per batch — N transient round-trips collapse into one.
+		$this->progress->increment_by( count( $batch_ids ) );
+
+		// If every image in the batch failed AND there are still images
+		// remaining, halt the chain so we don't burn through the queue on a
+		// fundamentally broken environment (missing GD ext, all-corrupt media).
+		if ( ! empty( $remaining ) && 0 === $succeeded ) {
+			delete_transient( self::PENDING_KEY );
+			$this->progress->mark_stalled();
+			return;
 		}
 
 		if ( ! empty( $remaining ) ) {
