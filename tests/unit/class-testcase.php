@@ -10,20 +10,6 @@
  */
 class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	/**
-	 * PHPUnit 11 compatibility shim.
-	 *
-	 * PHPUnit 11 removed `getAnnotations()`, but the WordPress test suite still
-	 * checks `method_exists($this, 'getAnnotations')` before calling
-	 * `parseTestMethodAnnotations()`. Providing this stub routes
-	 * `expectDeprecated()` to the older safe branch.
-	 *
-	 * @return array<string, array<string, mixed>>
-	 */
-	public function getAnnotations(): array {
-		return array( 'class' => array(), 'method' => array() );
-	}
-
-	/**
 	 * Per-test setup. Verifies the plugin class is autoloaded before running.
 	 *
 	 * @return void

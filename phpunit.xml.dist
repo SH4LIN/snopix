@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
 	bootstrap="tests/bootstrap.php"
 	beStrictAboutTestsThatDoNotTestAnything="true"
 	beStrictAboutOutputDuringTests="true"
@@ -9,7 +9,7 @@
 	failOnWarning="true"
 	colors="true"
 >
-	<source>
+	<coverage>
 		<include>
 			<directory suffix=".php">includes/infrastructure</directory>
 			<directory suffix=".php">includes/repository</directory>
@@ -19,7 +19,7 @@
 		<exclude>
 			<directory>tests/</directory>
 		</exclude>
-	</source>
+	</coverage>
 
 	<testsuites>
 		<testsuite name="unit">
