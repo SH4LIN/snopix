@@ -106,7 +106,7 @@ class Duplicate_Finder {
 	 *
 	 * @param array<int, array<string, mixed>> $rows Rows.
 	 *
-	 * @return array<string, array<int, array<string, mixed>>> Groups (only those with 2+ members).
+	 * @return array<int, array<int, array<string, mixed>>> Groups (only those with 2+ members).
 	 */
 	private function group_by_hash( array $rows ): array {
 		$groups = array();

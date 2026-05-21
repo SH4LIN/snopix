@@ -8,7 +8,7 @@
 namespace PixelScout\Search;
 
 use PixelScout\Repository\Index_Repository;
-use PixelScout\Imaging\Similarity;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -28,13 +28,11 @@ class Search_Pipeline {
 	 * @param Index_Repository    $repository Index data access.
 	 * @param Fingerprint_Factory $factory  Fingerprint generator.
 	 * @param Score_Calculator    $calculator Composite score calculator.
-	 * @param Similarity          $similarity Similarity metrics for pre-filtering.
 	 */
 	public function __construct(
 		private Index_Repository $repository,
 		private Fingerprint_Factory $factory,
-		private Score_Calculator $calculator,
-		private Similarity $similarity
+		private Score_Calculator $calculator
 	) {}
 
 	/**

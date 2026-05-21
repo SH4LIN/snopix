@@ -116,7 +116,7 @@ class Plugin {
 			new Edge_Processor()
 		);
 		$calculator   = new Score_Calculator( $similarity );
-		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator, $similarity );
+		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator );
 		$validator    = new Mime_Validator();
 		$indexer      = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
