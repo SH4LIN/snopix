@@ -126,3 +126,95 @@ export function useOrphanCount() {
 		refetchInterval: 30_000,
 	});
 }
+
+export interface SubsizeDiff {
+	new: string[];
+	removed: string[];
+	changed: Array<{
+		name: string;
+		old: { w: number; h: number; crop: boolean };
+		new: { w: number; h: number; crop: boolean };
+	}>;
+	has_changes: boolean;
+}
+
+export interface SubsizeProgress {
+	done: number;
+	total: number;
+	status: 'idle' | 'running' | 'done' | 'stalled';
+}
+
+/**
+ * Poll registered-subsize diff every 30s — but only while `has_changes` is
+ * still false. Once changes are detected, polling stops because the diff
+ * cannot grow more "true" without a user action.
+ */
+export function useSubsizeDiff() {
+	return useQuery<SubsizeDiff>({
+		queryKey: ['subsize-diff'],
+		queryFn: () => get<SubsizeDiff>('tools/subsizes/diff'),
+		refetchInterval: (query) =>
+			query.state.data?.has_changes === false ? 30_000 : false,
+	});
+}
+
+/**
+ * Backfill only missing subsizes. Does NOT update the snapshot.
+ */
+export function useRegenMissing() {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: () =>
+			post<{ scheduled: boolean; count: number }>(
+				'tools/subsizes/regen-missing'
+			),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['subsize-progress'] });
+			qc.invalidateQueries({ queryKey: ['status'] });
+		},
+	});
+}
+
+/**
+ * Full rebuild + snapshot acknowledgement.
+ */
+export function useRegenAll() {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: () =>
+			post<{ scheduled: boolean; count: number }>(
+				'tools/subsizes/regen-all'
+			),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['subsize-diff'] });
+			qc.invalidateQueries({ queryKey: ['subsize-progress'] });
+			qc.invalidateQueries({ queryKey: ['status'] });
+		},
+	});
+}
+
+/**
+ * Dismiss `has_changes` without rebuilding (escape hatch for removed-only diffs).
+ */
+export function useAcknowledgeSubsizeDiff() {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: () =>
+			post<{ acknowledged: boolean }>('tools/subsizes/acknowledge'),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['subsize-diff'] });
+		},
+	});
+}
+
+/**
+ * Poll regen progress every 5s while running so the card can render a bar.
+ */
+export function useSubsizeProgress() {
+	return useQuery<SubsizeProgress>({
+		queryKey: ['subsize-progress'],
+		queryFn: () => get<SubsizeProgress>('tools/subsizes/progress'),
+		refetchInterval: (query) =>
+			query.state.data?.status === 'running' ? 5_000 : false,
+	});
+}

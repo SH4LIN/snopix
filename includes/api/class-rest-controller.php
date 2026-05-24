@@ -10,6 +10,8 @@ namespace PixelScout\Api;
 use PixelScout\Search\{Search_Pipeline, Query_Image};
 use PixelScout\Repository\Index_Repository;
 use PixelScout\Indexing\{Bulk_Indexer, Index_Progress};
+use PixelScout\Imaging\Subsize_Watcher;
+use PixelScout\Imaging\Subsize_Regenerator;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -40,7 +42,9 @@ class REST_Controller {
 		private Index_Repository $repository,
 		private Bulk_Indexer $bulk_indexer,
 		private Index_Progress $progress,
-		private Rate_Limiter $rate_limiter
+		private Rate_Limiter $rate_limiter,
+		private Subsize_Watcher $subsize_watcher,
+		private Subsize_Regenerator $subsize_regenerator
 	) {}
 
 	/**
@@ -211,6 +215,56 @@ class REST_Controller {
 						),
 					),
 				),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/subsizes/diff',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_subsize_diff' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/subsizes/regen-missing',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_regen_missing' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/subsizes/regen-all',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_regen_all' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/subsizes/acknowledge',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_subsize_acknowledge' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tools/subsizes/progress',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_subsize_progress' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 			)
 		);
 	}
@@ -473,6 +527,71 @@ class REST_Controller {
 			array(
 				'search_visibility' => $current['search_visibility'] ?? 'anyone',
 			),
+			200
+		);
+	}
+
+	/**
+	 * GET /tools/subsizes/diff — registered-size diff vs snapshot.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_subsize_diff(): \WP_REST_Response {
+		return new \WP_REST_Response( $this->subsize_watcher->diff(), 200 );
+	}
+
+	/**
+	 * POST /tools/subsizes/regen-missing — backfill missing subsizes
+	 * (does NOT update the snapshot).
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_regen_missing(): \WP_REST_Response {
+		$count = $this->subsize_regenerator->schedule_missing();
+		return new \WP_REST_Response(
+			array(
+				'scheduled' => $count > 0,
+				'count'     => $count,
+			),
+			200
+		);
+	}
+
+	/**
+	 * POST /tools/subsizes/regen-all — full rebuild + snapshot ack.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_regen_all(): \WP_REST_Response {
+		$count = $this->subsize_regenerator->schedule_all();
+		return new \WP_REST_Response(
+			array(
+				'scheduled' => $count > 0,
+				'count'     => $count,
+			),
+			200
+		);
+	}
+
+	/**
+	 * POST /tools/subsizes/acknowledge — dismiss `has_changes` without
+	 * triggering regen (escape hatch for removed-only diffs).
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_subsize_acknowledge(): \WP_REST_Response {
+		$ok = $this->subsize_watcher->acknowledge();
+		return new \WP_REST_Response( array( 'acknowledged' => $ok ), $ok ? 200 : 500 );
+	}
+
+	/**
+	 * GET /tools/subsizes/progress — regen progress envelope.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_subsize_progress(): \WP_REST_Response {
+		return new \WP_REST_Response(
+			( new Index_Progress( 'ps_regen_progress_state' ) )->get(),
 			200
 		);
 	}

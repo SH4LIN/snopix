@@ -146,4 +146,43 @@ class Pixel_Scout_Index_Progress_Test extends Pixel_Scout_TestCase {
 		$this->progress->increment();
 		$this->assertNotSame( 'done', $this->progress->get()['status'] );
 	}
+
+	/**
+	 * Two Index_Progress instances with different keys must keep isolated state
+	 * so a regen run cannot clobber a bulk-index run mid-flight.
+	 *
+	 * @return void
+	 */
+	public function test_isolated_state_per_transient_key(): void {
+		$a = new \PixelScout\Indexing\Index_Progress( 'ps_test_progress_a' );
+		$b = new \PixelScout\Indexing\Index_Progress( 'ps_test_progress_b' );
+
+		$a->set( 0, 10 );
+		$b->set( 0, 100 );
+		$a->increment_by( 5 );
+
+		$this->assertSame( 5, $a->get()['done'] );
+		$this->assertSame( 10, $a->get()['total'] );
+		$this->assertSame( 0, $b->get()['done'] );
+		$this->assertSame( 100, $b->get()['total'] );
+
+		$a->reset();
+		$b->reset();
+	}
+
+	/**
+	 * Calling the constructor with no argument must preserve the legacy key
+	 * so existing Bulk_Indexer behavior is unchanged.
+	 *
+	 * @return void
+	 */
+	public function test_default_key_is_backwards_compatible(): void {
+		( new \PixelScout\Indexing\Index_Progress() )->set( 7, 14 );
+
+		$state = get_transient( 'ps_bulk_progress_state' );
+		$this->assertIsArray( $state );
+		$this->assertSame( 7, $state['done'] );
+
+		( new \PixelScout\Indexing\Index_Progress() )->reset();
+	}
 }

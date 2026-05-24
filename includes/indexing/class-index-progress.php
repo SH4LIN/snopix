@@ -27,9 +27,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Index_Progress {
 
 	/**
-	 * Transient that stores the full progress envelope.
+	 * Default transient key — preserved for back-compat so Bulk_Indexer
+	 * keeps writing to the same envelope it always has.
 	 */
-	private const KEY = 'ps_bulk_progress_state';
+	public const DEFAULT_KEY = 'ps_bulk_progress_state';
+
+	/**
+	 * Transient key for this progress envelope.
+	 *
+	 * @var string
+	 */
+	private string $key;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param string $transient_key Per-caller transient key. Defaults to
+	 *                              `ps_bulk_progress_state` for callers that
+	 *                              were written against the v1 signature.
+	 */
+	public function __construct( string $transient_key = self::DEFAULT_KEY ) {
+		$this->key = $transient_key;
+	}
 
 	/**
 	 * Get current progress state. A missing transient returns the `idle`
@@ -38,7 +57,7 @@ class Index_Progress {
 	 * @return array{done: int, total: int, status: string}
 	 */
 	public function get(): array {
-		$state = get_transient( self::KEY );
+		$state = get_transient( $this->key );
 		if ( ! is_array( $state ) ) {
 			return array(
 				'done'   => 0,
@@ -106,7 +125,7 @@ class Index_Progress {
 	 * @return void
 	 */
 	public function reset(): void {
-		delete_transient( self::KEY );
+		delete_transient( $this->key );
 	}
 
 	/**
@@ -129,6 +148,6 @@ class Index_Progress {
 	 * @return void
 	 */
 	private function write( array $state ): void {
-		set_transient( self::KEY, $state, DAY_IN_SECONDS );
+		set_transient( $this->key, $state, DAY_IN_SECONDS );
 	}
 }

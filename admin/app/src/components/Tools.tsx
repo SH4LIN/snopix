@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import ConfirmModal from './ConfirmModal';
+import SubsizeRegenCard from './SubsizeRegenCard';
 import {
 	useReindexAll,
 	useClearIndex,
@@ -215,7 +216,7 @@ export default function Tools() {
 								</div>
 								<div className="mt-auto">
 									<button
-										className={`ps-btn ${card.danger ? 'bg-ps-danger border-ps-danger' : ''}`}
+										className={`ps-btn ${card.danger ? 'ps-btn--danger' : ''}`}
 										onClick={() => setActive(key)}
 										disabled={loading}
 									>
@@ -227,6 +228,8 @@ export default function Tools() {
 					}
 				)}
 			</div>
+
+			<SubsizeRegenCard />
 
 			{active && (
 				<ConfirmModal

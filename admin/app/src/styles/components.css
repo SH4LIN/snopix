@@ -60,6 +60,32 @@
 		@apply bg-ps-border shadow-none;
 	}
 
+	.ps-btn--danger {
+		@apply bg-ps-danger border-ps-danger;
+	}
+	.ps-btn--danger:hover {
+		@apply bg-[#c8200a] shadow-[0_2px_8px_rgba(255,59,48,0.35)];
+	}
+	.ps-btn--danger:active {
+		@apply bg-[#a81c08] scale-[0.98] shadow-none;
+	}
+	.ps-btn--danger:disabled {
+		@apply bg-[#f5a89f] cursor-not-allowed shadow-none scale-100;
+	}
+
+	.ps-btn--secondary {
+		@apply bg-ps-surface text-ps-text border border-ps-border;
+	}
+	.ps-btn--secondary:hover {
+		@apply bg-ps-border text-ps-text shadow-none;
+	}
+	.ps-btn--secondary:active {
+		@apply bg-[color:var(--ps-border)] scale-[0.98] shadow-none;
+	}
+	.ps-btn--secondary:disabled {
+		@apply bg-ps-surface text-ps-muted cursor-not-allowed shadow-none scale-100;
+	}
+
 	.ps-progress {
 		@apply w-full h-1 bg-ps-border rounded-sm overflow-hidden;
 	}

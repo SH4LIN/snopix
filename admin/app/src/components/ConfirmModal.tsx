@@ -84,7 +84,7 @@ export default function ConfirmModal({
 				</p>
 				<div className="flex justify-end gap-2">
 					<button
-						className="ps-btn bg-ps-surface text-ps-text border border-ps-border"
+						className="ps-btn ps-btn--secondary"
 						onClick={onCancel}
 						disabled={loading}
 					>

@@ -8,7 +8,7 @@
 namespace PixelScout\Infrastructure;
 
 use PixelScout\Repository\{Index_Repository, Schema};
-use PixelScout\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor, Similarity};
+use PixelScout\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor, Similarity, Subsize_Watcher, Image_Subsize_Service, Subsize_Regenerator};
 use PixelScout\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
 use PixelScout\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
 use PixelScout\Hooks\{Media_Hooks, Cron_Handler, Settings};
@@ -120,13 +120,16 @@ class Plugin {
 		$validator    = new Mime_Validator();
 		$indexer      = new Image_Indexer( $validator, $factory, $repository );
 		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
+		[ $subsize_watcher, $subsize_regenerator ] = $this->build_subsize_pipeline();
 		$controller   = new REST_Controller(
 			$pipeline,
 			new Query_Image(),
 			$repository,
 			$bulk_indexer,
 			new Index_Progress(),
-			new Rate_Limiter()
+			new Rate_Limiter(),
+			$subsize_watcher,
+			$subsize_regenerator
 		);
 		$controller->register_routes();
 
@@ -159,6 +162,13 @@ class Plugin {
 
 		( new Media_Hooks( $indexer ) )->register();
 		( new Cron_Handler( $bulk_indexer ) )->register();
+		[ , $subsize_regenerator_cron ] = $this->build_subsize_pipeline();
+		add_action(
+			Subsize_Regenerator::CRON_HOOK,
+			static function () use ( $subsize_regenerator_cron ): void {
+				$subsize_regenerator_cron->process_batch();
+			}
+		);
 
 		$dup_progress = new Duplicate_Progress();
 		$dup_finder   = new Duplicate_Finder( $similarity );
@@ -195,6 +205,54 @@ class Plugin {
 	}
 
 	/**
+	 * Construct the subsize regenerator and its collaborators once so REST
+	 * and cron contexts share the same wiring shape (council Architect #4).
+	 * Returns the regenerator and the watcher (the watcher is needed by both
+	 * REST handlers and the regenerator's acknowledge path).
+	 *
+	 * @return array{0: Subsize_Watcher, 1: Subsize_Regenerator}
+	 */
+	private function build_subsize_pipeline(): array {
+		$watcher = new Subsize_Watcher();
+		$service = new Image_Subsize_Service();
+
+		$count_provider = static function (): int {
+			global $wpdb;
+			return (int) $wpdb->get_var(
+				"SELECT COUNT(ID) FROM {$wpdb->posts}
+				 WHERE post_type = 'attachment'
+				   AND post_status = 'inherit'
+				   AND post_mime_type LIKE 'image/%'"
+			);
+		};
+		$slice_provider = static function ( int $offset, int $size ): array {
+			return get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_mime_type' => 'image',
+					'post_status'    => 'inherit',
+					'fields'         => 'ids',
+					'numberposts'    => $size,
+					'offset'         => $offset,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				)
+			);
+		};
+
+		$regenerator = new Subsize_Regenerator(
+			$service,
+			$watcher,
+			new \PixelScout\Indexing\Index_Progress( 'ps_regen_progress_state' ),
+			new Action_Scheduler(),
+			$count_provider,
+			$slice_provider
+		);
+
+		return array( $watcher, $regenerator );
+	}
+
+	/**
 	 * Handle plugin activation.
 	 *
 	 * @return void
@@ -219,6 +277,7 @@ class Plugin {
 		wp_clear_scheduled_hook( 'ps_bulk_index_batch' );
 		wp_clear_scheduled_hook( Duplicate_Scanner::CRON_HOOK );
 		wp_clear_scheduled_hook( Duplicate_Scanner::DAILY_HOOK );
+		wp_clear_scheduled_hook( Subsize_Regenerator::CRON_HOOK );
 	}
 
 	/**
@@ -241,5 +300,8 @@ class Plugin {
 		delete_transient( 'ps_dup_total' );
 		delete_transient( 'ps_dup_status' );
 		delete_transient( 'ps_bulk_pending' );
+		delete_option( Subsize_Watcher::OPTION_KEY );
+		delete_transient( Subsize_Regenerator::PENDING_KEY );
+		delete_transient( 'ps_regen_progress_state' );
 	}
 }
