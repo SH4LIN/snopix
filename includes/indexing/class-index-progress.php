@@ -7,6 +7,8 @@
 
 namespace PixelScout\Indexing;
 
+use PixelScout\Infrastructure\Job_Status;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -43,13 +45,13 @@ class Index_Progress {
 			return array(
 				'done'   => 0,
 				'total'  => 0,
-				'status' => 'idle',
+				'status' => Job_Status::IDLE,
 			);
 		}
 		return array(
 			'done'   => isset( $state['done'] ) ? (int) $state['done'] : 0,
 			'total'  => isset( $state['total'] ) ? (int) $state['total'] : 0,
-			'status' => isset( $state['status'] ) ? (string) $state['status'] : 'idle',
+			'status' => isset( $state['status'] ) ? (string) $state['status'] : Job_Status::IDLE,
 		);
 	}
 
@@ -66,7 +68,7 @@ class Index_Progress {
 			array(
 				'done'   => $done,
 				'total'  => $total,
-				'status' => 'running',
+				'status' => Job_Status::RUNNING,
 			)
 		);
 	}
@@ -95,7 +97,7 @@ class Index_Progress {
 		$state         = $this->get();
 		$state['done'] = $state['done'] + $count;
 		if ( $state['total'] > 0 && $state['done'] >= $state['total'] ) {
-			$state['status'] = 'done';
+			$state['status'] = Job_Status::DONE;
 		}
 		$this->write( $state );
 	}
@@ -117,7 +119,7 @@ class Index_Progress {
 	 */
 	public function mark_stalled(): void {
 		$state           = $this->get();
-		$state['status'] = 'stalled';
+		$state['status'] = Job_Status::STALLED;
 		$this->write( $state );
 	}
 

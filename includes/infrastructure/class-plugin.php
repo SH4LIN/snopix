@@ -182,19 +182,6 @@ class Plugin {
 	}
 
 	/**
-	 * Log a message when WP_DEBUG is enabled.
-	 *
-	 * @param string $message Message to log.
-	 *
-	 * @return void
-	 */
-	private static function debug_log( string $message ): void {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( '[Pixel Scout] ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		}
-	}
-
-	/**
 	 * Handle plugin activation.
 	 *
 	 * @return void
@@ -207,7 +194,7 @@ class Plugin {
 			wp_schedule_event( time(), 'daily', Duplicate_Scanner::DAILY_HOOK );
 		}
 
-		self::debug_log( 'Plugin activation complete.' );
+		Logger::debug( 'Plugin activation complete.' );
 	}
 
 	/**

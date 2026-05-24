@@ -132,10 +132,15 @@ export default function Duplicates() {
 	async function handleBulkDelete() {
 		const idsToDelete: number[] = [];
 		for (const group of groups) {
-			if (!selectedGroups.has(groupKey(group))) continue;
+			if (!selectedGroups.has(groupKey(group))) {
+				continue;
+			}
+
 			const keep = getKeepId(group);
 			for (const img of group.images) {
-				if (img.id !== keep) idsToDelete.push(img.id);
+				if (img.id !== keep) {
+					idsToDelete.push(img.id);
+				}
 			}
 		}
 

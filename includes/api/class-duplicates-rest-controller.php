@@ -9,6 +9,7 @@ namespace PixelScout\Api;
 
 use PixelScout\Duplicates\{Duplicate_Scanner, Duplicate_Progress};
 use PixelScout\Repository\Index_Repository;
+use PixelScout\Infrastructure\Job_Status;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -129,7 +130,7 @@ class Duplicates_REST_Controller {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function handle_start_scan(): \WP_REST_Response|\WP_Error {
-		if ( 'running' === $this->progress->get()['status'] ) {
+		if ( Job_Status::RUNNING === $this->progress->get()['status'] ) {
 			return new \WP_Error(
 				'scan_running',
 				__( 'A duplicate scan is already in progress.', 'pixel-scout' ),

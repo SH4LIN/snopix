@@ -9,6 +9,8 @@ namespace PixelScout\Indexing;
 
 use PixelScout\Repository\Index_Repository;
 use PixelScout\Infrastructure\Action_Scheduler;
+use PixelScout\Infrastructure\Job_Status;
+use PixelScout\Infrastructure\Logger;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -98,8 +100,7 @@ class Bulk_Indexer {
 	 * @return bool
 	 */
 	private function reserve_running_slot(): bool {
-		$state = $this->progress->get();
-		if ( 'running' === $state['status'] || 'stalled' === $state['status'] ) {
+		if ( Job_Status::is_active( $this->progress->get()['status'] ) ) {
 			return false;
 		}
 		$this->progress->set( 0, 0 );
@@ -124,7 +125,7 @@ class Bulk_Indexer {
 	 * @return bool
 	 */
 	public function is_running(): bool {
-		return 'running' === $this->progress->get()['status'];
+		return Job_Status::RUNNING === $this->progress->get()['status'];
 	}
 
 	/**
@@ -190,10 +191,7 @@ class Bulk_Indexer {
 					}
 				} catch ( \Throwable $e ) {
 					// One bad attachment must not poison the whole batch — log and continue.
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-						error_log( sprintf( '[Pixel Scout] index_single threw for attachment %d: %s', $id, $e->getMessage() ) );
-					}
+					Logger::exception( $e, sprintf( 'index_single threw for attachment %d', $id ) );
 				}
 			}
 
@@ -202,10 +200,7 @@ class Bulk_Indexer {
 			// Unexpected — counter not advanced; abort the chain so progress doesn't stick on running.
 			delete_transient( self::PENDING_KEY );
 			$this->progress->mark_stalled();
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( '[Pixel Scout] process_batch aborted: ' . $e->getMessage() );
-			}
+			Logger::exception( $e, 'process_batch aborted' );
 			return;
 		}
 
