@@ -10,6 +10,8 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Reverse image search and duplicate detection for the WordPress media library, powered by perceptual hashing.
 
+Source code and issue tracker: https://github.com/SH4LIN/pixel-scout
+
 == Early-stage software notice ==
 
 Pixel Scout is in **early development**. The plugin is functional but not yet
