@@ -44,9 +44,10 @@ export default function SearchPreview() {
 		fd.append('file', file);
 		try {
 			setResults(
-				await apiFetch<SearchResultItem[]>('search', {
+				await apiFetch<SearchResultItem[]>({
+					path: 'ps/v1/search',
 					method: 'POST',
-					rawBody: fd,
+					formData: fd,
 				})
 			);
 		} catch {

@@ -45,7 +45,7 @@ const DONE_RESET_MS = 3_000;
 export function useDuplicates() {
 	return useQuery<DuplicatesData>({
 		queryKey: ['duplicates'],
-		queryFn: () => apiFetch<DuplicatesData>('duplicates'),
+		queryFn: () => apiFetch<DuplicatesData>('ps/v1/duplicates'),
 		staleTime: 60_000,
 	});
 }
@@ -64,7 +64,8 @@ export function useStartDuplicateScan() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => apiFetch('duplicates/scan', { method: 'POST' }),
+		mutationFn: () =>
+			apiFetch({ path: 'ps/v1/duplicates/scan', method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('running');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -83,7 +84,8 @@ export function useResetDuplicateScan() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => apiFetch('duplicates/reset', { method: 'POST' }),
+		mutationFn: () =>
+			apiFetch({ path: 'ps/v1/duplicates/reset', method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('idle');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -124,7 +126,7 @@ export function useDuplicateScanProgress() {
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {
 			const body = await apiFetch<DuplicateScanProgress>(
-				'duplicates/progress'
+				'ps/v1/duplicates/progress'
 			);
 			if (
 				body.status === 'running' &&
@@ -139,7 +141,8 @@ export function useDuplicateScanProgress() {
 
 	const { data: progress } = useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress'],
-		queryFn: () => apiFetch<DuplicateScanProgress>('duplicates/progress'),
+		queryFn: () =>
+			apiFetch<DuplicateScanProgress>('ps/v1/duplicates/progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});
@@ -166,9 +169,13 @@ export function useDuplicateScanProgress() {
 }
 
 /**
- * Mutation that deletes a single attachment via
- * `DELETE /wp-json/ps/v1/duplicates/attachment/{id}`. Used by both the
- * per-group delete button and the bulk-delete pass.
+ * Mutation that deletes a single attachment via core's
+ * `DELETE /wp-json/wp/v2/media/{id}?force=true`. Used by both the per-group
+ * delete button and the bulk-delete pass.
+ *
+ * The plugin's `delete_attachment` action listener (Media_Hooks::on_delete)
+ * fires automatically when core finishes deletion, so the matching index
+ * row is removed without an extra REST call.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, number>}
  */
@@ -177,7 +184,10 @@ export function useDeleteAttachment() {
 
 	return useMutation({
 		mutationFn: (id: number) =>
-			apiFetch(`duplicates/attachment/${id}`, { method: 'DELETE' }),
+			apiFetch({
+				path: `wp/v2/media/${id}?force=true`,
+				method: 'DELETE',
+			}),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ['duplicates'] });
 		},

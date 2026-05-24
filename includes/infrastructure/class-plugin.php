@@ -133,7 +133,7 @@ class Plugin {
 		$dup_progress   = new Duplicate_Progress();
 		$dup_finder     = new Duplicate_Finder( $similarity );
 		$dup_scanner    = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
-		$dup_controller = new Duplicates_REST_Controller( $dup_scanner, $dup_progress, $repository );
+		$dup_controller = new Duplicates_REST_Controller( $dup_scanner, $dup_progress );
 		$dup_controller->register_routes();
 	}
 

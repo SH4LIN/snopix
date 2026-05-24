@@ -38,7 +38,7 @@ export function useImages({ afterId, search }: UseImagesParams) {
 				per_page: '25',
 				search,
 			});
-			return apiFetch<ImageRow[]>(`images?${params}`);
+			return apiFetch<ImageRow[]>(`ps/v1/images?${params}`);
 		},
 		staleTime: 30_000,
 	});

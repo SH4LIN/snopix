@@ -54,7 +54,11 @@ class Admin_Page {
 		wp_enqueue_script(
 			'ps-admin',
 			PIXEL_SCOUT_PLUGIN_URL . 'admin/app/dist/ps-admin.js',
-			array(),
+			// wp-api-fetch is core's REST helper; declaring it here guarantees
+			// the `wp.apiFetch` global is loaded before our bundle boots so the
+			// shared `@wordpress/api-fetch` import resolves to the same
+			// already-initialised instance instead of a duplicate.
+			array( 'wp-api-fetch' ),
 			PIXEL_SCOUT_VERSION,
 			true
 		);

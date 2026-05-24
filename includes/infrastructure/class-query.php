@@ -540,6 +540,19 @@ class Query {
 	}
 
 	/**
+	 * Delete every row in the table. Separate method from {@see delete()} so
+	 * the empty-WHERE guard there stays intact — accidental unbounded
+	 * deletes via a missing where() call should still fail loudly.
+	 *
+	 * @return int|false Affected row count, or false on DB error.
+	 */
+	public function truncate() {
+		$sql    = 'DELETE FROM ' . $this->table;
+		$result = $this->wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		return false === $result ? false : (int) $result;
+	}
+
+	/**
 	 * Insert or update on duplicate key.
 	 *
 	 * @param array<string, mixed> $insert_data Insert payload.

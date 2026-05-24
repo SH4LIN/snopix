@@ -42,7 +42,7 @@ export function useIndexStatus() {
 
 	const query = useQuery<IndexStatus>({
 		queryKey: ['status'],
-		queryFn: () => apiFetch<IndexStatus>('status'),
+		queryFn: () => apiFetch<IndexStatus>('ps/v1/status'),
 		refetchInterval,
 	});
 

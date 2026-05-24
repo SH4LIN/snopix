@@ -50,7 +50,7 @@ export function useIndexingProgress() {
 
 	const { data: progress } = useQuery<Progress>({
 		queryKey: ['progress'],
-		queryFn: () => apiFetch<Progress>('progress'),
+		queryFn: () => apiFetch<Progress>('ps/v1/progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});
@@ -106,7 +106,7 @@ export function useReindex() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => apiFetch('reindex', { method: 'POST' }),
+		mutationFn: () => apiFetch({ path: 'ps/v1/reindex', method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('running');
 			qc.invalidateQueries({ queryKey: ['status'] });
@@ -126,7 +126,8 @@ export function useResetProgress() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => apiFetch('reset-progress', { method: 'POST' }),
+		mutationFn: () =>
+			apiFetch({ path: 'ps/v1/reset-progress', method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('idle');
 			qc.invalidateQueries({ queryKey: ['status'] });

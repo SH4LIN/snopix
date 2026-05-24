@@ -306,12 +306,10 @@ class Index_Repository implements Index_Repository_Interface {
 	 * @return int Rows deleted.
 	 */
 	public function clear_all(): int {
-		$table = $this->wpdb->prefix . self::TABLE;
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $this->wpdb->query( "DELETE FROM $table" );
+		$result = Query::create()->from( self::TABLE )->truncate();
 
 		$this->flush_cache();
-		return false === $result ? 0 : (int) $result;
+		return false === $result ? 0 : $result;
 	}
 
 	/**

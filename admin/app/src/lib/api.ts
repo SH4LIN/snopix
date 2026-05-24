@@ -1,22 +1,40 @@
 /**
  * Shared REST client for the Pixel Scout admin app.
  *
- * Every hook and component talking to `/wp-json/ps/v1/*` should route through
- * {@link apiFetch} instead of calling `fetch` directly. Centralising the call
- * gives one place to:
- *   - prepend `ps_data.rest_url`
- *   - attach the `X-WP-Nonce` header
- *   - serialise / set `Content-Type` for JSON bodies
- *   - turn 409 responses into a {@link ConflictError} so callers can surface
- *     the server-supplied "already running" message
- *   - throw a typed `ApiError` for any other non-2xx status
+ * Wraps `@wordpress/api-fetch` so the entire app talks to WordPress through
+ * the canonical core helper:
+ *   - `nonce` middleware (auto-attaches X-WP-Nonce + refreshes after writes)
+ *   - `rootURLMiddleware` (resolves `/ps/v1/foo` against the live REST root)
+ *   - 401 / 403 handling integrated with core's user-switch behaviour
  *
- * The function deliberately returns the parsed JSON body as `T`. Callers that
- * want the raw `Response` should drop down to `fetch` themselves — that hatch
- * has not been needed yet.
+ * The wrapper layers Pixel-Scout-specific behaviour on top:
+ *   - turn 409 responses into a typed {@link ConflictError} so the UI can
+ *     surface the server-supplied "already running" copy
+ *   - wrap every other non-2xx as a typed {@link ApiError} with the HTTP
+ *     status preserved
+ *   - first-call middleware registration (root URL + nonce) so importers
+ *     don't need to remember to call `apiFetch.use(...)` themselves
  */
 
+import wpApiFetch from '@wordpress/api-fetch';
+
 declare const ps_data: { rest_url: string; nonce: string };
+
+let middlewareRegistered = false;
+
+function ensureMiddleware(): void {
+	if (middlewareRegistered) {
+		return;
+	}
+	middlewareRegistered = true;
+
+	// ps_data.rest_url ends with `ps/v1/` — strip back to the site REST root
+	// so callers can pass either bare `ps/v1/foo` or core paths like
+	// `/wp/v2/media/123`.
+	const restRoot = ps_data.rest_url.replace(/ps\/v1\/?$/, '');
+	wpApiFetch.use(wpApiFetch.createRootURLMiddleware(restRoot));
+	wpApiFetch.use(wpApiFetch.createNonceMiddleware(ps_data.nonce));
+}
 
 /**
  * Thrown when the server rejects a state-changing request because a
@@ -48,27 +66,43 @@ export class ApiError extends Error {
 	}
 }
 
-interface ApiFetchInit extends Omit<RequestInit, 'body'> {
+interface ApiFetchInit {
 	/**
-	 * Request body. When set, the value is JSON-encoded and a
-	 * `Content-Type: application/json` header is added automatically. Pass a
-	 * `FormData`/`Blob`/string yourself via `rawBody` if you need to bypass
-	 * JSON encoding (e.g. file uploads).
+	 * REST path. Plugin paths can be passed as `ps/v1/foo` or `/ps/v1/foo`;
+	 * core paths as `/wp/v2/...`. The `@wordpress/api-fetch` root middleware
+	 * resolves either form against the live REST URL.
 	 */
-	json?: unknown;
+	path: string;
+
+	/**
+	 * HTTP method. Defaults to GET.
+	 */
+	method?: string;
+
+	/**
+	 * Body that will be JSON-encoded before being sent. Sets
+	 * `Content-Type: application/json` automatically. Mutually exclusive with
+	 * `formData` and `headers['Content-Type']` overrides.
+	 */
+	data?: unknown;
 
 	/**
 	 * Escape hatch for non-JSON bodies (file uploads, FormData, etc.).
-	 * Mutually exclusive with `json`.
+	 * Mutually exclusive with `data`.
 	 */
-	rawBody?: BodyInit | null;
+	formData?: FormData;
+
+	/**
+	 * Extra headers merged on top of the api-fetch defaults.
+	 */
+	headers?: Record<string, string>;
 }
 
 /**
- * Authenticated REST call against the Pixel Scout namespace.
+ * Authenticated REST call backed by `@wordpress/api-fetch`.
  *
- * @param {string}       path REST sub-path appended to `ps_data.rest_url` (no leading slash).
- * @param {ApiFetchInit} init Optional method/headers/body overrides.
+ * @param {string|ApiFetchInit} pathOrOpts Either a REST path (defaults to GET)
+ *                                         or a full options object.
  *
  * @return {Promise<T>} Parsed JSON body of the response.
  *
@@ -76,48 +110,44 @@ interface ApiFetchInit extends Omit<RequestInit, 'body'> {
  * @throws {ApiError}      When the response status is any other non-2xx.
  */
 export async function apiFetch<T = unknown>(
-	path: string,
-	init: ApiFetchInit = {}
+	pathOrOpts: string | ApiFetchInit
 ): Promise<T> {
-	const headers: Record<string, string> = {
-		'X-WP-Nonce': ps_data.nonce,
-		...((init.headers as Record<string, string>) ?? {}),
+	ensureMiddleware();
+
+	const opts: ApiFetchInit =
+		typeof pathOrOpts === 'string' ? { path: pathOrOpts } : pathOrOpts;
+
+	const init: Record<string, unknown> = {
+		path: opts.path,
+		method: opts.method ?? 'GET',
+		headers: opts.headers,
 	};
 
-	let body: BodyInit | null | undefined = init.rawBody;
-	if (init.json !== undefined) {
-		body = JSON.stringify(init.json);
-		headers['Content-Type'] = headers['Content-Type'] ?? 'application/json';
+	if (opts.formData !== undefined) {
+		init.body = opts.formData;
+	} else if (opts.data !== undefined) {
+		init.data = opts.data;
 	}
 
-	const res = await fetch(`${ps_data.rest_url}${path}`, {
-		...init,
-		headers,
-		body,
-	});
+	try {
+		return (await wpApiFetch<T>(init)) as T;
+	} catch (err) {
+		// `@wordpress/api-fetch` rejects with the parsed JSON body from the
+		// server (e.g. `{ code, message, data: { status } }`) rather than a
+		// Response object. Translate that shape into our typed errors.
+		const body = (err as { code?: string; message?: string; data?: { status?: number } }) ?? {};
+		const status = body?.data?.status ?? 0;
 
-	if (res.status === 409) {
-		const payload = await res.json().catch(() => ({}));
-		throw new ConflictError(
-			(payload as { message?: string })?.message ??
-				`${path} conflicted with an in-flight job.`,
-			(payload as { code?: string })?.code ?? 'conflict'
-		);
-	}
+		if (status === 409) {
+			throw new ConflictError(
+				body.message ?? `${opts.path} conflicted with an in-flight job.`,
+				body.code ?? 'conflict'
+			);
+		}
 
-	if (!res.ok) {
-		const payload = await res.json().catch(() => ({}));
 		throw new ApiError(
-			(payload as { message?: string })?.message ?? `${path} failed`,
-			res.status
+			body.message ?? `${opts.path} failed`,
+			status || 500
 		);
 	}
-
-	// 204 No Content is rare for Pixel Scout but worth handling — return an
-	// empty object cast to T so callers don't need to special-case it.
-	if (res.status === 204) {
-		return {} as T;
-	}
-
-	return (await res.json()) as T;
 }

@@ -8,7 +8,6 @@
 namespace PixelScout\Api;
 
 use PixelScout\Duplicates\{Duplicate_Scanner, Duplicate_Progress};
-use PixelScout\Repository\Index_Repository;
 use PixelScout\Infrastructure\Job_Status;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,14 +26,12 @@ class Duplicates_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @param Duplicate_Scanner  $scanner    Duplicate scanner.
-	 * @param Duplicate_Progress $progress   Progress tracker.
-	 * @param Index_Repository   $repository Index repository.
+	 * @param Duplicate_Scanner  $scanner  Duplicate scanner.
+	 * @param Duplicate_Progress $progress Progress tracker.
 	 */
 	public function __construct(
 		private Duplicate_Scanner $scanner,
-		private Duplicate_Progress $progress,
-		private Index_Repository $repository
+		private Duplicate_Progress $progress
 	) {}
 
 	/**
@@ -80,22 +77,6 @@ class Duplicates_REST_Controller {
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'handle_reset' ),
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-			)
-		);
-
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/duplicates/attachment/(?P<id>\d+)',
-			array(
-				'methods'             => \WP_REST_Server::DELETABLE,
-				'callback'            => array( $this, 'handle_delete_attachment' ),
-				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
-				'args'                => array(
-					'id' => array(
-						'validate_callback' => 'rest_is_integer',
-						'sanitize_callback' => 'absint',
-					),
-				),
 			)
 		);
 	}
@@ -160,40 +141,6 @@ class Duplicates_REST_Controller {
 	public function handle_reset(): \WP_REST_Response {
 		$this->scanner->abort();
 		return new \WP_REST_Response( array( 'reset' => true ), 200 );
-	}
-
-	/**
-	 * Handle DELETE /duplicates/attachment/{id} — permanently delete a media attachment.
-	 *
-	 * @param \WP_REST_Request $request REST request.
-	 *
-	 * @return \WP_REST_Response|\WP_Error
-	 */
-	public function handle_delete_attachment( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-		$id   = absint( $request->get_param( 'id' ) );
-		$post = get_post( $id );
-
-		if ( ! $post || 'attachment' !== $post->post_type ) {
-			return new \WP_Error(
-				'not_found',
-				__( 'Attachment not found.', 'pixel-scout' ),
-				array( 'status' => 404 )
-			);
-		}
-
-		$result = wp_delete_attachment( $id, true );
-
-		if ( false === $result || is_wp_error( $result ) ) {
-			return new \WP_Error(
-				'delete_failed',
-				__( 'Could not delete attachment.', 'pixel-scout' ),
-				array( 'status' => 500 )
-			);
-		}
-
-		$this->repository->delete( $id );
-
-		return new \WP_REST_Response( array( 'deleted' => true ), 200 );
 	}
 
 	/**

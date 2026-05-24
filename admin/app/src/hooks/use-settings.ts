@@ -16,7 +16,7 @@ export interface PSSettings {
 export function useSettings() {
 	return useQuery<PSSettings>({
 		queryKey: ['settings'],
-		queryFn: () => apiFetch<PSSettings>('settings'),
+		queryFn: () => apiFetch<PSSettings>('ps/v1/settings'),
 		staleTime: 30_000,
 	});
 }
@@ -33,7 +33,11 @@ export function useUpdateSettings() {
 	const qc = useQueryClient();
 	return useMutation<PSSettings, Error, Partial<PSSettings>>({
 		mutationFn: (payload) =>
-			apiFetch<PSSettings>('settings', { method: 'POST', json: payload }),
+			apiFetch<PSSettings>({
+				path: 'ps/v1/settings',
+				method: 'POST',
+				data: payload,
+			}),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ['settings'] });
 		},

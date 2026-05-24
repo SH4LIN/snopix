@@ -3,8 +3,8 @@ import { useStore } from '../store/use-store';
 import { apiFetch } from '../lib/api';
 
 const post = <T>(path: string): Promise<T> =>
-	apiFetch<T>(path, { method: 'POST' });
-const get = <T>(path: string): Promise<T> => apiFetch<T>(path);
+	apiFetch<T>({ path: `ps/v1/${path}`, method: 'POST' });
+const get = <T>(path: string): Promise<T> => apiFetch<T>(`ps/v1/${path}`);
 
 /**
  * Mutation that triggers a full wipe-and-reindex via

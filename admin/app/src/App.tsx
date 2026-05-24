@@ -11,7 +11,7 @@ interface ProgressResponse {
 
 const safeProgress = async (path: string): Promise<ProgressResponse> => {
 	try {
-		return await apiFetch<ProgressResponse>(path);
+		return await apiFetch<ProgressResponse>(`ps/v1/${path}`);
 	} catch {
 		// Boot-time probe — swallow errors and assume idle so the UI mounts
 		// cleanly even if the REST endpoint is unreachable on first paint.
