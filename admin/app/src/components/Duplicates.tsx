@@ -297,7 +297,14 @@ export default function Duplicates() {
 							/>
 							{groups.length === 1
 								? __('1 duplicate group found.', 'pixel-scout')
-								: `${groups.length} ${__('duplicate groups found.', 'pixel-scout')}`}
+								: sprintf(
+										/* translators: %d: number of duplicate groups */
+										__(
+											'%d duplicate groups found.',
+											'pixel-scout'
+										),
+										groups.length
+									)}
 						</label>
 
 						{selectedGroups.size > 0 && (

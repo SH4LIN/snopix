@@ -1,4 +1,4 @@
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useStore } from '../store/use-store';
 import {
 	useReindex,
@@ -55,9 +55,11 @@ export default function ReindexButton({ status }: Props) {
 			<div className="flex justify-between items-center mb-3">
 				<span className="text-sm">
 					{status
-						? __(
-								`${status.indexed.toLocaleString()} of ${status.total.toLocaleString()} images indexed`,
-								'pixel-scout'
+						? sprintf(
+								/* translators: 1: indexed image count, 2: total image count */
+								__('%1$s of %2$s images indexed', 'pixel-scout'),
+								status.indexed.toLocaleString(),
+								status.total.toLocaleString()
 							)
 						: '—'}
 				</span>
@@ -109,8 +111,12 @@ export default function ReindexButton({ status }: Props) {
 
 			{isRunning && progress && (
 				<div className="text-xs text-ps-muted mt-1.5">
-					{__('Indexing…', 'pixel-scout')} {progress.done} of{' '}
-					{progress.total}
+					{sprintf(
+						/* translators: 1: completed batch count, 2: total batch count */
+						__('Indexing… %1$d of %2$d', 'pixel-scout'),
+						progress.done,
+						progress.total
+					)}
 				</div>
 			)}
 

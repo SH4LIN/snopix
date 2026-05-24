@@ -16,10 +16,25 @@ interface ImageData {
 	full_url?: string;
 }
 
-const ERROR_LABELS: Record<string, string> = {
-	unsupported_mime: 'Unsupported format',
-	unfingerprintable: 'Corrupt / unreadable',
-};
+/**
+ * Resolve a translated label for an indexer `error_code`. Keys are hardcoded
+ * (not pulled from a dynamic map) so each `__()` call sees a literal string
+ * and the i18n extractor can pick it up at build time.
+ *
+ * @param {string|undefined} code error_code value from the /images payload.
+ *
+ * @return {string} Localized label.
+ */
+function errorLabel(code: string | undefined): string {
+	switch (code) {
+		case 'unsupported_mime':
+			return __('Unsupported format', 'pixel-scout');
+		case 'unfingerprintable':
+			return __('Corrupt / unreadable', 'pixel-scout');
+		default:
+			return __('Failed', 'pixel-scout');
+	}
+}
 
 interface Props {
 	image: ImageData;
@@ -48,7 +63,7 @@ export default function ImageRow({ image, onImageClick }: Props) {
 			? 'ps-pill ps-pill--indexed'
 			: 'ps-pill ps-pill--pending';
 	const label = isFailed
-		? __(ERROR_LABELS[image.error_code ?? ''] ?? 'Failed', 'pixel-scout')
+		? errorLabel(image.error_code)
 		: isIndexed
 			? __('Indexed', 'pixel-scout')
 			: __('Pending', 'pixel-scout');
