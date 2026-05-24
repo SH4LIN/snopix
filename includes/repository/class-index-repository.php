@@ -122,10 +122,12 @@ class Index_Repository implements Index_Repository_Interface {
 		$query_high = substr( $query_phash, 0, 8 );
 		$query_low  = substr( $query_phash, 8, 8 );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// $index_table is built from $wpdb->prefix only — no user input — and
+		// table identifiers cannot be parameterised via $wpdb->prepare().
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$sql = $this->wpdb->prepare(
-			"SELECT attachment_id, phash, color_vector, edge_vector, indexed_at "
-			. "FROM {$index_table} "
+			'SELECT attachment_id, phash, color_vector, edge_vector, indexed_at '
+			. "FROM $index_table "
 			. "WHERE error_code = '' "
 			. 'AND phash <> %s '
 			. 'AND ('
@@ -138,6 +140,7 @@ class Index_Repository implements Index_Repository_Interface {
 			$query_low,
 			$max_distance
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
@@ -251,15 +254,16 @@ class Index_Repository implements Index_Repository_Interface {
 		$posts_table = esc_sql( $this->wpdb->posts );
 		// Identifiers come from $wpdb; the query has no user-controlled
 		// parameters, so $wpdb->prepare() is not needed.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$rows = $this->wpdb->get_col(
-			"SELECT p.ID FROM {$posts_table} p "
-			. "LEFT JOIN {$index_table} i ON p.ID = i.attachment_id "
+			"SELECT p.ID FROM $posts_table p "
+			. "LEFT JOIN $index_table i ON p.ID = i.attachment_id "
 			. "WHERE p.post_type = 'attachment' "
 			. "AND p.post_mime_type LIKE 'image/%' "
 			. 'AND i.attachment_id IS NULL '
 			. 'ORDER BY p.ID ASC'
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		return is_array( $rows ) ? array_map( 'absint', $rows ) : array();
 	}
@@ -322,12 +326,13 @@ class Index_Repository implements Index_Repository_Interface {
 		$posts = esc_sql( $this->wpdb->posts );
 		// Table identifiers come from $wpdb only and contain no user input;
 		// $wpdb->prepare() is not needed because the query has no parameters.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $this->wpdb->query(
 			"DELETE i FROM {$table} i "
 			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
 			. 'WHERE p.ID IS NULL'
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		$this->flush_cache();
 		return false === $result ? 0 : (int) $result;
@@ -343,12 +348,14 @@ class Index_Repository implements Index_Repository_Interface {
 		$posts = esc_sql( $this->wpdb->posts );
 		// Table identifiers come from $wpdb only and contain no user input;
 		// $wpdb->prepare() is not needed because the query has no parameters.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		return (int) $this->wpdb->get_var(
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = (int) $this->wpdb->get_var(
 			"SELECT COUNT(*) FROM {$table} i "
 			. "LEFT JOIN {$posts} p ON i.attachment_id = p.ID AND p.post_type = 'attachment' "
 			. 'WHERE p.ID IS NULL'
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $count;
 	}
 
 	/**

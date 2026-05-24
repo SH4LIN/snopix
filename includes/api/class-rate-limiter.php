@@ -82,7 +82,7 @@ class Rate_Limiter {
 	 */
 	public static function resolve_client_ip(): string {
 		$remote = isset( $_SERVER['REMOTE_ADDR'] )
-			? trim( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+			? trim( sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) )
 			: '';
 
 		$trusted_raw = defined( 'PIXEL_SCOUT_TRUSTED_PROXIES' ) ? (string) PIXEL_SCOUT_TRUSTED_PROXIES : '';
@@ -96,7 +96,7 @@ class Rate_Limiter {
 		}
 
 		$forwarded = isset( $_SERVER['HTTP_X_FORWARDED_FOR'] )
-			? (string) wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] )
+			? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) )
 			: '';
 		if ( '' === $forwarded ) {
 			return $remote;

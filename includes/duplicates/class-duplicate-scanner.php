@@ -252,7 +252,7 @@ class Duplicate_Scanner {
 			if ( '' === (string) ( $row['phash'] ?? '' ) ) {
 				continue;
 			}
-			$root                          = $this->find_root( $parents, $id );
+			$root                         = $this->find_root( $parents, $id );
 			$perceptual_groups[ $root ][] = $row;
 		}
 

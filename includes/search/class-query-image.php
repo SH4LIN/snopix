@@ -78,18 +78,18 @@ class Query_Image {
 		}
 
 		if ( ! in_array( $upload['type'] ?? '', self::ALLOWED_MIMES, true ) ) {
-			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $upload['file'] );
 			return false;
 		}
 
 		// Reject decompression bombs before any GD function decodes the file.
 		$dims = @getimagesize( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! is_array( $dims ) ) {
-			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $upload['file'] );
 			return false;
 		}
 		if ( ( (int) $dims[0] * (int) $dims[1] ) > self::MAX_PIXELS ) {
-			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $upload['file'] );
 			return false;
 		}
 
