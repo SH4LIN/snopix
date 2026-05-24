@@ -57,13 +57,17 @@ export function useIndexStatus() {
 
 	useEffect(() => {
 		const serverStatus = query.data?.progress?.status;
-		if (!serverStatus) return;
+		if (!serverStatus) {
+			return;
+		}
 
 		// Fire once per distinct server-reported status so a local state flip
 		// (e.g. Reset → 'idle') cannot replay a stale 'running'/'stalled'
 		// payload and undo the user's action. The polling state machine in
 		// useIndexingProgress owns transitions out of running/stalled.
-		if (lastHandledRef.current === serverStatus) return;
+		if (lastHandledRef.current === serverStatus) {
+			return;
+		}
 		lastHandledRef.current = serverStatus;
 
 		if (serverStatus === 'running' || serverStatus === 'stalled') {

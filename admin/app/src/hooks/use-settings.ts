@@ -21,7 +21,9 @@ export function useSettings() {
 			const res = await fetch(`${ps_data.rest_url}settings`, {
 				headers: { 'X-WP-Nonce': ps_data.nonce },
 			});
-			if (!res.ok) throw new Error('Failed to fetch settings');
+			if (!res.ok) {
+				throw new Error('Failed to fetch settings');
+			}
 			return res.json();
 		},
 		staleTime: 30_000,
@@ -48,7 +50,9 @@ export function useUpdateSettings() {
 				},
 				body: JSON.stringify(payload),
 			});
-			if (!res.ok) throw new Error('Failed to update settings');
+			if (!res.ok) {
+				throw new Error('Failed to update settings');
+			}
 			return res.json();
 		},
 		onSuccess: () => {

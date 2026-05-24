@@ -49,7 +49,9 @@ export default function SearchPreview() {
 				headers: { 'X-WP-Nonce': ps_data.nonce },
 				body: fd,
 			});
-			if (!res.ok) throw new Error('Search failed');
+			if (!res.ok) {
+				throw new Error('Search failed');
+			}
 			setResults(await res.json());
 		} catch {
 			setError(
@@ -76,7 +78,9 @@ export default function SearchPreview() {
 				onDrop={(e) => {
 					e.preventDefault();
 					const f = e.dataTransfer.files[0];
-					if (f) handleFile(f);
+					if (f) {
+						handleFile(f);
+					}
 				}}
 			>
 				<div className="text-[13px] text-ps-muted">
@@ -92,7 +96,9 @@ export default function SearchPreview() {
 					className="hidden"
 					onChange={(e) => {
 						const f = e.target.files?.[0];
-						if (f) handleFile(f);
+						if (f) {
+							handleFile(f);
+						}
 					}}
 				/>
 			</div>

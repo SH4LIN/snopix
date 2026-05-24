@@ -26,7 +26,9 @@ async function post<T>(path: string): Promise<T> {
 			body?.code ?? 'conflict'
 		);
 	}
-	if (!res.ok) throw new Error(`${path} failed`);
+	if (!res.ok) {
+		throw new Error(`${path} failed`);
+	}
 	return res.json();
 }
 
@@ -42,7 +44,9 @@ async function get<T>(path: string): Promise<T> {
 	const res = await fetch(`${ps_data.rest_url}${path}`, {
 		headers: { 'X-WP-Nonce': ps_data.nonce },
 	});
-	if (!res.ok) throw new Error(`${path} failed`);
+	if (!res.ok) {
+		throw new Error(`${path} failed`);
+	}
 	return res.json();
 }
 

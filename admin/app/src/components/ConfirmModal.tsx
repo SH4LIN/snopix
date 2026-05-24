@@ -45,7 +45,9 @@ export default function ConfirmModal({
 	onCancel,
 }: Props) {
 	useEffect(() => {
-		if (!open) return;
+		if (!open) {
+			return;
+		}
 		/**
 		 * Dismiss the modal when the user presses Escape (unless a confirm
 		 * action is already in flight).
@@ -55,13 +57,17 @@ export default function ConfirmModal({
 		 * @return {void}
 		 */
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape' && !loading) onCancel();
+			if (e.key === 'Escape' && !loading) {
+				onCancel();
+			}
 		};
 		document.addEventListener('keydown', onKey);
 		return () => document.removeEventListener('keydown', onKey);
 	}, [open, loading, onCancel]);
 
-	if (!open) return null;
+	if (!open) {
+		return null;
+	}
 
 	const confirmBtn = danger ? 'ps-btn--danger' : '';
 

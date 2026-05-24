@@ -42,7 +42,9 @@ export function useImages({ afterId, search }: UseImagesParams) {
 			const res = await fetch(`${ps_data.rest_url}images?${params}`, {
 				headers: { 'X-WP-Nonce': ps_data.nonce },
 			});
-			if (!res.ok) throw new Error('Failed to fetch images');
+			if (!res.ok) {
+				throw new Error('Failed to fetch images');
+			}
 			return res.json();
 		},
 		staleTime: 30_000,

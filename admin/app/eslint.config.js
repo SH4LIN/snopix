@@ -26,4 +26,14 @@ export default tseslint.config(
 		},
 	},
 	prettier,
+	{
+		// Project conventions — applied LAST so `eslint-config-prettier`
+		// cannot silently disable them.
+		rules: {
+			// Always brace control-flow bodies. Prevents the classic
+			// `if (x) doThing();` → `if (x) doThing(); orThis();` indentation
+			// bug and forces a uniform shape across if / else / for / while.
+			curly: ['error', 'all'],
+		},
+	},
 )

@@ -25,7 +25,9 @@ async function fetchProgress(): Promise<Progress> {
 	const res = await fetch(`${ps_data.rest_url}progress`, {
 		headers: { 'X-WP-Nonce': ps_data.nonce },
 	});
-	if (!res.ok) throw new Error('Failed to fetch progress');
+	if (!res.ok) {
+		throw new Error('Failed to fetch progress');
+	}
 	return res.json();
 }
 
@@ -59,7 +61,9 @@ export function useIndexingProgress() {
 	// Cleanup timer on unmount.
 	useEffect(() => {
 		return () => {
-			if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+			if (resetTimerRef.current) {
+				clearTimeout(resetTimerRef.current);
+			}
 		};
 	}, []);
 
@@ -72,7 +76,9 @@ export function useIndexingProgress() {
 
 	// State machine transitions — runs outside render cycle.
 	useEffect(() => {
-		if (!isRunning || !progress) return;
+		if (!isRunning || !progress) {
+			return;
+		}
 
 		if (progress.status === 'done') {
 			setIndexingState('done');
@@ -142,11 +148,14 @@ export function useReindex() {
 			if (res.status === 409) {
 				const body = await res.json().catch(() => ({}));
 				throw new ConflictError(
-					body?.message ?? 'A bulk indexing job is already in progress.',
+					body?.message ??
+						'A bulk indexing job is already in progress.',
 					body?.code ?? 'indexing_running'
 				);
 			}
-			if (!res.ok) throw new Error('Reindex failed');
+			if (!res.ok) {
+				throw new Error('Reindex failed');
+			}
 			return res.json();
 		},
 		onSuccess: () => {
@@ -173,7 +182,9 @@ export function useResetProgress() {
 				method: 'POST',
 				headers: { 'X-WP-Nonce': ps_data.nonce },
 			});
-			if (!res.ok) throw new Error('Reset failed');
+			if (!res.ok) {
+				throw new Error('Reset failed');
+			}
 			return res.json();
 		},
 		onSuccess: () => {

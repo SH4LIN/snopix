@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { useSettings, useUpdateSettings, type PSSettings } from '../hooks/use-settings';
+import {
+	useSettings,
+	useUpdateSettings,
+	type PSSettings,
+} from '../hooks/use-settings';
 
 /**
  * Settings tab — exposes the same plugin options that used to live under
@@ -18,12 +22,12 @@ export default function Settings() {
 	const { data, isLoading, isError } = useSettings();
 	const { mutate: save, isPending, error: saveError } = useUpdateSettings();
 
-	const [visibility, setVisibility] = useState<PSSettings['search_visibility']>(
-		data?.search_visibility ?? 'anyone'
-	);
-	const [lastLoaded, setLastLoaded] = useState<PSSettings['search_visibility'] | undefined>(
-		data?.search_visibility
-	);
+	const [visibility, setVisibility] = useState<
+		PSSettings['search_visibility']
+	>(data?.search_visibility ?? 'anyone');
+	const [lastLoaded, setLastLoaded] = useState<
+		PSSettings['search_visibility'] | undefined
+	>(data?.search_visibility);
 	const [savedAt, setSavedAt] = useState<number | null>(null);
 
 	// Re-sync the form when the server returns a new value (initial load or

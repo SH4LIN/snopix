@@ -97,8 +97,11 @@ export default function Duplicates() {
 		const key = groupKey(group);
 		setSelectedGroups((prev) => {
 			const next = new Set(prev);
-			if (next.has(key)) next.delete(key);
-			else next.add(key);
+			if (next.has(key)) {
+				next.delete(key);
+			} else {
+				next.add(key);
+			}
 			return next;
 		});
 	}
@@ -246,8 +249,8 @@ export default function Duplicates() {
 										duplicateScanState === 'done'
 											? '100%'
 											: progress && progress.total > 0
-											? `${Math.round((progress.done / progress.total) * 100)}%`
-											: '40%',
+												? `${Math.round((progress.done / progress.total) * 100)}%`
+												: '40%',
 								}}
 							/>
 						</div>
@@ -307,7 +310,10 @@ export default function Duplicates() {
 									? __('Deleting…', 'pixel-scout')
 									: sprintf(
 											/* translators: %d: number of selected groups */
-											__('Delete %d selected', 'pixel-scout'),
+											__(
+												'Delete %d selected',
+												'pixel-scout'
+											),
 											selectedGroups.size
 										)}
 							</button>

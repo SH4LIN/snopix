@@ -27,7 +27,9 @@ export default function ImageTable() {
 	 * @return {void}
 	 */
 	function goNext() {
-		if (!images || images.length === 0) return;
+		if (!images || images.length === 0) {
+			return;
+		}
 		const next = images[images.length - 1].attachment_id;
 		setCursors((prev) => [...prev, next]);
 	}

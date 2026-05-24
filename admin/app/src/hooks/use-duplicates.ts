@@ -65,7 +65,9 @@ export function useDuplicates() {
 		queryKey: ['duplicates'],
 		queryFn: async () => {
 			const res = await apiFetch('duplicates');
-			if (!res.ok) throw new Error('Failed to fetch duplicates');
+			if (!res.ok) {
+				throw new Error('Failed to fetch duplicates');
+			}
 			return res.json();
 		},
 		staleTime: 60_000,
@@ -96,7 +98,9 @@ export function useStartDuplicateScan() {
 					body?.code ?? 'scan_running'
 				);
 			}
-			if (!res.ok) throw new Error('Failed to start scan');
+			if (!res.ok) {
+				throw new Error('Failed to start scan');
+			}
 			return res.json();
 		},
 		onSuccess: () => {
@@ -119,7 +123,9 @@ export function useResetDuplicateScan() {
 	return useMutation({
 		mutationFn: async () => {
 			const res = await apiFetch('duplicates/reset', { method: 'POST' });
-			if (!res.ok) throw new Error('Reset failed');
+			if (!res.ok) {
+				throw new Error('Reset failed');
+			}
 			return res.json();
 		},
 		onSuccess: () => {
@@ -144,7 +150,9 @@ export function useDuplicateScanProgress() {
 
 	useEffect(() => {
 		return () => {
-			if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+			if (resetTimerRef.current) {
+				clearTimeout(resetTimerRef.current);
+			}
 		};
 	}, []);
 
@@ -160,7 +168,9 @@ export function useDuplicateScanProgress() {
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {
 			const res = await apiFetch('duplicates/progress');
-			if (!res.ok) throw new Error('Failed to fetch scan progress');
+			if (!res.ok) {
+				throw new Error('Failed to fetch scan progress');
+			}
 			const body: DuplicateScanProgress = await res.json();
 			if (
 				body.status === 'running' &&
@@ -177,7 +187,9 @@ export function useDuplicateScanProgress() {
 		queryKey: ['duplicates-progress'],
 		queryFn: async () => {
 			const res = await apiFetch('duplicates/progress');
-			if (!res.ok) throw new Error('Failed to fetch scan progress');
+			if (!res.ok) {
+				throw new Error('Failed to fetch scan progress');
+			}
 			return res.json();
 		},
 		enabled: isRunning,
@@ -185,7 +197,9 @@ export function useDuplicateScanProgress() {
 	});
 
 	useEffect(() => {
-		if (!isRunning || !progress) return;
+		if (!isRunning || !progress) {
+			return;
+		}
 
 		if (progress.status === 'done') {
 			setDuplicateScanState('done');
@@ -218,7 +232,9 @@ export function useDeleteAttachment() {
 			const res = await apiFetch(`duplicates/attachment/${id}`, {
 				method: 'DELETE',
 			});
-			if (!res.ok) throw new Error('Failed to delete attachment');
+			if (!res.ok) {
+				throw new Error('Failed to delete attachment');
+			}
 			return res.json();
 		},
 		onSuccess: () => {

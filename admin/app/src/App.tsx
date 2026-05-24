@@ -56,7 +56,9 @@ function useInitProgress() {
 
 	useEffect(() => {
 		const status = indexProgress?.status;
-		if (!status || handledIndexRef.current === status) return;
+		if (!status || handledIndexRef.current === status) {
+			return;
+		}
 		handledIndexRef.current = status;
 		if (
 			(status === 'running' || status === 'stalled') &&
@@ -68,7 +70,9 @@ function useInitProgress() {
 
 	useEffect(() => {
 		const status = dupeProgress?.status;
-		if (!status || handledDupeRef.current === status) return;
+		if (!status || handledDupeRef.current === status) {
+			return;
+		}
 		handledDupeRef.current = status;
 		if (
 			status === 'running' &&
