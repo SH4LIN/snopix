@@ -74,6 +74,16 @@ class Duplicates_REST_Controller {
 
 		register_rest_route(
 			self::REST_NAMESPACE,
+			'/duplicates/reset',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_reset' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
 			'/duplicates/attachment/(?P<id>\d+)',
 			array(
 				'methods'             => \WP_REST_Server::DELETABLE,
@@ -138,6 +148,17 @@ class Duplicates_REST_Controller {
 	 */
 	public function handle_progress(): \WP_REST_Response {
 		return new \WP_REST_Response( $this->progress->get(), 200 );
+	}
+
+	/**
+	 * Handle POST /duplicates/reset — abort any in-flight scan and clear
+	 * progress state. Lets the UI recover from a stalled or zombie scan.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_reset(): \WP_REST_Response {
+		$this->scanner->abort();
+		return new \WP_REST_Response( array( 'reset' => true ), 200 );
 	}
 
 	/**

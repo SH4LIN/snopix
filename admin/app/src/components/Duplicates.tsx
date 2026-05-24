@@ -7,7 +7,9 @@ import {
 	useStartDuplicateScan,
 	useDuplicateScanProgress,
 	useDeleteAttachment,
+	useResetDuplicateScan,
 } from '../hooks/use-duplicates';
+import { ConflictError } from '../hooks/use-reindex';
 import DuplicateGroupCard from './DuplicateGroupCard';
 
 /**
@@ -33,10 +35,19 @@ function groupKey(group: DuplicateGroup): string {
 export default function Duplicates() {
 	const { indexingState, duplicateScanState } = useStore();
 	const { data, isLoading } = useDuplicates();
-	const { mutate: startScan, isPending } = useStartDuplicateScan();
+	const {
+		mutate: startScan,
+		isPending,
+		error: startError,
+	} = useStartDuplicateScan();
+	const { mutate: resetScan, isPending: isResetting } =
+		useResetDuplicateScan();
 	const progress = useDuplicateScanProgress();
 	const { mutateAsync: deleteAttachment, isPending: isBulkDeleting } =
 		useDeleteAttachment();
+
+	const conflictMessage =
+		startError instanceof ConflictError ? startError.message : null;
 
 	const [keepIds, setKeepIds] = useState<Record<string, number>>({});
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(
@@ -160,15 +171,33 @@ export default function Duplicates() {
 						)}
 					</div>
 
-					<button
-						className="ps-btn"
-						onClick={() => startScan()}
-						disabled={isPending || isScanning}
-					>
-						{isScanning
-							? __('Scanning…', 'pixel-scout')
-							: __('Scan Now', 'pixel-scout')}
-					</button>
+					<div className="flex gap-2">
+						<button
+							className="ps-btn"
+							onClick={() => startScan()}
+							disabled={isPending || isScanning}
+						>
+							{isScanning
+								? __('Scanning…', 'pixel-scout')
+								: __('Scan Now', 'pixel-scout')}
+						</button>
+
+						{duplicateScanState === 'running' && (
+							<button
+								className="ps-btn ps-btn--neutral"
+								onClick={() => resetScan()}
+								disabled={isResetting}
+								title={__(
+									'Cancel the running scan and clear its progress so a new one can start.',
+									'pixel-scout'
+								)}
+							>
+								{isResetting
+									? __('Resetting…', 'pixel-scout')
+									: __('Reset', 'pixel-scout')}
+							</button>
+						)}
+					</div>
 				</div>
 
 				{isScanning && (
@@ -195,6 +224,12 @@ export default function Duplicates() {
 								? `✓ ${__('Scan complete', 'pixel-scout')}`
 								: __('Scanning for duplicates…', 'pixel-scout')}
 						</div>
+					</div>
+				)}
+
+				{conflictMessage && (
+					<div className="text-xs text-ps-danger mt-3">
+						{conflictMessage}
 					</div>
 				)}
 			</div>
@@ -232,7 +267,7 @@ export default function Duplicates() {
 
 						{selectedGroups.size > 0 && (
 							<button
-								className="ps-btn bg-ps-danger border-ps-danger text-xs"
+								className="ps-btn ps-btn--danger text-xs"
 								onClick={handleBulkDelete}
 								disabled={isBulkDeleting}
 							>

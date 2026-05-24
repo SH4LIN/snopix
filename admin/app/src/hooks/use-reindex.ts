@@ -7,12 +7,11 @@ declare const ps_data: { rest_url: string; nonce: string };
 export interface Progress {
 	done: number;
 	total: number;
-	status: 'idle' | 'running' | 'done';
+	status: 'idle' | 'running' | 'done' | 'stalled';
 }
 
 const STALL_MS = 45_000;
 const DONE_RESET_MS = 3_000;
-const STALLED_RESET_MS = 5_000;
 
 /**
  * Fetch the current indexing progress envelope.
@@ -84,15 +83,16 @@ export function useIndexingProgress() {
 			return;
 		}
 
+		if (progress.status === 'stalled') {
+			setIndexingState('stalled');
+			return;
+		}
+
 		if (progress.done !== lastDoneRef.current) {
 			lastDoneRef.current = progress.done;
 			lastChangeRef.current = Date.now();
 		} else if (Date.now() - lastChangeRef.current > STALL_MS) {
 			setIndexingState('stalled');
-			resetTimerRef.current = setTimeout(
-				() => setIndexingState('idle'),
-				STALLED_RESET_MS
-			);
 		}
 	}, [progress, isRunning, setIndexingState]);
 
@@ -100,9 +100,28 @@ export function useIndexingProgress() {
 }
 
 /**
+ * Error thrown when the server rejects a state-changing request because a
+ * conflicting job is already running. Carries the parsed REST error payload
+ * so the UI can surface the server-supplied message.
+ */
+export class ConflictError extends Error {
+	constructor(
+		message: string,
+		public readonly code: string
+	) {
+		super(message);
+		this.name = 'ConflictError';
+	}
+}
+
+/**
  * Mutation that POSTs to `/wp-json/ps/v1/reindex` to start an "index missing"
  * background job. On success flips the global state to `'running'` and
  * invalidates the `/status` query so the counter updates immediately.
+ *
+ * Rejects with {@link ConflictError} when the server returns 409 (job
+ * already running) so the caller can show a toast instead of treating it as
+ * a generic failure.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
  */
@@ -116,12 +135,47 @@ export function useReindex() {
 				method: 'POST',
 				headers: { 'X-WP-Nonce': ps_data.nonce },
 			});
+			if (res.status === 409) {
+				const body = await res.json().catch(() => ({}));
+				throw new ConflictError(
+					body?.message ?? 'A bulk indexing job is already in progress.',
+					body?.code ?? 'indexing_running'
+				);
+			}
 			if (!res.ok) throw new Error('Reindex failed');
 			return res.json();
 		},
 		onSuccess: () => {
 			setIndexingState('running');
 			qc.invalidateQueries({ queryKey: ['status'] });
+		},
+	});
+}
+
+/**
+ * Mutation that POSTs to `/wp-json/ps/v1/reset-progress` to abort the
+ * in-flight bulk job, clear pending queue, and reset the progress envelope.
+ * Used by the Reset button surfaced on stalled/running progress bars.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
+ */
+export function useResetProgress() {
+	const { setIndexingState } = useStore();
+	const qc = useQueryClient();
+
+	return useMutation({
+		mutationFn: async () => {
+			const res = await fetch(`${ps_data.rest_url}reset-progress`, {
+				method: 'POST',
+				headers: { 'X-WP-Nonce': ps_data.nonce },
+			});
+			if (!res.ok) throw new Error('Reset failed');
+			return res.json();
+		},
+		onSuccess: () => {
+			setIndexingState('idle');
+			qc.invalidateQueries({ queryKey: ['status'] });
+			qc.invalidateQueries({ queryKey: ['progress'] });
 		},
 	});
 }

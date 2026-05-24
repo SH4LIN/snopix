@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
+import { ConflictError } from './use-reindex';
 
 declare const ps_data: { rest_url: string; nonce: string };
 
 /**
  * Issue an authenticated POST to a Pixel Scout REST endpoint and return the
- * decoded JSON body. Throws on a non-2xx status so React Query treats the call
- * as a failed mutation.
+ * decoded JSON body. Throws {@link ConflictError} on 409 so callers can
+ * surface the server-supplied message, or a generic Error on other non-2xx
+ * statuses.
  *
  * @param {string} path REST sub-path appended to `ps_data.rest_url`.
  *
@@ -17,6 +19,13 @@ async function post<T>(path: string): Promise<T> {
 		method: 'POST',
 		headers: { 'X-WP-Nonce': ps_data.nonce },
 	});
+	if (res.status === 409) {
+		const body = await res.json().catch(() => ({}));
+		throw new ConflictError(
+			body?.message ?? `${path} conflicted with an in-flight job.`,
+			body?.code ?? 'conflict'
+		);
+	}
 	if (!res.ok) throw new Error(`${path} failed`);
 	return res.json();
 }

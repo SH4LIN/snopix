@@ -63,9 +63,7 @@ export default function ConfirmModal({
 
 	if (!open) return null;
 
-	const confirmBtn = danger
-		? 'bg-ps-danger text-white border-ps-danger hover:opacity-90'
-		: 'bg-ps-accent text-white border-ps-accent hover:opacity-90';
+	const confirmBtn = danger ? 'ps-btn--danger' : '';
 
 	return (
 		<div
@@ -84,14 +82,14 @@ export default function ConfirmModal({
 				</p>
 				<div className="flex justify-end gap-2">
 					<button
-						className="ps-btn bg-ps-surface text-ps-text border border-ps-border"
+						className="ps-btn ps-btn--neutral"
 						onClick={onCancel}
 						disabled={loading}
 					>
 						{cancelText ?? __('Cancel', 'pixel-scout')}
 					</button>
 					<button
-						className={`ps-btn border ${confirmBtn}`}
+						className={`ps-btn ${confirmBtn}`}
 						onClick={onConfirm}
 						disabled={loading}
 					>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
+import { ConflictError } from './use-reindex';
 
 declare const ps_data: { rest_url: string; nonce: string };
 
@@ -76,6 +77,9 @@ export function useDuplicates() {
  * duplicate-detection job. On success flips the duplicate-scan state to
  * `'running'` so the polling hook starts firing.
  *
+ * Rejects with {@link ConflictError} when the server returns 409 so the
+ * caller can surface a toast instead of treating it as a generic failure.
+ *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
  */
 export function useStartDuplicateScan() {
@@ -85,11 +89,41 @@ export function useStartDuplicateScan() {
 	return useMutation({
 		mutationFn: async () => {
 			const res = await apiFetch('duplicates/scan', { method: 'POST' });
+			if (res.status === 409) {
+				const body = await res.json().catch(() => ({}));
+				throw new ConflictError(
+					body?.message ?? 'A duplicate scan is already in progress.',
+					body?.code ?? 'scan_running'
+				);
+			}
 			if (!res.ok) throw new Error('Failed to start scan');
 			return res.json();
 		},
 		onSuccess: () => {
 			setDuplicateScanState('running');
+			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
+		},
+	});
+}
+
+/**
+ * Mutation that POSTs to `/wp-json/ps/v1/duplicates/reset` to abort an
+ * in-flight scan, clear the cross-batch state, and reset progress to idle.
+ *
+ * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
+ */
+export function useResetDuplicateScan() {
+	const { setDuplicateScanState } = useStore();
+	const qc = useQueryClient();
+
+	return useMutation({
+		mutationFn: async () => {
+			const res = await apiFetch('duplicates/reset', { method: 'POST' });
+			if (!res.ok) throw new Error('Reset failed');
+			return res.json();
+		},
+		onSuccess: () => {
+			setDuplicateScanState('idle');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
 		},
 	});
@@ -113,6 +147,27 @@ export function useDuplicateScanProgress() {
 			if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
 		};
 	}, []);
+
+	// One-shot mount probe: if the server says a scan is running, flip the
+	// local state to running so the polling query becomes enabled. Without
+	// this a hard reload during a scan would leave the UI thinking it was
+	// idle and allow the user to start a duplicate job.
+	useQuery<DuplicateScanProgress>({
+		queryKey: ['duplicates-progress-hydrate'],
+		queryFn: async () => {
+			const res = await apiFetch('duplicates/progress');
+			if (!res.ok) throw new Error('Failed to fetch scan progress');
+			const body: DuplicateScanProgress = await res.json();
+			if (
+				body.status === 'running' &&
+				duplicateScanState === 'idle'
+			) {
+				setDuplicateScanState('running');
+			}
+			return body;
+		},
+		staleTime: Infinity,
+	});
 
 	const { data: progress } = useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress'],

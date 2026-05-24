@@ -1,6 +1,11 @@
 import { __ } from '@wordpress/i18n';
 import { useStore } from '../store/use-store';
-import { useReindex, useIndexingProgress } from '../hooks/use-reindex';
+import {
+	useReindex,
+	useIndexingProgress,
+	useResetProgress,
+	ConflictError,
+} from '../hooks/use-reindex';
 
 interface Status {
 	total: number;
@@ -26,8 +31,10 @@ interface Props {
  * @return {JSX.Element}
  */
 export default function ReindexButton({ status }: Props) {
-	const { indexingState, setIndexingState } = useStore();
-	const { mutate: startReindex, isPending } = useReindex();
+	const { indexingState } = useStore();
+	const { mutate: startReindex, isPending, error: startError } = useReindex();
+	const { mutate: resetProgress, isPending: isResetting } =
+		useResetProgress();
 	const progress = useIndexingProgress();
 
 	const isIdle = indexingState === 'idle';
@@ -39,6 +46,9 @@ export default function ReindexButton({ status }: Props) {
 		progress && progress.total > 0
 			? (progress.done / progress.total) * 100
 			: 0;
+
+	const conflictMessage =
+		startError instanceof ConflictError ? startError.message : null;
 
 	return (
 		<div className="ps-card mb-4">
@@ -52,33 +62,45 @@ export default function ReindexButton({ status }: Props) {
 						: '—'}
 				</span>
 
-				{isIdle && (
-					<button
-						className="ps-btn"
-						onClick={() => startReindex()}
-						disabled={isPending || !status?.pending}
-					>
-						{/* translators: %d is the number of images to index */}
-						{__('Index Remaining', 'pixel-scout')}{' '}
-						{status?.pending ?? ''} &rarr;
-					</button>
-				)}
+				<div className="flex gap-2">
+					{isIdle && (
+						<button
+							className="ps-btn"
+							onClick={() => startReindex()}
+							disabled={isPending || !status?.pending}
+						>
+							{__('Index Remaining', 'pixel-scout')}{' '}
+							{status?.pending ?? ''} &rarr;
+						</button>
+					)}
 
-				{isRunning && (
-					<button
-						className="ps-btn bg-ps-muted"
-						onClick={() => setIndexingState('idle')}
-					>
-						{__('Cancel', 'pixel-scout')}
-					</button>
-				)}
+					{(isRunning || isStalled) && (
+						<button
+							className="ps-btn ps-btn--neutral"
+							onClick={() => resetProgress()}
+							disabled={isResetting}
+							title={__(
+								'Cancel the running job and clear its progress so a new one can start.',
+								'pixel-scout'
+							)}
+						>
+							{isResetting
+								? __('Resetting…', 'pixel-scout')
+								: __('Reset', 'pixel-scout')}
+						</button>
+					)}
+				</div>
 			</div>
 
-			{(isRunning || isDone) && (
+			{(isRunning || isDone || isStalled) && (
 				<div className="ps-progress">
 					<div
 						className={`h-full transition-all duration-[400ms] rounded-[inherit] ${
-							isDone ? 'bg-ps-success' : 'bg-ps-accent'
+							isDone
+								? 'bg-ps-success'
+								: isStalled
+									? 'bg-ps-danger'
+									: 'bg-ps-accent'
 						}`}
 						style={{ width: `${isDone ? 100 : pct}%` }}
 					/>
@@ -101,7 +123,16 @@ export default function ReindexButton({ status }: Props) {
 			{isStalled && (
 				<div className="text-xs text-ps-danger mt-1.5">
 					✗{' '}
-					{__('Indexing stalled — check server cron', 'pixel-scout')}
+					{__(
+						'Indexing stalled — click Reset to clear the queue and start a new run.',
+						'pixel-scout'
+					)}
+				</div>
+			)}
+
+			{conflictMessage && (
+				<div className="text-xs text-ps-danger mt-1.5">
+					{conflictMessage}
 				</div>
 			)}
 		</div>

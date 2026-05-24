@@ -86,6 +86,18 @@ class Duplicate_Scanner {
 	}
 
 	/**
+	 * Cancel any in-flight scan: clear the cron chain, drop the cross-batch
+	 * state transient, and reset the progress envelope to idle.
+	 *
+	 * @return void
+	 */
+	public function abort(): void {
+		$this->scheduler->cancel_all( self::CRON_HOOK );
+		delete_transient( self::STATE_TRANSIENT );
+		$this->progress->reset();
+	}
+
+	/**
 	 * Execute one batch of the duplicate scan and either reschedule the next
 	 * batch or finalise the results.
 	 *

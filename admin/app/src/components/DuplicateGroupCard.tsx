@@ -95,7 +95,7 @@ export default function DuplicateGroupCard({
 
 				{toDelete.length > 0 && (
 					<button
-						className="ps-btn bg-ps-danger border-ps-danger text-xs"
+						className="ps-btn ps-btn--danger text-xs"
 						onClick={handleDelete}
 						disabled={isPending}
 					>

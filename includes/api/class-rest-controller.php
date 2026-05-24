@@ -125,6 +125,16 @@ class REST_Controller {
 
 		register_rest_route(
 			self::REST_NAMESPACE,
+			'/reset-progress',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_reset_progress' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
 			'/index/(?P<id>\d+)',
 			array(
 				'methods'             => \WP_REST_Server::DELETABLE,
@@ -286,12 +296,15 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /status — index counts.
+	 * Handle GET /status — index counts plus current bulk-job progress so
+	 * the admin app can hydrate its state machine on mount without an
+	 * extra round-trip.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public function handle_status(): \WP_REST_Response {
-		$counts = $this->repository->get_counts();
+		$counts             = $this->repository->get_counts();
+		$counts['progress'] = $this->progress->get();
 		return new \WP_REST_Response( $counts, 200 );
 	}
 
@@ -337,11 +350,28 @@ class REST_Controller {
 	/**
 	 * Handle POST /reindex — schedule bulk reindex.
 	 *
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function handle_reindex(): \WP_REST_Response|\WP_Error {
+		if ( ! $this->bulk_indexer->schedule() ) {
+			return new \WP_Error(
+				'indexing_running',
+				__( 'A bulk indexing job is already in progress.', 'pixel-scout' ),
+				array( 'status' => 409 )
+			);
+		}
+		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
+	}
+
+	/**
+	 * Handle POST /reset-progress — abort any in-flight bulk job and clear
+	 * progress state. Used by the UI to recover from a stalled chain.
+	 *
 	 * @return \WP_REST_Response
 	 */
-	public function handle_reindex(): \WP_REST_Response {
-		$this->bulk_indexer->schedule();
-		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
+	public function handle_reset_progress(): \WP_REST_Response {
+		$this->bulk_indexer->abort();
+		return new \WP_REST_Response( array( 'reset' => true ), 200 );
 	}
 
 	/**
@@ -378,19 +408,32 @@ class REST_Controller {
 	/**
 	 * Handle POST /tools/reindex-all — wipe + reindex every attachment.
 	 *
-	 * @return \WP_REST_Response
+	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle_reindex_all(): \WP_REST_Response {
-		$this->bulk_indexer->schedule_all();
+	public function handle_reindex_all(): \WP_REST_Response|\WP_Error {
+		if ( ! $this->bulk_indexer->schedule_all() ) {
+			return new \WP_Error(
+				'indexing_running',
+				__( 'A bulk indexing job is already in progress.', 'pixel-scout' ),
+				array( 'status' => 409 )
+			);
+		}
 		return new \WP_REST_Response( array( 'scheduled' => true ), 200 );
 	}
 
 	/**
 	 * Handle POST /tools/clear-index — delete every index row.
 	 *
-	 * @return \WP_REST_Response
+	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle_clear_index(): \WP_REST_Response {
+	public function handle_clear_index(): \WP_REST_Response|\WP_Error {
+		if ( $this->bulk_indexer->is_running() ) {
+			return new \WP_Error(
+				'indexing_running',
+				__( 'Cannot clear the index while a bulk indexing job is in progress.', 'pixel-scout' ),
+				array( 'status' => 409 )
+			);
+		}
 		$deleted = $this->repository->clear_all();
 		$this->progress->reset();
 		return new \WP_REST_Response( array( 'deleted' => $deleted ), 200 );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import ConfirmModal from './ConfirmModal';
+import { useStore } from '../store/use-store';
 import {
 	useReindexAll,
 	useClearIndex,
@@ -8,7 +9,7 @@ import {
 	useClearCache,
 	useOrphanCount,
 } from '../hooks/use-tools';
-import { useReindex } from '../hooks/use-reindex';
+import { useReindex, ConflictError } from '../hooks/use-reindex';
 
 type ToolKey =
 	| 'reindex'
@@ -42,6 +43,7 @@ export default function Tools() {
 	const [active, setActive] = useState<ToolKey>(null);
 	const [result, setResult] = useState<string | null>(null);
 
+	const { indexingState, duplicateScanState } = useStore();
 	const reindex = useReindex();
 	const reindexAll = useReindexAll();
 	const clearIndex = useClearIndex();
@@ -50,6 +52,29 @@ export default function Tools() {
 	const orphanCount = useOrphanCount();
 
 	const orphans = orphanCount.data?.orphans ?? 0;
+
+	const indexingActive =
+		indexingState === 'running' || indexingState === 'stalled';
+	const scanActive = duplicateScanState === 'running';
+	const blockingMessage = indexingActive
+		? __(
+				'A bulk indexing job is currently active. Reset it from the Dashboard to run index tools.',
+				'pixel-scout'
+			)
+		: scanActive
+			? __(
+					'A duplicate scan is currently active. Wait for it to finish or reset it from the Duplicates tab.',
+					'pixel-scout'
+				)
+			: null;
+
+	// Actions that mutate or rebuild the index — must not run concurrently
+	// with a bulk job. Orphans and cache flush are safe at any time.
+	const indexLockedKeys: Array<Exclude<ToolKey, null>> = [
+		'reindex',
+		'reindex-all',
+		'clear-index',
+	];
 
 	const cards: Record<Exclude<ToolKey, null>, ToolCard> = {
 		reindex: {
@@ -179,10 +204,17 @@ export default function Tools() {
 				await clearCache.mutateAsync();
 				setResult(__('Cache cleared.', 'pixel-scout'));
 			}
-		} catch {
-			setResult(
-				__('Action failed. Check console for details.', 'pixel-scout')
-			);
+		} catch (err) {
+			if (err instanceof ConflictError) {
+				setResult(err.message);
+			} else {
+				setResult(
+					__(
+						'Action failed. Check console for details.',
+						'pixel-scout'
+					)
+				);
+			}
 		} finally {
 			setActive(null);
 		}
@@ -196,10 +228,18 @@ export default function Tools() {
 				</div>
 			)}
 
+			{blockingMessage && (
+				<div className="ps-card text-[13px] text-ps-danger">
+					{blockingMessage}
+				</div>
+			)}
+
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				{(Object.keys(cards) as Array<Exclude<ToolKey, null>>).map(
 					(key) => {
 						const card = cards[key];
+						const locked =
+							indexingActive && indexLockedKeys.includes(key);
 						return (
 							<div
 								key={key}
@@ -215,9 +255,17 @@ export default function Tools() {
 								</div>
 								<div className="mt-auto">
 									<button
-										className={`ps-btn ${card.danger ? 'bg-ps-danger border-ps-danger' : ''}`}
+										className={`ps-btn ${card.danger ? 'ps-btn--danger' : ''}`}
 										onClick={() => setActive(key)}
-										disabled={loading}
+										disabled={loading || locked}
+										title={
+											locked
+												? __(
+														'Disabled while a bulk indexing job is active.',
+														'pixel-scout'
+													)
+												: undefined
+										}
 									>
 										{card.buttonLabel}
 									</button>

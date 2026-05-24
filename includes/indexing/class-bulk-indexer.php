@@ -59,22 +59,51 @@ class Bulk_Indexer {
 	/**
 	 * Schedule bulk indexing for all unindexed attachments.
 	 *
-	 * @return void
+	 * @return bool True if scheduled, false if a job is already running.
 	 */
-	public function schedule(): void {
+	public function schedule(): bool {
+		if ( $this->is_running() ) {
+			return false;
+		}
 		$ids = $this->repository->get_unindexed_ids();
 		$this->schedule_ids( $ids );
+		return true;
 	}
 
 	/**
 	 * Wipe the index and schedule every attachment for fresh indexing.
 	 *
-	 * @return void
+	 * @return bool True if scheduled, false if a job is already running.
 	 */
-	public function schedule_all(): void {
+	public function schedule_all(): bool {
+		if ( $this->is_running() ) {
+			return false;
+		}
 		$this->repository->clear_all();
 		$ids = $this->repository->get_unindexed_ids();
 		$this->schedule_ids( $ids );
+		return true;
+	}
+
+	/**
+	 * Cancel any in-flight bulk job: clear the cron chain, drop the pending
+	 * queue, and reset the progress envelope to idle.
+	 *
+	 * @return void
+	 */
+	public function abort(): void {
+		$this->scheduler->cancel_all( self::CRON_HOOK );
+		delete_transient( self::PENDING_KEY );
+		$this->progress->reset();
+	}
+
+	/**
+	 * Whether the progress envelope reports an in-flight bulk job.
+	 *
+	 * @return bool
+	 */
+	public function is_running(): bool {
+		return 'running' === $this->progress->get()['status'];
 	}
 
 	/**
