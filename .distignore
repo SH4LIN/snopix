@@ -97,6 +97,9 @@ docker-compose.yml
 # Anything starting with a dot at the build root
 .distignore
 
+# WordPress.org asset sources (PNGs in .wordpress-org/ ship, sources don't)
+.wordpress-org/_source
+
 # Test bootstrap config
 wp-tests-config.php
 

@@ -59,3 +59,6 @@ agentdb.rvf.lock
 
 # Release build output
 build/
+
+# WordPress.org asset sources (PNGs ship, sources don't)
+.wordpress-org/_source/
