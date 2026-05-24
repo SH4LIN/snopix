@@ -92,7 +92,7 @@ class REST_Controller {
 						'default'           => 0,
 					),
 					'per_page' => array(
-						'sanitize_callback' => 'absint',
+						'sanitize_callback' => static fn( $v ) => max( 1, min( 200, absint( $v ) ) ),
 						'default'           => 25,
 					),
 					'search'   => array(
@@ -276,7 +276,33 @@ class REST_Controller {
 		}
 
 		$results = array_values(
-			array_filter( $results, static fn( $r ) => $r->attachment_id !== $attachment_id )
+			array_filter(
+				$results,
+				static function ( $r ) use ( $attachment_id ) {
+					if ( $r->attachment_id === $attachment_id ) {
+						return false;
+					}
+					// Never leak attachments that aren't publicly attached to a
+					// published post. Attachment posts inherit their parent's
+					// status, so a status other than 'inherit'+published parent
+					// (or no parent) is treated as non-public for /search.
+					$post = get_post( $r->attachment_id );
+					if ( ! $post || 'attachment' !== $post->post_type ) {
+						return false;
+					}
+					if ( 'inherit' === $post->post_status ) {
+						$parent_id = (int) $post->post_parent;
+						if ( $parent_id > 0 ) {
+							$parent_status = get_post_status( $parent_id );
+							return 'publish' === $parent_status;
+						}
+						// Orphan attachments (no parent) are admin-uploaded
+						// library items — surface them.
+						return true;
+					}
+					return 'publish' === $post->post_status;
+				}
+			)
 		);
 
 		return new \WP_REST_Response(
@@ -317,7 +343,7 @@ class REST_Controller {
 	 */
 	public function handle_images( \WP_REST_Request $request ): \WP_REST_Response {
 		$after_id = absint( $request->get_param( 'after_id' ) ?? 0 );
-		$per_page = absint( $request->get_param( 'per_page' ) ?? 25 );
+		$per_page = max( 1, min( 200, absint( $request->get_param( 'per_page' ) ?? 25 ) ) );
 		$search   = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
 
 		$rows = $this->repository->get_paginated( $after_id, $per_page, $search );
@@ -461,9 +487,21 @@ class REST_Controller {
 	/**
 	 * Handle POST /tools/clear-cache — flush plugin transients and object cache.
 	 *
-	 * @return \WP_REST_Response
+	 * Rejects with 409 while a bulk index job is in flight because resetting
+	 * the progress transient mid-run would leave the cron chain incrementing
+	 * a freshly-zeroed counter, producing wildly wrong "done" values and a
+	 * premature transition to status=done.
+	 *
+	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle_clear_cache(): \WP_REST_Response {
+	public function handle_clear_cache(): \WP_REST_Response|\WP_Error {
+		if ( $this->bulk_indexer->is_running() ) {
+			return new \WP_Error(
+				'indexing_running',
+				__( 'Cannot clear the cache while a bulk indexing job is in progress.', 'pixel-scout' ),
+				array( 'status' => 409 )
+			);
+		}
 		$this->repository->flush_cache();
 		$this->progress->reset();
 		return new \WP_REST_Response( array( 'cleared' => true ), 200 );

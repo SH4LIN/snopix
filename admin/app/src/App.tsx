@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useRouterState, Outlet } from '@tanstack/react-router';
@@ -7,7 +7,7 @@ import { useStore } from './store/use-store';
 declare const ps_data: { rest_url: string; nonce: string };
 
 interface ProgressResponse {
-	status: 'idle' | 'running' | 'done';
+	status: 'idle' | 'running' | 'done' | 'stalled';
 }
 
 /**
@@ -16,10 +16,19 @@ interface ProgressResponse {
  * running job, flips the matching state to `'running'` so the rest of the UI
  * picks up where the previous session left off.
  *
+ * Guarded against replay: each query's cached result is acted on at most once
+ * per distinct status value. Without this guard a local transition (e.g. the
+ * user clicks Reset → state = 'idle') would re-fire the effect, find the
+ * still-cached server response saying `running`, and flip the state right
+ * back, leaving the UI permanently stuck.
+ *
  * @return {void}
  */
 function useInitProgress() {
-	const { setIndexingState, setDuplicateScanState } = useStore();
+	const setIndexingState = useStore((s) => s.setIndexingState);
+	const setDuplicateScanState = useStore((s) => s.setDuplicateScanState);
+	const handledIndexRef = useRef<string | null>(null);
+	const handledDupeRef = useRef<string | null>(null);
 
 	const { data: indexProgress } = useQuery<ProgressResponse>({
 		queryKey: ['init-index-progress'],
@@ -46,12 +55,28 @@ function useInitProgress() {
 	});
 
 	useEffect(() => {
-		if (indexProgress?.status === 'running') setIndexingState('running');
-	}, [indexProgress, setIndexingState]);
+		const status = indexProgress?.status;
+		if (!status || handledIndexRef.current === status) return;
+		handledIndexRef.current = status;
+		if (
+			(status === 'running' || status === 'stalled') &&
+			useStore.getState().indexingState === 'idle'
+		) {
+			setIndexingState(status);
+		}
+	}, [indexProgress?.status, setIndexingState]);
 
 	useEffect(() => {
-		if (dupeProgress?.status === 'running') setDuplicateScanState('running');
-	}, [dupeProgress, setDuplicateScanState]);
+		const status = dupeProgress?.status;
+		if (!status || handledDupeRef.current === status) return;
+		handledDupeRef.current = status;
+		if (
+			status === 'running' &&
+			useStore.getState().duplicateScanState === 'idle'
+		) {
+			setDuplicateScanState('running');
+		}
+	}, [dupeProgress?.status, setDuplicateScanState]);
 }
 
 /**

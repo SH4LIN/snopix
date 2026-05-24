@@ -1,9 +1,5 @@
 import { __, sprintf } from '@wordpress/i18n';
-import {
-	DuplicateGroup,
-	DuplicateImage,
-	useDeleteAttachment,
-} from '../hooks/use-duplicates';
+import { DuplicateGroup, DuplicateImage } from '../hooks/use-duplicates';
 
 /**
  * Render a byte count using 1024-based units (B / KB / MB), 1-decimal precision.
@@ -24,6 +20,8 @@ interface Props {
 	onKeepChange: (id: number) => void;
 	selected: boolean;
 	onToggleSelect: () => void;
+	onDelete: (ids: number[]) => void;
+	isDeleting: boolean;
 }
 
 /**
@@ -46,26 +44,13 @@ export default function DuplicateGroupCard({
 	onKeepChange,
 	selected,
 	onToggleSelect,
+	onDelete,
+	isDeleting,
 }: Props) {
-	const { mutateAsync: deleteAttachment, isPending } = useDeleteAttachment();
-
 	const toDelete = group.images.filter((img) => img.id !== keepId);
 
-	/**
-	 * Delete every non-keep attachment in this group, one at a time. Errors
-	 * from individual deletions are swallowed because the hook re-fetches the
-	 * duplicate list and any residue is shown on re-render.
-	 *
-	 * @return {Promise<void>}
-	 */
-	async function handleDelete() {
-		try {
-			for (const img of toDelete) {
-				await deleteAttachment(img.id);
-			}
-		} catch {
-			// hook invalidates query on partial success
-		}
+	function handleDelete() {
+		onDelete(toDelete.map((img) => img.id));
 	}
 
 	return (
@@ -97,7 +82,7 @@ export default function DuplicateGroupCard({
 					<button
 						className="ps-btn ps-btn--danger text-xs"
 						onClick={handleDelete}
-						disabled={isPending}
+						disabled={isDeleting}
 					>
 						{sprintf(
 							/* translators: %d: number of images to delete */

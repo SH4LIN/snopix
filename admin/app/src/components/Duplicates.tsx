@@ -122,21 +122,48 @@ export default function Duplicates() {
 
 	/**
 	 * Delete every non-keep attachment across the currently selected groups,
-	 * then clear the selection. Errors from individual deletions are swallowed
-	 * because the underlying hook re-fetches the list and surfaces residue.
+	 * then clear the selection. The delete plan is snapshotted into a flat
+	 * `idsToDelete` array up-front so that `onSuccess` invalidations mutating
+	 * the live `groups` list mid-loop cannot drop work or revisit IDs that
+	 * have already been deleted.
 	 *
 	 * @return {Promise<void>}
 	 */
 	async function handleBulkDelete() {
-		try {
-			for (const group of groups) {
-				if (!selectedGroups.has(groupKey(group))) continue;
-				const keep = getKeepId(group);
-				for (const img of group.images) {
-					if (img.id !== keep) await deleteAttachment(img.id);
-				}
+		const idsToDelete: number[] = [];
+		for (const group of groups) {
+			if (!selectedGroups.has(groupKey(group))) continue;
+			const keep = getKeepId(group);
+			for (const img of group.images) {
+				if (img.id !== keep) idsToDelete.push(img.id);
 			}
+		}
+
+		try {
+			for (const id of idsToDelete) {
+				await deleteAttachment(id);
+			}
+		} catch {
+			// hook invalidates query on partial success
+		} finally {
 			setSelectedGroups(new Set());
+		}
+	}
+
+	/**
+	 * Per-group delete handler passed to {@link DuplicateGroupCard}. Routes
+	 * through the parent's single shared mutation so concurrent deletes from
+	 * multiple cards are serialised behind one `isBulkDeleting` flag.
+	 *
+	 * @param {number[]} ids Attachment ids in this group to delete.
+	 *
+	 * @return {Promise<void>}
+	 */
+	async function handleGroupDelete(ids: number[]) {
+		try {
+			for (const id of ids) {
+				await deleteAttachment(id);
+			}
 		} catch {
 			// hook invalidates query on partial success
 		}
@@ -284,12 +311,14 @@ export default function Duplicates() {
 
 					{groups.map((group) => (
 						<DuplicateGroupCard
-							key={group.images[0].id}
+							key={groupKey(group)}
 							group={group}
 							keepId={getKeepId(group)}
 							onKeepChange={(id) => setKeepId(group, id)}
 							selected={selectedGroups.has(groupKey(group))}
 							onToggleSelect={() => toggleSelect(group)}
+							onDelete={handleGroupDelete}
+							isDeleting={isBulkDeleting}
 						/>
 					))}
 				</div>

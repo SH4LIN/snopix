@@ -152,6 +152,10 @@ export function useDuplicateScanProgress() {
 	// local state to running so the polling query becomes enabled. Without
 	// this a hard reload during a scan would leave the UI thinking it was
 	// idle and allow the user to start a duplicate job.
+	//
+	// `queryFn` is captured once (staleTime: Infinity) so closing over
+	// `duplicateScanState` from the hook scope would freeze the value forever
+	// — read live store state at signal time instead.
 	useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {
@@ -160,7 +164,7 @@ export function useDuplicateScanProgress() {
 			const body: DuplicateScanProgress = await res.json();
 			if (
 				body.status === 'running' &&
-				duplicateScanState === 'idle'
+				useStore.getState().duplicateScanState === 'idle'
 			) {
 				setDuplicateScanState('running');
 			}
@@ -185,6 +189,10 @@ export function useDuplicateScanProgress() {
 
 		if (progress.status === 'done') {
 			setDuplicateScanState('done');
+			if (resetTimerRef.current) {
+				clearTimeout(resetTimerRef.current);
+			}
+
 			resetTimerRef.current = setTimeout(() => {
 				setDuplicateScanState('idle');
 				qc.invalidateQueries({ queryKey: ['duplicates'] });

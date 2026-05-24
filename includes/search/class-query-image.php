@@ -26,6 +26,20 @@ class Query_Image {
 	private const MAX_FILE_SIZE = 10485760;
 
 	/**
+	 * Maximum allowed decoded pixel count (16 MP ≈ 4096×4096). A compressed
+	 * file under MAX_FILE_SIZE can still decompress into hundreds of MB of
+	 * pixel data and OOM the PHP worker (classic decompression bomb), so we
+	 * gate on dimensions before any GD function ever touches the file.
+	 */
+	private const MAX_PIXELS = 16_777_216;
+
+	/**
+	 * Postmeta flag set on probe attachments so Media_Hooks::on_upload can skip
+	 * auto-indexing — the probe is a throwaway search input, not library media.
+	 */
+	public const PROBE_META_KEY = '_pixel_scout_probe';
+
+	/**
 	 * Upload a query image from a $_FILES-style array and insert it as an attachment.
 	 *
 	 * @param array<string, mixed> $file Entry from $_FILES.
@@ -41,16 +55,41 @@ class Query_Image {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		$type_data = \wp_check_filetype( $file['name'] );
+		// Constrain wp_handle_upload to our explicit MIME allow-list. WP will
+		// sniff the actual file bytes (finfo) and reject mismatches, which
+		// closes the extension-only spoofing gap that wp_check_filetype()
+		// alone would leave open.
+		$mimes = array(
+			'jpg|jpeg|jpe' => 'image/jpeg',
+			'png'          => 'image/png',
+			'gif'          => 'image/gif',
+			'webp'         => 'image/webp',
+			'bmp'          => 'image/bmp',
+		);
 
-		if ( ! in_array( $type_data['type'], self::ALLOWED_MIMES, true ) ) {
-			return false;
-		}
-
-		$overrides = array( 'test_form' => false );
+		$overrides = array(
+			'test_form' => false,
+			'mimes'     => $mimes,
+		);
 		$upload    = \wp_handle_upload( $file, $overrides );
 
 		if ( isset( $upload['error'] ) || ! isset( $upload['file'] ) ) {
+			return false;
+		}
+
+		if ( ! in_array( $upload['type'] ?? '', self::ALLOWED_MIMES, true ) ) {
+			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			return false;
+		}
+
+		// Reject decompression bombs before any GD function decodes the file.
+		$dims = @getimagesize( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( ! is_array( $dims ) ) {
+			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			return false;
+		}
+		if ( ( (int) $dims[0] * (int) $dims[1] ) > self::MAX_PIXELS ) {
+			@unlink( $upload['file'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			return false;
 		}
 
@@ -59,6 +98,12 @@ class Query_Image {
 			'post_title'     => sanitize_file_name( basename( $upload['file'] ) ),
 			'post_content'   => '',
 			'post_status'    => 'inherit',
+			// Setting the probe flag via meta_input means the meta row is
+			// written inside wp_insert_attachment BEFORE the add_attachment
+			// action fires, so Media_Hooks::on_upload can detect and skip.
+			'meta_input'     => array(
+				self::PROBE_META_KEY => 1,
+			),
 		);
 
 		$attachment_id = \wp_insert_attachment( $attachment, $upload['file'] );

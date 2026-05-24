@@ -59,10 +59,15 @@ class Bulk_Indexer {
 	/**
 	 * Schedule bulk indexing for all unindexed attachments.
 	 *
+	 * Reserves the running slot synchronously by writing a placeholder progress
+	 * envelope before doing the (slower) work of resolving IDs. A concurrent
+	 * caller that races in between the check and the schedule will now see
+	 * status=running and bail out instead of double-scheduling.
+	 *
 	 * @return bool True if scheduled, false if a job is already running.
 	 */
 	public function schedule(): bool {
-		if ( $this->is_running() ) {
+		if ( ! $this->reserve_running_slot() ) {
 			return false;
 		}
 		$ids = $this->repository->get_unindexed_ids();
@@ -76,12 +81,28 @@ class Bulk_Indexer {
 	 * @return bool True if scheduled, false if a job is already running.
 	 */
 	public function schedule_all(): bool {
-		if ( $this->is_running() ) {
+		if ( ! $this->reserve_running_slot() ) {
 			return false;
 		}
 		$this->repository->clear_all();
 		$ids = $this->repository->get_unindexed_ids();
 		$this->schedule_ids( $ids );
+		return true;
+	}
+
+	/**
+	 * Atomically (best-effort, via single transient write) flip progress to
+	 * `running` if and only if it is currently `idle`. Returns false when a
+	 * job is already running or stalled so callers must not proceed.
+	 *
+	 * @return bool
+	 */
+	private function reserve_running_slot(): bool {
+		$state = $this->progress->get();
+		if ( 'running' === $state['status'] || 'stalled' === $state['status'] ) {
+			return false;
+		}
+		$this->progress->set( 0, 0 );
 		return true;
 	}
 
@@ -109,17 +130,20 @@ class Bulk_Indexer {
 	/**
 	 * Schedule the first batch immediately, storing the rest in a transient queue.
 	 *
+	 * If the caller reserved a running slot but the resolved ID list is empty,
+	 * the reservation is released so the UI doesn't see a phantom running job.
+	 *
 	 * @param array<int> $ids Attachment IDs to schedule.
 	 *
 	 * @return void
 	 */
 	private function schedule_ids( array $ids ): void {
 		if ( empty( $ids ) ) {
+			$this->progress->reset();
 			return;
 		}
 
 		$this->scheduler->cancel_all( self::CRON_HOOK );
-		$this->progress->reset();
 		$this->progress->set( 0, count( $ids ) );
 
 		set_transient( self::PENDING_KEY, array_values( $ids ), DAY_IN_SECONDS );
@@ -158,19 +182,36 @@ class Bulk_Indexer {
 		}
 
 		$succeeded = 0;
-		foreach ( $batch_ids as $id ) {
-			if ( $this->indexer->index_single( $id ) ) {
-				++$succeeded;
+		try {
+			foreach ( $batch_ids as $id ) {
+				try {
+					if ( $this->indexer->index_single( $id ) ) {
+						++$succeeded;
+					}
+				} catch ( \Throwable $e ) {
+					// One bad attachment must not poison the whole batch — log and continue.
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log( sprintf( '[Pixel Scout] index_single threw for attachment %d: %s', $id, $e->getMessage() ) );
+					}
+				}
 			}
+
+			$this->progress->increment_by( count( $batch_ids ) );
+		} catch ( \Throwable $e ) {
+			// Unexpected — counter not advanced; abort the chain so progress doesn't stick on running.
+			delete_transient( self::PENDING_KEY );
+			$this->progress->mark_stalled();
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( '[Pixel Scout] process_batch aborted: ' . $e->getMessage() );
+			}
+			return;
 		}
 
-		// Increment once per batch — N transient round-trips collapse into one.
-		$this->progress->increment_by( count( $batch_ids ) );
-
-		// If every image in the batch failed AND there are still images
-		// remaining, halt the chain so we don't burn through the queue on a
-		// fundamentally broken environment (missing GD ext, all-corrupt media).
-		if ( ! empty( $remaining ) && 0 === $succeeded ) {
+		// Halt the chain if every image in the batch failed — protects against a
+		// fundamentally broken environment burning through the entire queue.
+		if ( 0 === $succeeded ) {
 			delete_transient( self::PENDING_KEY );
 			$this->progress->mark_stalled();
 			return;

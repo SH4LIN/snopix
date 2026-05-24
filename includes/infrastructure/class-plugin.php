@@ -230,16 +230,15 @@ class Plugin {
 		$schema = new Schema();
 		$schema->uninstall();
 
+		( new Index_Progress() )->reset();
+		( new Duplicate_Progress() )->reset();
+
 		delete_option( 'ps_settings' );
 		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
 		delete_option( 'ps_duplicate_results' );
 		delete_option( 'ps_duplicate_last_scanned' );
-		delete_transient( 'ps_bulk_progress' );
-		delete_transient( 'ps_bulk_total' );
-		delete_transient( 'ps_bulk_status' );
-		delete_transient( 'ps_dup_progress' );
-		delete_transient( 'ps_dup_total' );
-		delete_transient( 'ps_dup_status' );
-		delete_transient( 'ps_bulk_pending' );
+
+		delete_transient( Bulk_Indexer::PENDING_KEY );
+		delete_transient( 'ps_duplicate_scan_state' );
 	}
 }

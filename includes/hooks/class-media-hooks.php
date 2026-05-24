@@ -8,6 +8,7 @@
 namespace PixelScout\Hooks;
 
 use PixelScout\Indexing\Image_Indexer;
+use PixelScout\Search\Query_Image;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -43,6 +44,11 @@ class Media_Hooks {
 	 * @return void
 	 */
 	public function on_upload( int $attachment_id ): void {
+		// Skip probe images uploaded by the /search endpoint — they are
+		// throwaway and would create an orphan index row if cleanup() fails.
+		if ( get_post_meta( $attachment_id, Query_Image::PROBE_META_KEY, true ) ) {
+			return;
+		}
 		$this->indexer->index_single( $attachment_id );
 	}
 

@@ -101,18 +101,23 @@ class Duplicate_Scanner {
 	 * Execute one batch of the duplicate scan and either reschedule the next
 	 * batch or finalise the results.
 	 *
+	 * The full row list is loaded once on the first tick and snapshotted into
+	 * the state transient so subsequent ticks reuse it. This avoids re-running
+	 * an O(N) DB read + N-row materialisation on every tick of a long scan,
+	 * which at 10k+ rows would otherwise dominate runtime and memory.
+	 *
 	 * @return void
 	 */
 	public function run(): void {
-		$rows = $this->repository->get_all_with_hash();
+		$state = $this->load_state();
+
+		$rows = $state['rows'];
 		$n    = count( $rows );
 
 		if ( $n < 2 ) {
 			$this->finalise( array() );
 			return;
 		}
-
-		$state = $this->load_state( $rows );
 
 		$cursor  = (int) $state['cursor'];
 		$parents = $state['parents'];
@@ -145,12 +150,15 @@ class Duplicate_Scanner {
 			}
 
 			++$cursor;
-			$this->progress->set( $cursor, $n );
 
 			if ( ( microtime( true ) - $start ) >= self::BATCH_BUDGET_SECONDS ) {
 				break;
 			}
 		}
+
+		// Update progress once per tick rather than per row — collapses N
+		// three-transient writes into a single envelope write.
+		$this->progress->set( $cursor, $n );
 
 		if ( $cursor >= $n ) {
 			$groups = $this->collect_groups( $rows, $parents );
@@ -163,8 +171,9 @@ class Duplicate_Scanner {
 			array(
 				'cursor'  => $cursor,
 				'parents' => $parents,
+				'rows'    => $rows,
 			),
-			HOUR_IN_SECONDS
+			DAY_IN_SECONDS
 		);
 		$this->scheduler->schedule( self::CRON_HOOK, array(), 1 );
 	}
@@ -190,18 +199,20 @@ class Duplicate_Scanner {
 	}
 
 	/**
-	 * Load the cross-batch state from the transient, or initialise it.
+	 * Load the cross-batch state from the transient, or initialise it by
+	 * snapshotting the current row set on the first tick. The snapshot is
+	 * intentional: rows added after the scan started should not change the
+	 * pairwise work plan mid-run.
 	 *
-	 * @param array<int, array<string, mixed>> $rows Indexed rows.
-	 *
-	 * @return array{cursor: int, parents: array<int, int>}
+	 * @return array{cursor: int, parents: array<int, int>, rows: array<int, array<string, mixed>>}
 	 */
-	private function load_state( array $rows ): array {
+	private function load_state(): array {
 		$state = get_transient( self::STATE_TRANSIENT );
-		if ( is_array( $state ) && isset( $state['cursor'], $state['parents'] ) ) {
+		if ( is_array( $state ) && isset( $state['cursor'], $state['parents'], $state['rows'] ) ) {
 			return $state;
 		}
 
+		$rows    = $this->repository->get_all_with_hash();
 		$parents = array();
 		foreach ( $rows as $row ) {
 			$id             = (int) $row['attachment_id'];
@@ -211,6 +222,7 @@ class Duplicate_Scanner {
 		return array(
 			'cursor'  => 0,
 			'parents' => $parents,
+			'rows'    => $rows,
 		);
 	}
 
