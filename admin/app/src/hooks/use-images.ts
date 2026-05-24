@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 interface ImageRow {
 	attachment_id: number;
@@ -33,19 +32,13 @@ interface UseImagesParams {
 export function useImages({ afterId, search }: UseImagesParams) {
 	return useQuery<ImageRow[]>({
 		queryKey: ['images', afterId, search],
-		queryFn: async () => {
+		queryFn: () => {
 			const params = new URLSearchParams({
 				after_id: String(afterId),
 				per_page: '25',
 				search,
 			});
-			const res = await fetch(`${ps_data.rest_url}images?${params}`, {
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			if (!res.ok) {
-				throw new Error('Failed to fetch images');
-			}
-			return res.json();
+			return apiFetch<ImageRow[]>(`images?${params}`);
 		},
 		staleTime: 30_000,
 	});

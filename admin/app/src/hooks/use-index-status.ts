@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 export interface IndexProgress {
 	done: number;
@@ -43,15 +42,7 @@ export function useIndexStatus() {
 
 	const query = useQuery<IndexStatus>({
 		queryKey: ['status'],
-		queryFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}status`, {
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			if (!res.ok) {
-				throw new Error('Failed to fetch status');
-			}
-			return res.json();
-		},
+		queryFn: () => apiFetch<IndexStatus>('status'),
 		refetchInterval,
 	});
 

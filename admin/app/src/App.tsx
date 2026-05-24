@@ -3,12 +3,21 @@ import { __ } from '@wordpress/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useRouterState, Outlet } from '@tanstack/react-router';
 import { useStore } from './store/use-store';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from './lib/api';
 
 interface ProgressResponse {
 	status: 'idle' | 'running' | 'done' | 'stalled';
 }
+
+const safeProgress = async (path: string): Promise<ProgressResponse> => {
+	try {
+		return await apiFetch<ProgressResponse>(path);
+	} catch {
+		// Boot-time probe — swallow errors and assume idle so the UI mounts
+		// cleanly even if the REST endpoint is unreachable on first paint.
+		return { status: 'idle' };
+	}
+};
 
 /**
  * Sync the Zustand store with any in-flight indexing or duplicate-scan jobs at
@@ -32,24 +41,14 @@ function useInitProgress() {
 
 	const { data: indexProgress } = useQuery<ProgressResponse>({
 		queryKey: ['init-index-progress'],
-		queryFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}progress`, {
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			return res.ok ? res.json() : { status: 'idle' };
-		},
+		queryFn: () => safeProgress('progress'),
 		staleTime: Infinity,
 		refetchInterval: false,
 	});
 
 	const { data: dupeProgress } = useQuery<ProgressResponse>({
 		queryKey: ['init-dupe-progress'],
-		queryFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}duplicates/progress`, {
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			return res.ok ? res.json() : { status: 'idle' };
-		},
+		queryFn: () => safeProgress('duplicates/progress'),
 		staleTime: Infinity,
 		refetchInterval: false,
 	});

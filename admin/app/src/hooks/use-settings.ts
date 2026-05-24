@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 export interface PSSettings {
 	search_visibility: 'anyone' | 'logged_in';
@@ -17,15 +16,7 @@ export interface PSSettings {
 export function useSettings() {
 	return useQuery<PSSettings>({
 		queryKey: ['settings'],
-		queryFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}settings`, {
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			if (!res.ok) {
-				throw new Error('Failed to fetch settings');
-			}
-			return res.json();
-		},
+		queryFn: () => apiFetch<PSSettings>('settings'),
 		staleTime: 30_000,
 	});
 }
@@ -41,20 +32,8 @@ export function useSettings() {
 export function useUpdateSettings() {
 	const qc = useQueryClient();
 	return useMutation<PSSettings, Error, Partial<PSSettings>>({
-		mutationFn: async (payload) => {
-			const res = await fetch(`${ps_data.rest_url}settings`, {
-				method: 'POST',
-				headers: {
-					'X-WP-Nonce': ps_data.nonce,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) {
-				throw new Error('Failed to update settings');
-			}
-			return res.json();
-		},
+		mutationFn: (payload) =>
+			apiFetch<PSSettings>('settings', { method: 'POST', json: payload }),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ['settings'] });
 		},

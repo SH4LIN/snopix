@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 export interface Progress {
 	done: number;
@@ -12,24 +11,6 @@ export interface Progress {
 
 const STALL_MS = 45_000;
 const DONE_RESET_MS = 3_000;
-
-/**
- * Fetch the current indexing progress envelope.
- *
- * Hits `GET /wp-json/ps/v1/progress` and throws on a non-2xx response so React
- * Query treats it as an error.
- *
- * @return {Promise<Progress>} Done/total counters and a status discriminator.
- */
-async function fetchProgress(): Promise<Progress> {
-	const res = await fetch(`${ps_data.rest_url}progress`, {
-		headers: { 'X-WP-Nonce': ps_data.nonce },
-	});
-	if (!res.ok) {
-		throw new Error('Failed to fetch progress');
-	}
-	return res.json();
-}
 
 /**
  * Poll `/progress` while indexing is running and drive the indexing state
@@ -69,7 +50,7 @@ export function useIndexingProgress() {
 
 	const { data: progress } = useQuery<Progress>({
 		queryKey: ['progress'],
-		queryFn: fetchProgress,
+		queryFn: () => apiFetch<Progress>('progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});
@@ -110,28 +91,13 @@ export function useIndexingProgress() {
 }
 
 /**
- * Error thrown when the server rejects a state-changing request because a
- * conflicting job is already running. Carries the parsed REST error payload
- * so the UI can surface the server-supplied message.
- */
-export class ConflictError extends Error {
-	constructor(
-		message: string,
-		public readonly code: string
-	) {
-		super(message);
-		this.name = 'ConflictError';
-	}
-}
-
-/**
  * Mutation that POSTs to `/wp-json/ps/v1/reindex` to start an "index missing"
  * background job. On success flips the global state to `'running'` and
  * invalidates the `/status` query so the counter updates immediately.
  *
- * Rejects with {@link ConflictError} when the server returns 409 (job
- * already running) so the caller can show a toast instead of treating it as
- * a generic failure.
+ * Rejects with `ConflictError` (re-exported from `lib/api`) when the server
+ * returns 409 so the caller can show a toast instead of treating it as a
+ * generic failure.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
  */
@@ -140,24 +106,7 @@ export function useReindex() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}reindex`, {
-				method: 'POST',
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			if (res.status === 409) {
-				const body = await res.json().catch(() => ({}));
-				throw new ConflictError(
-					body?.message ??
-						'A bulk indexing job is already in progress.',
-					body?.code ?? 'indexing_running'
-				);
-			}
-			if (!res.ok) {
-				throw new Error('Reindex failed');
-			}
-			return res.json();
-		},
+		mutationFn: () => apiFetch('reindex', { method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('running');
 			qc.invalidateQueries({ queryKey: ['status'] });
@@ -177,16 +126,7 @@ export function useResetProgress() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: async () => {
-			const res = await fetch(`${ps_data.rest_url}reset-progress`, {
-				method: 'POST',
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-			});
-			if (!res.ok) {
-				throw new Error('Reset failed');
-			}
-			return res.json();
-		},
+		mutationFn: () => apiFetch('reset-progress', { method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('idle');
 			qc.invalidateQueries({ queryKey: ['status'] });

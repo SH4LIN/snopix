@@ -1,54 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
-import { ConflictError } from './use-reindex';
+import { apiFetch } from '../lib/api';
 
-declare const ps_data: { rest_url: string; nonce: string };
-
-/**
- * Issue an authenticated POST to a Pixel Scout REST endpoint and return the
- * decoded JSON body. Throws {@link ConflictError} on 409 so callers can
- * surface the server-supplied message, or a generic Error on other non-2xx
- * statuses.
- *
- * @param {string} path REST sub-path appended to `ps_data.rest_url`.
- *
- * @return {Promise<T>} Parsed JSON response body.
- */
-async function post<T>(path: string): Promise<T> {
-	const res = await fetch(`${ps_data.rest_url}${path}`, {
-		method: 'POST',
-		headers: { 'X-WP-Nonce': ps_data.nonce },
-	});
-	if (res.status === 409) {
-		const body = await res.json().catch(() => ({}));
-		throw new ConflictError(
-			body?.message ?? `${path} conflicted with an in-flight job.`,
-			body?.code ?? 'conflict'
-		);
-	}
-	if (!res.ok) {
-		throw new Error(`${path} failed`);
-	}
-	return res.json();
-}
-
-/**
- * Issue an authenticated GET to a Pixel Scout REST endpoint and return the
- * decoded JSON body. Throws on a non-2xx status.
- *
- * @param {string} path REST sub-path appended to `ps_data.rest_url`.
- *
- * @return {Promise<T>} Parsed JSON response body.
- */
-async function get<T>(path: string): Promise<T> {
-	const res = await fetch(`${ps_data.rest_url}${path}`, {
-		headers: { 'X-WP-Nonce': ps_data.nonce },
-	});
-	if (!res.ok) {
-		throw new Error(`${path} failed`);
-	}
-	return res.json();
-}
+const post = <T>(path: string): Promise<T> =>
+	apiFetch<T>(path, { method: 'POST' });
+const get = <T>(path: string): Promise<T> => apiFetch<T>(path);
 
 /**
  * Mutation that triggers a full wipe-and-reindex via

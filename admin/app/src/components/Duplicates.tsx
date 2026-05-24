@@ -9,7 +9,7 @@ import {
 	useDeleteAttachment,
 	useResetDuplicateScan,
 } from '../hooks/use-duplicates';
-import { ConflictError } from '../hooks/use-reindex';
+import { ConflictError } from '../lib/api';
 import DuplicateGroupCard from './DuplicateGroupCard';
 
 /**

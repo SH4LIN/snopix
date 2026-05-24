@@ -9,7 +9,8 @@ import {
 	useClearCache,
 	useOrphanCount,
 } from '../hooks/use-tools';
-import { useReindex, ConflictError } from '../hooks/use-reindex';
+import { useReindex } from '../hooks/use-reindex';
+import { ConflictError } from '../lib/api';
 
 type ToolKey =
 	| 'reindex'

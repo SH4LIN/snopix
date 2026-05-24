@@ -1,4 +1,5 @@
 import { __ } from '@wordpress/i18n';
+import { formatBytes } from '../lib/format';
 
 interface ImageData {
 	attachment_id: number;
@@ -23,23 +24,6 @@ const ERROR_LABELS: Record<string, string> = {
 interface Props {
 	image: ImageData;
 	onImageClick: (url: string) => void;
-}
-
-/**
- * Render a byte count using 1024-based units (B / KB / MB), 1-decimal precision.
- *
- * @param {number} bytes Raw byte count from the indexer.
- *
- * @return {string} Human-friendly string such as `"512 B"`, `"3.4 KB"`, `"12.1 MB"`.
- */
-function formatBytes(bytes: number): string {
-	if (bytes < 1024) {
-		return `${bytes} B`;
-	}
-	if (bytes < 1024 * 1024) {
-		return `${(bytes / 1024).toFixed(1)} KB`;
-	}
-	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 /**

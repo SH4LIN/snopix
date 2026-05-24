@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 interface SearchResultItem {
 	id: number;
@@ -44,15 +43,12 @@ export default function SearchPreview() {
 		const fd = new FormData();
 		fd.append('file', file);
 		try {
-			const res = await fetch(`${ps_data.rest_url}search`, {
-				method: 'POST',
-				headers: { 'X-WP-Nonce': ps_data.nonce },
-				body: fd,
-			});
-			if (!res.ok) {
-				throw new Error('Search failed');
-			}
-			setResults(await res.json());
+			setResults(
+				await apiFetch<SearchResultItem[]>('search', {
+					method: 'POST',
+					rawBody: fd,
+				})
+			);
 		} catch {
 			setError(
 				__(

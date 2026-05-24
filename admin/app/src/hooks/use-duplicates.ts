@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
-import { ConflictError } from './use-reindex';
-
-declare const ps_data: { rest_url: string; nonce: string };
+import { apiFetch } from '../lib/api';
 
 export interface DuplicateImage {
 	id: number;
@@ -37,22 +35,6 @@ export interface DuplicateScanProgress {
 const DONE_RESET_MS = 3_000;
 
 /**
- * Lightweight wrapper around `fetch` that injects the WP REST nonce and the
- * Pixel Scout REST base URL. Caller-supplied `init` fields override defaults.
- *
- * @param {string}       path REST sub-path appended to `ps_data.rest_url`.
- * @param {RequestInit=} init Optional Fetch init overrides.
- *
- * @return {Promise<Response>} Raw fetch response — callers must inspect `ok`.
- */
-async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-	return fetch(`${ps_data.rest_url}${path}`, {
-		headers: { 'X-WP-Nonce': ps_data.nonce },
-		...init,
-	});
-}
-
-/**
  * Fetch the cached duplicate-scan result via `GET /wp-json/ps/v1/duplicates`.
  *
  * Cached for 60 s on the client to keep the Duplicates tab responsive while
@@ -63,13 +45,7 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
 export function useDuplicates() {
 	return useQuery<DuplicatesData>({
 		queryKey: ['duplicates'],
-		queryFn: async () => {
-			const res = await apiFetch('duplicates');
-			if (!res.ok) {
-				throw new Error('Failed to fetch duplicates');
-			}
-			return res.json();
-		},
+		queryFn: () => apiFetch<DuplicatesData>('duplicates'),
 		staleTime: 60_000,
 	});
 }
@@ -79,8 +55,7 @@ export function useDuplicates() {
  * duplicate-detection job. On success flips the duplicate-scan state to
  * `'running'` so the polling hook starts firing.
  *
- * Rejects with {@link ConflictError} when the server returns 409 so the
- * caller can surface a toast instead of treating it as a generic failure.
+ * Rejects with `ConflictError` (from `lib/api`) when the server returns 409.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
  */
@@ -89,20 +64,7 @@ export function useStartDuplicateScan() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: async () => {
-			const res = await apiFetch('duplicates/scan', { method: 'POST' });
-			if (res.status === 409) {
-				const body = await res.json().catch(() => ({}));
-				throw new ConflictError(
-					body?.message ?? 'A duplicate scan is already in progress.',
-					body?.code ?? 'scan_running'
-				);
-			}
-			if (!res.ok) {
-				throw new Error('Failed to start scan');
-			}
-			return res.json();
-		},
+		mutationFn: () => apiFetch('duplicates/scan', { method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('running');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -121,13 +83,7 @@ export function useResetDuplicateScan() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: async () => {
-			const res = await apiFetch('duplicates/reset', { method: 'POST' });
-			if (!res.ok) {
-				throw new Error('Reset failed');
-			}
-			return res.json();
-		},
+		mutationFn: () => apiFetch('duplicates/reset', { method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('idle');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -167,11 +123,9 @@ export function useDuplicateScanProgress() {
 	useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {
-			const res = await apiFetch('duplicates/progress');
-			if (!res.ok) {
-				throw new Error('Failed to fetch scan progress');
-			}
-			const body: DuplicateScanProgress = await res.json();
+			const body = await apiFetch<DuplicateScanProgress>(
+				'duplicates/progress'
+			);
 			if (
 				body.status === 'running' &&
 				useStore.getState().duplicateScanState === 'idle'
@@ -185,13 +139,7 @@ export function useDuplicateScanProgress() {
 
 	const { data: progress } = useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress'],
-		queryFn: async () => {
-			const res = await apiFetch('duplicates/progress');
-			if (!res.ok) {
-				throw new Error('Failed to fetch scan progress');
-			}
-			return res.json();
-		},
+		queryFn: () => apiFetch<DuplicateScanProgress>('duplicates/progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});
@@ -228,15 +176,8 @@ export function useDeleteAttachment() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (id: number) => {
-			const res = await apiFetch(`duplicates/attachment/${id}`, {
-				method: 'DELETE',
-			});
-			if (!res.ok) {
-				throw new Error('Failed to delete attachment');
-			}
-			return res.json();
-		},
+		mutationFn: (id: number) =>
+			apiFetch(`duplicates/attachment/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ['duplicates'] });
 		},

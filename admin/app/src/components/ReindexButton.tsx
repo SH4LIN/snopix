@@ -4,8 +4,8 @@ import {
 	useReindex,
 	useIndexingProgress,
 	useResetProgress,
-	ConflictError,
 } from '../hooks/use-reindex';
+import { ConflictError } from '../lib/api';
 
 interface Status {
 	total: number;
