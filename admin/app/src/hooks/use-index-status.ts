@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from '../store/use-store';
 
@@ -29,7 +29,17 @@ interface IndexStatus {
  * @return {import('@tanstack/react-query').UseQueryResult<IndexStatus>}
  */
 export function useIndexStatus() {
-	const { indexingState, setIndexingState } = useStore();
+	const setIndexingState = useStore((s) => s.setIndexingState);
+	const indexingState = useStore((s) => s.indexingState);
+	const lastHandledRef = useRef<string | null>(null);
+
+	// Poll fast while a bulk job is in flight so the "X of Y indexed"
+	// counter stays in sync with the progress bar that updates every 2 s;
+	// fall back to the cheap 30 s cadence when nothing is happening.
+	const refetchInterval =
+		indexingState === 'running' || indexingState === 'stalled'
+			? 2_000
+			: 30_000;
 
 	const query = useQuery<IndexStatus>({
 		queryKey: ['status'],
@@ -42,23 +52,28 @@ export function useIndexStatus() {
 			}
 			return res.json();
 		},
-		refetchInterval: 30_000,
+		refetchInterval,
 	});
 
 	useEffect(() => {
 		const serverStatus = query.data?.progress?.status;
 		if (!serverStatus) return;
 
-		// Only promote idle → running/stalled; never demote a locally-tracked
-		// running/done back to idle here — the polling state machine in
-		// useIndexingProgress owns that transition.
-		if (
-			(serverStatus === 'running' || serverStatus === 'stalled') &&
-			indexingState === 'idle'
-		) {
-			setIndexingState(serverStatus);
+		// Fire once per distinct server-reported status so a local state flip
+		// (e.g. Reset → 'idle') cannot replay a stale 'running'/'stalled'
+		// payload and undo the user's action. The polling state machine in
+		// useIndexingProgress owns transitions out of running/stalled.
+		if (lastHandledRef.current === serverStatus) return;
+		lastHandledRef.current = serverStatus;
+
+		if (serverStatus === 'running' || serverStatus === 'stalled') {
+			// Read the current state at the moment of the server signal so we
+			// don't fight a concurrent local transition.
+			if (useStore.getState().indexingState === 'idle') {
+				setIndexingState(serverStatus);
+			}
 		}
-	}, [query.data?.progress?.status, indexingState, setIndexingState]);
+	}, [query.data?.progress?.status, setIndexingState]);
 
 	return query;
 }
