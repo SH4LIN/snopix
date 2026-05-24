@@ -2,9 +2,9 @@
 
 Reverse image search and duplicate detection for the WordPress media library.
 
-> ⚠️ Early-stage software. Search ranking and duplicate clustering are still
-> being tuned, and the index schema may change between 0.x releases. Test on
-> a staging site before deploying to production.
+> ⚠️ Search ranking and duplicate clustering are still being tuned, so
+> results may be less accurate than expected and the index schema may change
+> between 0.x releases.
 
 **Requires:** WordPress 6.0+, PHP 8.0+ — **License:** GPLv2 or later
 

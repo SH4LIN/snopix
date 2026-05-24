@@ -12,14 +12,12 @@ Reverse image search and duplicate detection for the WordPress media library, po
 
 Source code and issue tracker: https://github.com/SH4LIN/pixel-scout
 
-== Early-stage software notice ==
+== Accuracy notice ==
 
-Pixel Scout is in **early development**. The plugin is functional but not yet
-hardened for high-traffic production sites. Search ranking, duplicate
-detection and the threshold tuning may produce false positives or miss
-visually-similar images depending on your media library. Treat the current
-release as a preview: please test it on a staging environment first, keep
-backups, and report anything that looks off.
+Pixel Scout is functional, but search ranking, duplicate detection and the
+threshold tuning may be less accurate than expected — you may see occasional
+false positives or miss visually-similar images depending on your media
+library. Please report anything that looks off.
 
 == Description ==
 
@@ -80,12 +78,6 @@ By default the endpoint is open to anyone. Restrict it to logged-in users in
 **Settings → Connectors → Pixel Scout**.
 
 == Frequently Asked Questions ==
-
-= Is this ready for production? =
-
-Not yet. Pixel Scout is in early development. Expect occasional false
-positives in the search and duplicate-detection results, and please test on
-a staging copy of your site before installing it on a live one.
 
 = What image formats are supported? =
 
