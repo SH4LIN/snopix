@@ -13,7 +13,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'PIXEL_SCOUT_VERSION', '0.1.0' );
-define( 'PIXEL_SCOUT_DB_VERSION', '1.0.0' );
+define( 'PIXEL_SCOUT_DB_VERSION', '0.1.0' );
 define( 'PIXEL_SCOUT_FILE', __DIR__ . '/pixel-scout.php' );
 define( 'PIXEL_SCOUT_PLUGIN_DIR', __DIR__ . '/' );
 define( 'PIXEL_SCOUT_PLUGIN_URL', 'http://localhost/' );

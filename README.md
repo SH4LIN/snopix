@@ -85,7 +85,7 @@ distinguish a broken upload from an empty result set.
 
 ```bash
 bash bin/build-zip.sh             # uses version from pixel-scout.php
-bash bin/build-zip.sh 0.2.0       # override
+bash bin/build-zip.sh 0.1.1       # override
 ```
 
 The script runs `npm ci && npm run build` for the admin app, then `rsync`s
