@@ -69,12 +69,15 @@ export default function Tools() {
 				)
 			: null;
 
-	// Actions that mutate or rebuild the index — must not run concurrently
-	// with a bulk job. Orphans and cache flush are safe at any time.
+	// Actions that mutate index rows OR reset progress transients — must not
+	// run concurrently with a bulk job. Clear-cache is locked because it
+	// resets the progress envelope (server also enforces this with a 409);
+	// orphan deletion only touches dead rows and is safe at any time.
 	const indexLockedKeys: Array<Exclude<ToolKey, null>> = [
 		'reindex',
 		'reindex-all',
 		'clear-index',
+		'cache',
 	];
 
 	const cards: Record<Exclude<ToolKey, null>, ToolCard> = {
