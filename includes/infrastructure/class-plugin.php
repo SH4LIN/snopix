@@ -214,18 +214,29 @@ class Plugin {
 	 * @return void
 	 */
 	public static function uninstall(): void {
-		$schema = new Schema();
-		$schema->uninstall();
+		// Read the cleanup preference BEFORE we drop the option — otherwise we
+		// always see the default value once the row is gone.
+		$should_drop = Settings::should_drop_on_uninstall();
 
 		( new Index_Progress() )->reset();
 		( new Duplicate_Progress() )->reset();
 
-		delete_option( 'snopix_settings' );
+		delete_transient( Bulk_Indexer::PENDING_KEY );
+		delete_transient( 'snopix_duplicate_scan_state' );
+
+		if ( ! $should_drop ) {
+			// User opted out of destructive uninstall — leave the table, the
+			// settings row, and any cached duplicate results so a reinstall
+			// resumes where they left off.
+			return;
+		}
+
+		$schema = new Schema();
+		$schema->uninstall();
+
+		delete_option( Settings::OPTION_NAME );
 		delete_option( SNOPIX_OPTION_DB_VERSION );
 		delete_option( 'snopix_duplicate_results' );
 		delete_option( 'snopix_duplicate_last_scanned' );
-
-		delete_transient( Bulk_Indexer::PENDING_KEY );
-		delete_transient( 'snopix_duplicate_scan_state' );
 	}
 }

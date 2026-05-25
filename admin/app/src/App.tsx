@@ -4,6 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useRouterState, Outlet } from '@tanstack/react-router';
 import { useStore } from './store/use-store';
 import { apiFetch } from './lib/api';
+import { useIndexStatus } from './hooks/use-index-status';
+import { useReindex } from './hooks/use-reindex';
+import { BrandMark, IconUpload } from './components/icons';
 
 interface ProgressResponse {
 	status: 'idle' | 'running' | 'done' | 'stalled';
@@ -13,23 +16,13 @@ const safeProgress = async (path: string): Promise<ProgressResponse> => {
 	try {
 		return await apiFetch<ProgressResponse>(`snopix/v1/${path}`);
 	} catch {
-		// Boot-time probe — swallow errors and assume idle so the UI mounts
-		// cleanly even if the REST endpoint is unreachable on first paint.
 		return { status: 'idle' };
 	}
 };
 
 /**
  * Sync the Zustand store with any in-flight indexing or duplicate-scan jobs at
- * boot. Runs two one-shot `/progress` REST fetches and, if either reports a
- * running job, flips the matching state to `'running'` so the rest of the UI
- * picks up where the previous session left off.
- *
- * Guarded against replay: each query's cached result is acted on at most once
- * per distinct status value. Without this guard a local transition (e.g. the
- * user clicks Reset → state = 'idle') would re-fire the effect, find the
- * still-cached server response saying `running`, and flip the state right
- * back, leaving the UI permanently stuck.
+ * boot. See note on the original implementation for the replay-guard rationale.
  *
  * @return {void}
  */
@@ -82,74 +75,94 @@ function useInitProgress() {
 	}, [dupeProgress?.status, setDuplicateScanState]);
 }
 
+const TABS = [
+	{ id: 'dashboard', path: '/dashboard', label: 'Dashboard' },
+	{ id: 'duplicates', path: '/duplicates', label: 'Duplicates' },
+	{ id: 'tools', path: '/tools', label: 'Tools' },
+	{ id: 'settings', path: '/settings', label: 'Settings' },
+] as const;
+
 /**
  * Top-level admin app shell.
  *
- * Renders the Snopix heading and the Dashboard / Duplicates / Tools tab
- * strip. The active route's component is rendered into the router `<Outlet />`.
- * Also bootstraps the global progress store via {@link useInitProgress}.
+ * Renders the plugin brand header (logo, title, doc link, "Index remaining"
+ * CTA), the Dashboard / Duplicates / Tools / Settings tab strip, and the
+ * router outlet for the active route's component.
  *
  * @return {JSX.Element}
  */
 export default function App() {
 	useInitProgress();
-
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const { data: status } = useIndexStatus();
+	const { indexingState } = useStore();
+	const { mutate: startReindex, isPending } = useReindex();
 
-	/**
-	 * Compute the Tailwind class list for a single tab button.
-	 *
-	 * @param {string} path Router path the tab navigates to.
-	 *
-	 * @return {string} Space-separated class string with active-state styling applied.
-	 */
-	const tabClass = (path: string) => {
-		const active = pathname === path;
-		return `px-4 py-2 text-[14px] font-medium border-b-2 cursor-pointer transition-colors ${
-			active
-				? 'text-snopix-accent border-snopix-accent'
-				: 'text-snopix-muted border-transparent hover:text-snopix-text'
-		}`;
-	};
+	const pending = status?.pending ?? 0;
+	const canReindex = pending > 0 && indexingState === 'idle';
 
 	return (
-		<div id="snopix-app" className="p-6 w-full">
-			<h1 className="text-[28px] font-bold mb-1 text-snopix-text">
-				{__('Snopix', 'snopix')}
-			</h1>
-			<p className="text-snopix-muted text-sm mb-4">
-				{__('Image similarity search', 'snopix')}
-			</p>
-
-			<div className="flex gap-1 border-b border-snopix-border mb-6">
-				<button
-					className={tabClass('/dashboard')}
-					onClick={() => navigate({ to: '/dashboard' })}
-				>
-					{__('Dashboard', 'snopix')}
-				</button>
-				<button
-					className={tabClass('/duplicates')}
-					onClick={() => navigate({ to: '/duplicates' })}
-				>
-					{__('Duplicates', 'snopix')}
-				</button>
-				<button
-					className={tabClass('/tools')}
-					onClick={() => navigate({ to: '/tools' })}
-				>
-					{__('Tools', 'snopix')}
-				</button>
-				<button
-					className={tabClass('/settings')}
-					onClick={() => navigate({ to: '/settings' })}
-				>
-					{__('Settings', 'snopix')}
-				</button>
+		<div id="snopix-app" className="w-full">
+			<div className="bg-snopix-bg border-b border-snopix-border">
+				<div className="mx-auto w-full max-w-[1240px] px-10 pt-5">
+					<div className="flex items-center justify-between mb-3.5">
+						<div className="flex items-center gap-3">
+							<BrandMark size={32} />
+							<div>
+								<div className="text-[18px] font-semibold tracking-[-0.015em] leading-none">
+									{__('Snopix', 'snopix')}
+								</div>
+								<div className="text-[12px] text-snopix-muted mt-1">
+									{__(
+										'Reverse-image search & duplicate detection',
+										'snopix'
+									)}
+								</div>
+							</div>
+						</div>
+						<div className="flex items-center gap-2">
+							<button
+								className="snopix-btn snopix-btn--sm"
+								onClick={() => startReindex()}
+								disabled={!canReindex || isPending}
+								title={
+									!canReindex
+										? __(
+												'No pending attachments.',
+												'snopix'
+											)
+										: undefined
+								}
+							>
+								<IconUpload size={14} />{' '}
+								{__('Index remaining', 'snopix')}
+								{pending > 0 ? ` (${pending})` : ''}
+							</button>
+						</div>
+					</div>
+					<div
+						className="flex gap-5 border-b border-transparent"
+						role="tablist"
+					>
+						{TABS.map((t) => (
+							<button
+								key={t.id}
+								className="snopix-tab"
+								role="tab"
+								aria-current={pathname === t.path}
+								onClick={() => navigate({ to: t.path })}
+							>
+								{__(t.label, 'snopix')}
+							</button>
+						))}
+					</div>
+				</div>
 			</div>
 
-			<Outlet />
+			<div className="mx-auto w-full max-w-[1240px] px-10 py-8">
+				<Outlet />
+			</div>
 		</div>
 	);
 }

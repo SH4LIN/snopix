@@ -7,18 +7,19 @@
 
 namespace Snopix\Api;
 
+use Snopix\Hooks\Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
  * Enforces per-IP request limits using WordPress transients.
+ *
+ * The per-window cap is read from the {@see Settings} option so admins can
+ * tune it from the Settings tab. The window stays fixed at 60 seconds — short
+ * enough to feel responsive, long enough to bucket burst behaviour.
  */
 class Rate_Limiter {
-
-	/**
-	 * Maximum requests allowed per window.
-	 */
-	private const MAX_REQUESTS = 10;
 
 	/**
 	 * Time window in seconds.
@@ -38,6 +39,7 @@ class Rate_Limiter {
 	public function is_allowed( string $ip ): bool {
 		$key  = self::transient_key( $ip );
 		$data = get_transient( $key );
+		$cap  = Settings::get_rate_limit();
 
 		if ( false === $data ) {
 			set_transient(
@@ -51,7 +53,7 @@ class Rate_Limiter {
 			return true;
 		}
 
-		if ( $data['count'] >= self::MAX_REQUESTS ) {
+		if ( $data['count'] >= $cap ) {
 			return false;
 		}
 

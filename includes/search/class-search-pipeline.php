@@ -8,6 +8,7 @@
 namespace Snopix\Search;
 
 use Snopix\Repository\Index_Repository;
+use Snopix\Hooks\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,11 +17,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Orchestrates reverse image search: generate query fingerprint, score all indexed images,
  * filter by threshold, and hydrate results.
+ *
+ * The composite-score floor used by the final filter comes from
+ * {@see Settings::get_match_threshold()} so the admin can tune precision /
+ * recall from the Settings tab. The cheap hamming pre-filter stays as a
+ * hard-coded shortcut — it is purely a candidate-narrowing step.
  */
 class Search_Pipeline {
 
 	private const HAMMING_THRESHOLD = 20;
-	private const SCORE_THRESHOLD   = 0.85;
 
 	/**
 	 * Constructor.
@@ -61,7 +66,8 @@ class Search_Pipeline {
 			return array();
 		}
 
-		$scored = array();
+		$scored    = array();
+		$threshold = Settings::get_match_threshold();
 
 		foreach ( $candidates as $row ) {
 			if ( ! isset( $row['phash'] ) ) {
@@ -70,7 +76,7 @@ class Search_Pipeline {
 
 			$score = $this->calculator->calculate( $query_fp, $row );
 
-			if ( $score < self::SCORE_THRESHOLD ) {
+			if ( $score < $threshold ) {
 				continue;
 			}
 

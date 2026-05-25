@@ -1,28 +1,22 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { DuplicateGroup, DuplicateImage } from '../hooks/use-duplicates';
 import { formatBytes } from '../lib/format';
+import { IconCheck, IconTrash } from './icons';
 
 interface Props {
 	group: DuplicateGroup;
 	keepId: number;
 	onKeepChange: (id: number) => void;
-	selected: boolean;
-	onToggleSelect: () => void;
-	onDelete: (ids: number[]) => void;
+	onResolve: () => void;
 	isDeleting: boolean;
 }
 
 /**
- * One card per duplicate group: header pill + bulk-delete CTA + horizontal
- * carousel of {@link ImageCard} tiles. The user clicks any tile to mark it the
- * "keep" image; the bulk-delete button removes the others.
+ * One card per duplicate group: header (count, match pill, savings), bulk
+ * delete CTA, and a grid of {@link ImageCard} tiles. Clicking a tile makes it
+ * the "keep" image; the resolve button drops everything else in the group.
  *
- * @param {Props}                       props                Component props.
- * @param {DuplicateGroup}              props.group          Group payload from `/duplicates`.
- * @param {number}                      props.keepId         Currently-selected keep attachment id.
- * @param {(id: number) => void}        props.onKeepChange   Fired when a different tile is chosen as keep.
- * @param {boolean}                     props.selected       Whether this group is in the bulk-delete selection.
- * @param {() => void}                  props.onToggleSelect Toggle selection from the bulk row.
+ * @param {Props} props Component props (see field-level JSDoc).
  *
  * @return {JSX.Element}
  */
@@ -30,58 +24,56 @@ export default function DuplicateGroupCard({
 	group,
 	keepId,
 	onKeepChange,
-	selected,
-	onToggleSelect,
-	onDelete,
+	onResolve,
 	isDeleting,
 }: Props) {
-	const toDelete = group.images.filter((img) => img.id !== keepId);
-
-	function handleDelete() {
-		onDelete(toDelete.map((img) => img.id));
-	}
+	const keptItem = group.images.find((i) => i.id === keepId);
+	const dropCount = group.images.length - 1;
 
 	return (
-		<div
-			className={`snopix-card transition-colors ${selected ? 'ring-2 ring-snopix-accent' : ''}`}
-		>
-			<div className="flex justify-between items-center mb-3">
-				<div className="flex items-center gap-2">
-					<input
-						type="checkbox"
-						checked={selected}
-						onChange={onToggleSelect}
-						className="w-4 h-4 cursor-pointer accent-[var(--snopix-accent,#2271b1)]"
-					/>
-					<span
-						className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-							group.match_type === 'exact'
-								? 'bg-snopix-accent/10 text-snopix-accent'
-								: 'bg-snopix-muted/10 text-snopix-muted'
-						}`}
-					>
-						{group.match_type === 'exact'
-							? __('Exact duplicate', 'snopix')
-							: __('Similar image', 'snopix')}
+		<div className="snopix-card p-5">
+			<div className="flex items-center justify-between mb-3.5 gap-3 flex-wrap">
+				<div className="flex items-center gap-3 flex-wrap">
+					<div className="text-[13px] font-semibold">
+						{sprintf(
+							/* translators: %d: image count */
+							__('Group · %d attachments', 'snopix'),
+							group.images.length
+						)}
+					</div>
+					<span className="snopix-pill snopix-pill--accent">
+						{(group.similarity * 100).toFixed(1)}%{' '}
+						{__('match', 'snopix')}
+					</span>
+					<span className="text-[12px] text-snopix-muted">
+						{__('Saves', 'snopix')}{' '}
+						<strong>{formatBytes(group.wasted_bytes)}</strong>
+						{keptItem && (
+							<>
+								{' '}
+								· {__('keep', 'snopix')}{' '}
+								<span className="snopix-mono text-snopix-text">
+									{keptItem.filename || keptItem.title}
+								</span>
+							</>
+						)}
 					</span>
 				</div>
-
-				{toDelete.length > 0 && (
-					<button
-						className="snopix-btn snopix-btn--danger text-xs"
-						onClick={handleDelete}
-						disabled={isDeleting}
-					>
-						{sprintf(
-							/* translators: %d: number of images to delete */
-							__('Delete %d other(s)', 'snopix'),
-							toDelete.length
-						)}
-					</button>
-				)}
+				<button
+					className="snopix-btn snopix-btn--danger snopix-btn--sm"
+					onClick={onResolve}
+					disabled={isDeleting || dropCount === 0}
+				>
+					<IconTrash size={13} />{' '}
+					{sprintf(
+						/* translators: %d: drop count */
+						__('Delete %d others', 'snopix'),
+						dropCount
+					)}
+				</button>
 			</div>
 
-			<div className="flex gap-3 overflow-x-auto pb-1">
+			<div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
 				{group.images.map((img) => (
 					<ImageCard
 						key={img.id}
@@ -101,65 +93,49 @@ interface ImageCardProps {
 	onKeep: () => void;
 }
 
-/**
- * Single image tile inside a duplicate group's carousel.
- *
- * Clicking the tile promotes it to the "Keep" image for the parent group. The
- * selected tile is outlined in the accent colour and labelled "Keep".
- *
- * @param {ImageCardProps} props        Component props.
- * @param {DuplicateImage} props.image  Attachment metadata for the tile.
- * @param {boolean}        props.isKeep Whether this tile is the current keep choice.
- * @param {() => void}     props.onKeep Fired when the tile is clicked.
- *
- * @return {JSX.Element}
- */
 function ImageCard({ image, isKeep, onKeep }: ImageCardProps) {
 	return (
-		<div
-			className={`flex-shrink-0 w-[140px] rounded-lg border-2 cursor-pointer transition-colors ${
-				isKeep
-					? 'border-snopix-accent'
-					: 'border-snopix-border hover:border-snopix-muted'
-			}`}
+		<button
+			className="snopix-dup-tile"
+			data-kept={isKeep ? 'true' : 'false'}
 			onClick={onKeep}
-			title={image.filename}
+			aria-label={`Keep ${image.filename || image.title}`}
 		>
-			<div className="w-full aspect-square overflow-hidden rounded-t-md bg-snopix-surface">
+			<div className="aspect-square overflow-hidden bg-snopix-surface">
 				{image.thumbnail_url ? (
 					<img
 						src={image.thumbnail_url}
 						alt={image.title}
-						className="w-full h-full object-cover"
+						className="w-full h-full object-cover block"
 					/>
 				) : (
-					<div className="w-full h-full flex items-center justify-center text-snopix-muted text-[11px]">
+					<div className="w-full h-full flex items-center justify-center text-[11px] text-snopix-muted">
 						{__('No preview', 'snopix')}
 					</div>
 				)}
 			</div>
-
-			<div className="p-2">
-				{isKeep && (
-					<div className="text-[11px] font-semibold text-snopix-accent mb-0.5">
-						{__('Keep', 'snopix')}
-					</div>
-				)}
-				<div
-					className="text-[11px] text-snopix-text truncate"
-					title={image.filename}
-				>
-					{image.filename || image.title}
-				</div>
-				<div className="text-[11px] text-snopix-muted mt-0.5">
-					{formatBytes(image.file_size)}
-				</div>
-				{image.width > 0 && (
-					<div className="text-[11px] text-snopix-muted">
-						{image.width}×{image.height}
-					</div>
-				)}
+			<div className="snopix-dup-tile__check">
+				{isKeep ? <IconCheck size={12} /> : null}
 			</div>
-		</div>
+			<div className="snopix-dup-tile__meta">
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[100px]">
+					{image.filename || image.title}
+				</span>
+				<span className="snopix-mono">{formatBytes(image.file_size)}</span>
+			</div>
+			{isKeep && (
+				<div className="absolute top-2 left-2">
+					<span
+						className="snopix-pill text-white"
+						style={{
+							background: 'var(--snopix-accent)',
+							boxShadow: '0 2px 6px rgba(0,113,227,0.30)',
+						}}
+					>
+						{__('KEEP', 'snopix')}
+					</span>
+				</div>
+			)}
+		</button>
 	);
 }

@@ -10,6 +10,7 @@ namespace Snopix\Api;
 use Snopix\Search\{Search_Pipeline, Query_Image};
 use Snopix\Repository\Index_Repository;
 use Snopix\Indexing\{Bulk_Indexer, Index_Progress};
+use Snopix\Hooks\Settings;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -56,11 +57,7 @@ class REST_Controller {
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'handle_search' ),
 				'permission_callback' => static function () {
-					$settings   = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
-					$visibility = isset( $settings['search_visibility'] ) && 'logged_in' === $settings['search_visibility']
-						? 'logged_in'
-						: 'anyone';
-
+					$visibility = ( new Settings() )->get_visibility();
 					if ( 'logged_in' === $visibility ) {
 						return is_user_logged_in();
 					}
@@ -213,11 +210,39 @@ class REST_Controller {
 					'callback'            => array( $this, 'handle_update_settings' ),
 					'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 					'args'                => array(
-						'search_visibility' => array(
+						'search_visibility'   => array(
 							'type'              => 'string',
 							'required'          => false,
 							'sanitize_callback' => 'sanitize_key',
 							'validate_callback' => static fn( $v ) => in_array( $v, array( 'anyone', 'logged_in' ), true ),
+						),
+						'rate_limit'          => array(
+							'type'     => 'integer',
+							'required' => false,
+						),
+						'match_threshold'     => array(
+							'type'     => 'number',
+							'required' => false,
+						),
+						'batch_size'          => array(
+							'type'     => 'integer',
+							'required' => false,
+						),
+						'downscale_max'       => array(
+							'type'     => 'integer',
+							'required' => false,
+						),
+						'duplicate_threshold' => array(
+							'type'     => 'number',
+							'required' => false,
+						),
+						'drop_on_uninstall'   => array(
+							'type'     => 'boolean',
+							'required' => false,
+						),
+						'require_consent'     => array(
+							'type'     => 'boolean',
+							'required' => false,
 						),
 					),
 				),
@@ -508,53 +533,49 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /settings — return the current snopix_settings option.
+	 * Handle GET /settings — return the full sanitised snopix_settings payload.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public function handle_get_settings(): \WP_REST_Response {
-		$settings = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
-		if ( ! is_array( $settings ) ) {
-			$settings = array( 'search_visibility' => 'anyone' );
-		}
-
-		$visibility = isset( $settings['search_visibility'] ) && 'logged_in' === $settings['search_visibility']
-			? 'logged_in'
-			: 'anyone';
-
-		return new \WP_REST_Response(
-			array(
-				'search_visibility' => $visibility,
-			),
-			200
-		);
+		return new \WP_REST_Response( Settings::all(), 200 );
 	}
 
 	/**
-	 * Handle POST /settings — persist a sanitised snopix_settings payload.
+	 * Handle POST /settings — merge inbound fields onto the stored option,
+	 * sanitise via {@see Settings::sanitize()}, persist, and echo the new
+	 * canonical payload.
 	 *
 	 * @param \WP_REST_Request $request REST request.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public function handle_update_settings( \WP_REST_Request $request ): \WP_REST_Response {
-		$current = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
-		if ( ! is_array( $current ) ) {
-			$current = array( 'search_visibility' => 'anyone' );
-		}
+		$current = Settings::all();
 
-		$visibility = $request->get_param( 'search_visibility' );
-		if ( in_array( $visibility, array( 'anyone', 'logged_in' ), true ) ) {
-			$current['search_visibility'] = $visibility;
-		}
-
-		update_option( 'snopix_settings', $current );
-
-		return new \WP_REST_Response(
-			array(
-				'search_visibility' => $current['search_visibility'] ?? 'anyone',
-			),
-			200
+		$keys = array(
+			'search_visibility',
+			'rate_limit',
+			'match_threshold',
+			'batch_size',
+			'downscale_max',
+			'duplicate_threshold',
+			'drop_on_uninstall',
+			'require_consent',
 		);
+
+		foreach ( $keys as $key ) {
+			$value = $request->get_param( $key );
+			if ( null !== $value ) {
+				$current[ $key ] = $value;
+			}
+		}
+
+		$settings = new Settings();
+		$current  = $settings->sanitize( $current );
+
+		update_option( Settings::OPTION_NAME, $current );
+
+		return new \WP_REST_Response( $current, 200 );
 	}
 }

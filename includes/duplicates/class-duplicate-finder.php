@@ -7,23 +7,29 @@
 
 namespace Snopix\Duplicates;
 
+use Snopix\Imaging\Similarity;
+use Snopix\Hooks\Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-use Snopix\Imaging\Similarity;
 
 /**
  * Groups indexed images into duplicate sets using exact hash and perceptual hash.
  *
  * Returns groups of attachment IDs only; enrichment happens at the REST layer.
+ *
+ * The Hamming-distance cap used by perceptual grouping is derived from the
+ * admin-tunable `duplicate_threshold` similarity score (1.0 = pixel-identical
+ * → distance 0; 0.8 = loose → distance 13 over a 64-bit phash).
  */
 class Duplicate_Finder {
 
 	/**
-	 * Maximum Hamming distance to consider two images perceptually identical.
+	 * Number of bits in the stored pHash. Used to convert the configured
+	 * similarity score into a Hamming distance cap.
 	 */
-	private const PHASH_THRESHOLD = 4;
+	private const PHASH_BITS = 64;
 
 	/**
 	 * Constructor.
@@ -48,12 +54,15 @@ class Duplicate_Finder {
 	}
 
 	/**
-	 * Hamming threshold the scanner uses when unioning candidates.
+	 * Hamming threshold the scanner uses when unioning candidates. Derived
+	 * from the configured similarity floor — closer to 1.0 means a tighter
+	 * cluster.
 	 *
 	 * @return int
 	 */
 	public static function scanner_phash_threshold(): int {
-		return self::PHASH_THRESHOLD;
+		$similarity = Settings::get_duplicate_threshold();
+		return (int) round( ( 1.0 - $similarity ) * self::PHASH_BITS );
 	}
 
 	/**
@@ -147,6 +156,8 @@ class Duplicate_Finder {
 			$parent[ $id ] = $id;
 		}
 
+		$threshold = self::scanner_phash_threshold();
+
 		// O(n²) pair comparison — acceptable for typical media libraries.
 		for ( $i = 0; $i < $n; $i++ ) {
 			for ( $j = $i + 1; $j < $n; $j++ ) {
@@ -154,7 +165,7 @@ class Duplicate_Finder {
 					(string) $rows[ $i ]['phash'],
 					(string) $rows[ $j ]['phash']
 				);
-				if ( $dist <= self::PHASH_THRESHOLD ) {
+				if ( $dist <= $threshold ) {
 					$this->union( $parent, (int) $rows[ $i ]['attachment_id'], (int) $rows[ $j ]['attachment_id'] );
 				}
 			}

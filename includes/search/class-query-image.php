@@ -7,6 +7,8 @@
 
 namespace Snopix\Search;
 
+use Snopix\Hooks\Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -92,6 +94,11 @@ class Query_Image {
 			return false;
 		}
 
+		// Downscale oversized probes so the fingerprinting pipeline operates
+		// on a bounded canvas. Failures here are non-fatal — fingerprinting
+		// will fall back to the original file.
+		$this->downscale_if_needed( $upload['file'], $upload['type'], (int) $dims[0], (int) $dims[1] );
+
 		$attachment = array(
 			'post_mime_type' => $upload['type'],
 			'post_title'     => sanitize_file_name( basename( $upload['file'] ) ),
@@ -126,5 +133,37 @@ class Query_Image {
 	 */
 	public function cleanup( int $attachment_id ): void {
 		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * Downscale the uploaded probe file in-place when its longest edge exceeds
+	 * the configured `downscale_max`. Uses WP's image editor abstraction so we
+	 * get GD or Imagick depending on what the host has installed.
+	 *
+	 * @param string $path   Absolute file path on disk.
+	 * @param string $mime   Mime type reported by wp_handle_upload.
+	 * @param int    $width  Decoded pixel width.
+	 * @param int    $height Decoded pixel height.
+	 *
+	 * @return void
+	 */
+	private function downscale_if_needed( string $path, string $mime, int $width, int $height ): void {
+		$max_edge = Settings::get_downscale_max();
+		if ( $max_edge <= 0 ) {
+			return;
+		}
+		if ( $width <= $max_edge && $height <= $max_edge ) {
+			return;
+		}
+
+		$editor = wp_get_image_editor( $path );
+		if ( is_wp_error( $editor ) ) {
+			return;
+		}
+		$resized = $editor->resize( $max_edge, $max_edge, false );
+		if ( is_wp_error( $resized ) ) {
+			return;
+		}
+		$editor->save( $path, $mime );
 	}
 }

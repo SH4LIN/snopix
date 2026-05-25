@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, type ComponentType, type ReactNode } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import ConfirmModal from './ConfirmModal';
+import Toast from './Toast';
 import { useStore } from '../store/use-store';
+import { useIndexStatus } from '../hooks/use-index-status';
+import { useIndexingProgress, useResetProgress } from '../hooks/use-reindex';
 import {
 	useReindexAll,
 	useClearIndex,
@@ -9,289 +12,408 @@ import {
 	useClearCache,
 	useOrphanCount,
 } from '../hooks/use-tools';
-import { useReindex } from '../hooks/use-reindex';
 import { ConflictError } from '../lib/api';
+import {
+	IconBroom,
+	IconCheck,
+	IconInfo,
+	IconRefresh,
+	IconTrash,
+	IconX,
+} from './icons';
 
-type ToolKey =
-	| 'reindex'
-	| 'reindex-all'
-	| 'clear-index'
-	| 'orphans'
-	| 'cache'
-	| null;
+type ActionKey = 'reindex' | 'orphans' | 'cache' | 'clear';
 
-interface ToolCard {
+interface Action {
+	id: ActionKey;
+	Icon: ComponentType<{ size?: number }>;
 	title: string;
-	description: string;
-	buttonLabel: string;
-	confirmTitle: string;
-	confirmMessage: string;
-	confirmText: string;
+	description: ReactNode;
+	btn: string;
 	danger: boolean;
+	confirmBody: ReactNode;
 }
 
 /**
- * "Tools" tab — destructive and maintenance index actions.
+ * Tools tab — index maintenance actions and the running-job status panel.
  *
- * Renders one card per action (index missing, full reindex, clear index,
- * delete orphans, clear cache). Each card opens a {@link ConfirmModal} before
- * invoking the matching mutation hook; the result toast is shown at the top of
- * the panel.
+ * Renders four action cards (Reindex everything, Delete orphan rows, Flush
+ * plugin caches, Clear the index) plus a live progress card for any bulk job
+ * driven by the global indexing state machine. Confirms destructive actions
+ * via {@link ConfirmModal} and surfaces results in a transient {@link Toast}.
  *
  * @return {JSX.Element}
  */
 export default function Tools() {
-	const [active, setActive] = useState<ToolKey>(null);
-	const [result, setResult] = useState<string | null>(null);
-
 	const { indexingState, duplicateScanState } = useStore();
-	const reindex = useReindex();
+	const { data: status } = useIndexStatus();
+	const progress = useIndexingProgress();
 	const reindexAll = useReindexAll();
 	const clearIndex = useClearIndex();
 	const deleteOrphans = useDeleteOrphans();
 	const clearCache = useClearCache();
-	const orphanCount = useOrphanCount();
+	const orphans = useOrphanCount();
+	const { mutate: resetProgress, isPending: isResetting } = useResetProgress();
 
-	const orphans = orphanCount.data?.orphans ?? 0;
+	const [confirm, setConfirm] = useState<Action | null>(null);
+	const [toast, setToast] = useState<string | null>(null);
 
-	const indexingActive =
-		indexingState === 'running' || indexingState === 'stalled';
+	const isRunning = indexingState === 'running';
+	const isStalled = indexingState === 'stalled';
+	const isDone = indexingState === 'done';
+	const isJobActive = isRunning || isStalled;
 	const scanActive = duplicateScanState === 'running';
-	const blockingMessage = indexingActive
-		? __(
-				'A bulk indexing job is currently active. Reset it from the Dashboard to run index tools.',
-				'snopix'
-			)
-		: scanActive
-			? __(
-					'A duplicate scan is currently active. Wait for it to finish or reset it from the Duplicates tab.',
-					'snopix'
-				)
-			: null;
+	const orphanCount = orphans.data?.orphans ?? 0;
 
-	// Actions that mutate index rows OR reset progress transients — must not
-	// run concurrently with a bulk job. Clear-cache is locked because it
-	// resets the progress envelope (server also enforces this with a 409);
-	// orphan deletion only touches dead rows and is safe at any time.
-	const indexLockedKeys: Array<Exclude<ToolKey, null>> = [
-		'reindex',
-		'reindex-all',
-		'clear-index',
-		'cache',
-	];
-
-	const cards: Record<Exclude<ToolKey, null>, ToolCard> = {
-		reindex: {
-			title: __('Index Missing Images', 'snopix'),
-			description: __(
-				'Generate fingerprints for attachments that are not yet indexed. Existing index rows are kept.',
-				'snopix'
-			),
-			buttonLabel: __('Index Missing', 'snopix'),
-			confirmTitle: __('Index missing images?', 'snopix'),
-			confirmMessage: __(
-				'New attachments will be scheduled for background fingerprint generation.',
-				'snopix'
-			),
-			confirmText: __('Start', 'snopix'),
-			danger: false,
-		},
-		'reindex-all': {
-			title: __('Reindex Everything', 'snopix'),
-			description: __(
-				'Wipe the entire index and regenerate fingerprints for every attachment. Required after algorithm updates.',
-				'snopix'
-			),
-			buttonLabel: __('Reindex All', 'snopix'),
-			confirmTitle: __('Reindex all images?', 'snopix'),
-			confirmMessage: __(
-				'This deletes every existing fingerprint and re-processes every image. It can take a long time on large libraries.',
-				'snopix'
-			),
-			confirmText: __('Wipe and reindex', 'snopix'),
-			danger: true,
-		},
-		'clear-index': {
-			title: __('Clear Index', 'snopix'),
-			description: __(
-				'Delete every row from the fingerprint table. No images will match until you reindex.',
-				'snopix'
-			),
-			buttonLabel: __('Clear Index', 'snopix'),
-			confirmTitle: __('Clear the entire index?', 'snopix'),
-			confirmMessage: __(
-				'All fingerprints will be deleted. Search will return no results until images are reindexed.',
-				'snopix'
-			),
-			confirmText: __('Delete all', 'snopix'),
-			danger: true,
-		},
-		orphans: {
-			title: __('Delete Orphans', 'snopix'),
-			description: sprintf(
-				/* translators: %d: orphan count */
-				__(
-					'Remove index rows whose attachment no longer exists. Found %d orphan(s).',
-					'snopix'
-				),
-				orphans
-			),
-			buttonLabel: __('Delete Orphans', 'snopix'),
-			confirmTitle: __('Delete orphan index rows?', 'snopix'),
-			confirmMessage: __(
-				'Removes stale index entries for attachments that were deleted outside the plugin.',
-				'snopix'
-			),
-			confirmText: __('Delete', 'snopix'),
-			danger: true,
-		},
-		cache: {
-			title: __('Clear Cache', 'snopix'),
-			description: __(
-				'Flush plugin caches and progress transients. Useful if counters or progress appear stuck.',
-				'snopix'
-			),
-			buttonLabel: __('Clear Cache', 'snopix'),
-			confirmTitle: __('Clear plugin cache?', 'snopix'),
-			confirmMessage: __(
-				'Discards cached index queries and resets indexing progress transients.',
-				'snopix'
-			),
-			confirmText: __('Clear', 'snopix'),
-			danger: false,
-		},
-	};
+	const total = progress?.total ?? status?.total ?? 0;
+	const done = progress?.done ?? 0;
+	const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+	const etaMin = Math.max(1, Math.round(((total - done) * 0.18) / 60));
 
 	const loading =
-		reindex.isPending ||
 		reindexAll.isPending ||
 		clearIndex.isPending ||
 		deleteOrphans.isPending ||
 		clearCache.isPending;
 
-	/**
-	 * Invoke the mutation hook for the requested tool action and surface a
-	 * localized result string. Always closes the confirm modal afterwards.
-	 *
-	 * @param {Exclude<ToolKey, null>} key Identifier of the tool to execute.
-	 *
-	 * @return {Promise<void>}
-	 */
-	async function run(key: Exclude<ToolKey, null>) {
-		setResult(null);
+	const blockingMessage = isJobActive
+		? __(
+				'A bulk indexing job is active. Reset it above to run other index tools.',
+				'snopix'
+			)
+		: scanActive
+			? __(
+					'A duplicate scan is active. Wait for it to finish or reset it from the Duplicates tab.',
+					'snopix'
+				)
+			: null;
+
+	const actions: Action[] = [
+		{
+			id: 'reindex',
+			Icon: IconRefresh,
+			title: __('Reindex everything', 'snopix'),
+			description: __(
+				"Drops the existing fingerprints and re-fingerprints every attachment in your library. Runs in chained WP-Cron batches — won't block the request.",
+				'snopix'
+			),
+			btn: __('Reindex all', 'snopix'),
+			danger: false,
+			confirmBody: __(
+				'All fingerprints will be recomputed. This takes a few minutes for a library this size; reverse-image search returns approximate results until it finishes.',
+				'snopix'
+			),
+		},
+		{
+			id: 'orphans',
+			Icon: IconBroom,
+			title: __('Delete orphan rows', 'snopix'),
+			description: (
+				<>
+					<span className="snopix-mono">wp_snopix_index</span>{' '}
+					{__(
+						'rows whose attachment was deleted outside the plugin. Safe to run.',
+						'snopix'
+					)}
+				</>
+			),
+			btn: sprintf(
+				/* translators: %d: orphan count */
+				__('Delete %d orphans', 'snopix'),
+				orphanCount
+			),
+			danger: false,
+			confirmBody: __(
+				'Rows in wp_snopix_index pointing to attachments that no longer exist will be removed. No media files are touched.',
+				'snopix'
+			),
+		},
+		{
+			id: 'cache',
+			Icon: IconBroom,
+			title: __('Flush plugin caches', 'snopix'),
+			description: __(
+				'Clears every Snopix transient — useful after schema or threshold changes.',
+				'snopix'
+			),
+			btn: __('Flush caches', 'snopix'),
+			danger: false,
+			confirmBody: __(
+				'All cached search results and progress transients will be cleared. The next search request will be slightly slower.',
+				'snopix'
+			),
+		},
+		{
+			id: 'clear',
+			Icon: IconTrash,
+			title: __('Clear the index', 'snopix'),
+			description: __(
+				'Empties wp_snopix_index entirely. Search and duplicate detection will return nothing until reindexed.',
+				'snopix'
+			),
+			btn: __('Clear index', 'snopix'),
+			danger: true,
+			confirmBody: __(
+				'Every fingerprint will be deleted from wp_snopix_index. Until you reindex, the search dropzone and the Duplicates tab will be empty. Your media library is not affected.',
+				'snopix'
+			),
+		},
+	];
+
+	async function run(action: Action) {
+		setConfirm(null);
 		try {
-			if (key === 'reindex') {
-				await reindex.mutateAsync();
-				setResult(__('Indexing started.', 'snopix'));
-			} else if (key === 'reindex-all') {
+			if (action.id === 'reindex') {
 				await reindexAll.mutateAsync();
-				setResult(__('Full reindex started.', 'snopix'));
-			} else if (key === 'clear-index') {
-				const res = await clearIndex.mutateAsync();
-				setResult(
-					sprintf(
-						/* translators: %d: deleted count */
-						__('Deleted %d rows.', 'snopix'),
-						res.deleted
-					)
-				);
-			} else if (key === 'orphans') {
+				setToast(__('Reindex started · running in background', 'snopix'));
+			} else if (action.id === 'orphans') {
 				const res = await deleteOrphans.mutateAsync();
-				setResult(
+				setToast(
 					sprintf(
 						/* translators: %d: deleted count */
-						__('Deleted %d orphan(s).', 'snopix'),
+						__('%d orphan rows deleted', 'snopix'),
 						res.deleted
 					)
 				);
-			} else if (key === 'cache') {
+			} else if (action.id === 'cache') {
 				await clearCache.mutateAsync();
-				setResult(__('Cache cleared.', 'snopix'));
+				setToast(__('Transients flushed', 'snopix'));
+			} else if (action.id === 'clear') {
+				const res = await clearIndex.mutateAsync();
+				setToast(
+					sprintf(
+						/* translators: %d: deleted count */
+						__('Index cleared · %d rows removed', 'snopix'),
+						res.deleted
+					)
+				);
 			}
 		} catch (err) {
 			if (err instanceof ConflictError) {
-				setResult(err.message);
+				setToast(err.message);
 			} else {
-				setResult(
-					__(
-						'Action failed. Check console for details.',
-						'snopix'
-					)
-				);
+				setToast(__('Action failed. Check console for details.', 'snopix'));
 			}
-		} finally {
-			setActive(null);
 		}
 	}
 
+	const locked = (key: ActionKey) =>
+		key !== 'orphans' && (isJobActive || scanActive);
+
 	return (
-		<div className="flex flex-col gap-4">
-			{result && (
-				<div className="snopix-card text-[13px] text-snopix-success">
-					{result}
+		<>
+			<h1 className="text-[26px] font-semibold tracking-[-0.015em] mb-1.5">
+				{__('Tools', 'snopix')}
+			</h1>
+			<p className="text-[14px] text-snopix-muted mb-7">
+				{__(
+					'Maintenance actions for the fingerprint index. None of these touch your media library files.',
+					'snopix'
+				)}
+			</p>
+
+			<div className="snopix-card snopix-card--pad mb-6">
+				<div
+					className={`flex items-center justify-between gap-4 ${isJobActive ? 'mb-3.5' : ''}`}
+				>
+					<div className="flex items-center gap-3 min-w-0">
+						<div
+							className={`w-9 h-9 rounded-lg grid place-items-center shrink-0 ${
+								isJobActive
+									? 'bg-snopix-accent-soft text-snopix-accent'
+									: 'bg-[rgba(52,199,89,0.12)] text-snopix-success'
+							}`}
+						>
+							{isJobActive ? (
+								<IconRefresh size={18} />
+							) : (
+								<IconCheck size={18} />
+							)}
+						</div>
+						<div className="min-w-0">
+							<div className="text-[15px] font-semibold">
+								{isStalled
+									? __('Indexer stalled', 'snopix')
+									: isRunning
+										? __('Indexing attachments', 'snopix')
+										: isDone
+											? __('Indexing complete', 'snopix')
+											: __('Background indexer idle', 'snopix')}
+							</div>
+							<div className="text-[13px] text-snopix-muted mt-0.5">
+								{isJobActive && progress ? (
+									<>
+										<span className="snopix-mono">
+											{done.toLocaleString()} /{' '}
+											{total.toLocaleString()}
+										</span>{' '}
+										· {__('chained WP-Cron batches', 'snopix')}
+									</>
+								) : (
+									__('Last run idle.', 'snopix')
+								)}
+							</div>
+						</div>
+					</div>
+					{isJobActive ? (
+						<button
+							className="snopix-btn snopix-btn--ghost snopix-btn--sm"
+							onClick={() => resetProgress()}
+							disabled={isResetting}
+						>
+							<IconX size={14} />{' '}
+							{isResetting
+								? __('Resetting…', 'snopix')
+								: __('Cancel', 'snopix')}
+						</button>
+					) : (
+						<button
+							className="snopix-btn snopix-btn--ghost snopix-btn--sm"
+							onClick={() =>
+								setConfirm(
+									actions.find((a) => a.id === 'reindex')!
+								)
+							}
+							disabled={loading}
+						>
+							<IconRefresh size={14} />{' '}
+							{__('Start indexer', 'snopix')}
+						</button>
+					)}
 				</div>
-			)}
+				{isJobActive && (
+					<>
+						<div className="snopix-progress">
+							<div
+								className="snopix-progress__fill"
+								style={{ width: `${pct}%` }}
+							/>
+						</div>
+						<div className="flex justify-between mt-2 snopix-mono text-[11px] text-snopix-muted">
+							<span>{pct}%</span>
+							<span>
+								{sprintf(
+									/* translators: %d: minutes remaining */
+									__('est. %d min remaining', 'snopix'),
+									etaMin
+								)}
+							</span>
+						</div>
+					</>
+				)}
+			</div>
 
 			{blockingMessage && (
-				<div className="snopix-card text-[13px] text-snopix-danger">
+				<div className="snopix-card snopix-card--pad mb-6 text-[13px] text-snopix-muted">
 					{blockingMessage}
 				</div>
 			)}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{(Object.keys(cards) as Array<Exclude<ToolKey, null>>).map(
-					(key) => {
-						const card = cards[key];
-						const locked =
-							indexingActive && indexLockedKeys.includes(key);
-						return (
-							<div
-								key={key}
-								className="snopix-card flex flex-col gap-3"
-							>
-								<div>
-									<h3 className="text-[15px] font-semibold text-snopix-text mb-1">
-										{card.title}
-									</h3>
-									<p className="text-[13px] text-snopix-muted leading-snug">
-										{card.description}
-									</p>
+				{actions.map((a) => {
+					const isLocked = locked(a.id);
+					return (
+						<div
+							key={a.id}
+							className="snopix-card snopix-card--pad flex flex-col"
+						>
+							<div className="flex items-start gap-3 mb-3">
+								<div
+									className={`w-8 h-8 rounded-lg shrink-0 grid place-items-center ${
+										a.danger
+											? 'bg-[rgba(255,59,48,0.08)] text-snopix-danger'
+											: 'bg-snopix-surface text-snopix-muted'
+									}`}
+								>
+									<a.Icon size={16} />
 								</div>
-								<div className="mt-auto">
-									<button
-										className={`snopix-btn ${card.danger ? 'snopix-btn--danger' : ''}`}
-										onClick={() => setActive(key)}
-										disabled={loading || locked}
-										title={
-											locked
-												? __(
-														'Disabled while a bulk indexing job is active.',
-														'snopix'
-													)
-												: undefined
-										}
-									>
-										{card.buttonLabel}
-									</button>
+								<div className="flex-1 min-w-0">
+									<div className="text-[15px] font-semibold">
+										{a.title}
+									</div>
 								</div>
 							</div>
-						);
-					}
-				)}
+							<div className="text-[13px] text-snopix-muted leading-[1.55] mb-4">
+								{a.description}
+							</div>
+							<div className="mt-auto">
+								<button
+									className={
+										a.danger
+											? 'snopix-btn snopix-btn--danger snopix-btn--sm'
+											: 'snopix-btn snopix-btn--neutral snopix-btn--sm'
+									}
+									onClick={() => setConfirm(a)}
+									disabled={
+										loading ||
+										isLocked ||
+										(a.id === 'orphans' && orphanCount === 0)
+									}
+									title={
+										isLocked
+											? __(
+													'Disabled while a bulk job is active.',
+													'snopix'
+												)
+											: undefined
+									}
+								>
+									{a.danger ? (
+										<IconTrash size={14} />
+									) : (
+										<a.Icon size={14} />
+									)}
+									{a.btn}
+								</button>
+							</div>
+						</div>
+					);
+				})}
 			</div>
 
-			{active && (
+			<div className="snopix-card snopix-card--pad mt-6">
+				<div className="flex items-start gap-3">
+					<div className="text-snopix-muted">
+						<IconInfo size={18} />
+					</div>
+					<div>
+						<div className="text-[14px] font-semibold mb-1">
+							{__('Where Snopix stores data', 'snopix')}
+						</div>
+						<div className="text-[13px] text-snopix-muted leading-[1.6]">
+							{__('One custom table —', 'snopix')}{' '}
+							<code className="snopix-mono text-snopix-text">
+								wp_snopix_index
+							</code>{' '}
+							{__(
+								'— with one compact row per indexed attachment. Uninstalling the plugin drops the table and removes every Snopix option and transient (when uninstall cleanup is enabled).',
+								'snopix'
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{confirm && (
 				<ConfirmModal
-					open={true}
-					title={cards[active].confirmTitle}
-					message={cards[active].confirmMessage}
-					confirmText={cards[active].confirmText}
-					danger={cards[active].danger}
+					open
+					title={`${confirm.title}?`}
+					subtitle={
+						confirm.danger
+							? __('Destructive · this cannot be undone', 'snopix')
+							: __('Safe to run', 'snopix')
+					}
+					confirmText={confirm.btn}
+					danger={confirm.danger}
 					loading={loading}
-					onConfirm={() => run(active)}
-					onCancel={() => setActive(null)}
+					icon={<confirm.Icon size={18} />}
+					message={confirm.confirmBody}
+					onCancel={() => setConfirm(null)}
+					onConfirm={() => run(confirm)}
 				/>
 			)}
-		</div>
+
+			{toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+		</>
 	);
 }

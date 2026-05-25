@@ -8,6 +8,7 @@
 namespace Snopix\Api;
 
 use Snopix\Duplicates\{Duplicate_Scanner, Duplicate_Progress};
+use Snopix\Hooks\Settings;
 use Snopix\Infrastructure\Job_Status;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -151,7 +152,9 @@ class Duplicates_REST_Controller {
 	 * @return array{match_type: string, images: array<int, array<string, mixed>>}
 	 */
 	private function enrich_group( array $group ): array {
-		$images = array();
+		$images     = array();
+		$total_size = 0;
+		$max_size   = 0;
 
 		foreach ( ( $group['ids'] ?? array() ) as $id ) {
 			$id   = (int) $id;
@@ -167,12 +170,18 @@ class Duplicates_REST_Controller {
 			$meta  = wp_get_attachment_metadata( $id );
 			$meta  = is_array( $meta ) ? $meta : array();
 			$mime  = get_post_mime_type( $id );
+			$size  = ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0;
+
+			$total_size += $size;
+			if ( $size > $max_size ) {
+				$max_size = $size;
+			}
 
 			$images[] = array(
 				'id'            => $id,
 				'title'         => get_the_title( $id ),
 				'filename'      => $file ? basename( $file ) : '',
-				'file_size'     => ( $file && file_exists( $file ) ) ? (int) filesize( $file ) : 0,
+				'file_size'     => $size,
 				'width'         => isset( $meta['width'] ) ? (int) $meta['width'] : 0,
 				'height'        => isset( $meta['height'] ) ? (int) $meta['height'] : 0,
 				'mime_type'     => $mime ? $mime : '',
@@ -181,9 +190,24 @@ class Duplicates_REST_Controller {
 			);
 		}
 
+		$match_type = $group['match_type'] ?? 'perceptual';
+		if ( 'exact' === $match_type ) {
+			$similarity = 1.0;
+		} else {
+			// Worst-case similarity for a perceptual cluster is bounded by the
+			// configured Hamming-distance threshold.
+			$similarity = max(
+				0.0,
+				min( 1.0, Settings::get_duplicate_threshold() )
+			);
+		}
+		$wasted_bytes = max( 0, $total_size - $max_size );
+
 		return array(
-			'match_type' => $group['match_type'] ?? 'perceptual',
-			'images'     => $images,
+			'match_type'   => $match_type,
+			'similarity'   => $similarity,
+			'wasted_bytes' => $wasted_bytes,
+			'images'       => $images,
 		);
 	}
 }

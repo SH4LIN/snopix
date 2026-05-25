@@ -3,6 +3,13 @@ import { apiFetch } from '../lib/api';
 
 export interface PSSettings {
 	search_visibility: 'anyone' | 'logged_in';
+	rate_limit: number;
+	match_threshold: number;
+	batch_size: number;
+	downscale_max: number;
+	duplicate_threshold: number;
+	drop_on_uninstall: boolean;
+	require_consent: boolean;
 }
 
 /**

@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
-import { __ } from '@wordpress/i18n';
+import { useEffect, useState } from 'react';
+import { __, sprintf } from '@wordpress/i18n';
 import { useImages } from '../hooks/use-images';
+import { useIndexStatus } from '../hooks/use-index-status';
 import ImageRow from './ImageRow';
+import { IconSearch } from './icons';
 
 /**
- * Paginated table of indexed image attachments with a title/filename search box
- * and a lightbox overlay for the clicked thumbnail.
+ * Recently-indexed attachment table card.
  *
- * Pagination uses a keyset cursor stack: each "next" pushes the last row's
- * attachment_id onto the stack so "previous" can pop back to the earlier page
- * without re-querying. Search debouncing is handled inside {@link useImages}.
+ * Header carries a filter input that searches across title and filename.
+ * Footer shows total-row context ("Showing N of M rows") and a Prev/Next
+ * cursor-stack pagination. Clicking a thumbnail opens a lightbox overlay.
  *
  * @return {JSX.Element}
  */
@@ -19,13 +20,8 @@ export default function ImageTable() {
 	const [lightbox, setLightbox] = useState<string | null>(null);
 	const afterId = cursors[cursors.length - 1];
 	const { data: images, isLoading } = useImages({ afterId, search });
+	const { data: status } = useIndexStatus();
 
-	/**
-	 * Push the last visible row's `attachment_id` onto the cursor stack so the
-	 * next `useImages` call fetches the page after it.
-	 *
-	 * @return {void}
-	 */
 	function goNext() {
 		if (!images || images.length === 0) {
 			return;
@@ -34,12 +30,6 @@ export default function ImageTable() {
 		setCursors((prev) => [...prev, next]);
 	}
 
-	/**
-	 * Pop the current cursor off the stack to return to the previous page. No-op
-	 * when already on the first page.
-	 *
-	 * @return {void}
-	 */
 	function goPrev() {
 		setCursors((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
 	}
@@ -48,44 +38,59 @@ export default function ImageTable() {
 		if (!lightbox) {
 			return;
 		}
-
-		/**
-		 * Close the lightbox when the user presses Escape.
-		 *
-		 * @param {KeyboardEvent} e Native keyboard event.
-		 *
-		 * @return {void}
-		 */
 		const close = (e: KeyboardEvent) =>
 			e.key === 'Escape' && setLightbox(null);
 		document.addEventListener('keydown', close);
 		return () => document.removeEventListener('keydown', close);
 	}, [lightbox]);
 
+	const totalLabel = status
+		? sprintf(
+				/* translators: 1: indexed count, 2: total count */
+				__('Showing %1$d of %2$s rows', 'snopix'),
+				images?.length ?? 0,
+				status.total.toLocaleString()
+			)
+		: '';
+
 	return (
-		<div className="snopix-card">
-			<div className="mb-3">
-				<input
-					className="snopix-input w-full"
-					placeholder={__('Search images…', 'snopix')}
-					value={search}
-					onChange={(e) => {
-						setSearch(e.target.value);
-						setCursors([0]);
-					}}
-				/>
+		<div className="snopix-card overflow-hidden">
+			<div className="px-6 py-[18px] flex items-center justify-between border-b border-snopix-border gap-4 flex-wrap">
+				<div>
+					<h2 className="text-[17px] font-semibold">
+						{__('Recently indexed', 'snopix')}
+					</h2>
+					<p className="text-[13px] text-snopix-muted mt-1">
+						{__('The most recent rows in', 'snopix')}{' '}
+						<span className="snopix-mono">wp_snopix_index</span>.
+					</p>
+				</div>
+				<div className="snopix-input-wrap w-[260px]">
+					<span className="snopix-input-wrap__icon">
+						<IconSearch size={14} />
+					</span>
+					<input
+						className="snopix-input"
+						placeholder={__('Filter by filename', 'snopix')}
+						value={search}
+						onChange={(e) => {
+							setSearch(e.target.value);
+							setCursors([0]);
+						}}
+					/>
+				</div>
 			</div>
 
 			<div className="overflow-x-auto">
-				<table className="snopix-table w-full min-w-[560px]">
+				<table className="snopix-table min-w-[640px]">
 					<thead>
 						<tr>
-							<th></th>
-							<th>{__('File Name', 'snopix')}</th>
-							<th>{__('Dimensions', 'snopix')}</th>
-							<th>{__('Size', 'snopix')}</th>
-							<th>{__('Indexed At', 'snopix')}</th>
+							<th style={{ width: 96 }}></th>
+							<th>{__('File', 'snopix')}</th>
 							<th>{__('Status', 'snopix')}</th>
+							<th>{__('Size', 'snopix')}</th>
+							<th>{__('Indexed', 'snopix')}</th>
+							<th style={{ width: 60 }}></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -120,24 +125,22 @@ export default function ImageTable() {
 				</table>
 			</div>
 
-			<div className="flex justify-between items-center mt-3 text-[13px] text-snopix-muted">
-				<span>
-					{__('Page', 'snopix')} {cursors.length}
-				</span>
-				<div className="flex gap-2">
+			<div className="px-6 py-3.5 flex items-center justify-between border-t border-snopix-border">
+				<div className="text-[13px] text-snopix-muted">{totalLabel}</div>
+				<div className="flex gap-1.5">
 					<button
+						className="snopix-btn snopix-btn--neutral snopix-btn--sm"
 						onClick={goPrev}
 						disabled={cursors.length <= 1}
-						className="snopix-btn py-1 px-2.5 text-[13px]"
 					>
-						&larr;
+						{__('Prev', 'snopix')}
 					</button>
 					<button
+						className="snopix-btn snopix-btn--neutral snopix-btn--sm"
 						onClick={goNext}
 						disabled={!images || images.length < 25}
-						className="snopix-btn py-1 px-2.5 text-[13px]"
 					>
-						&rarr;
+						{__('Next', 'snopix')}
 					</button>
 				</div>
 			</div>

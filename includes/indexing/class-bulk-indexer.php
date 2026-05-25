@@ -11,6 +11,7 @@ use Snopix\Repository\Index_Repository;
 use Snopix\Infrastructure\Action_Scheduler;
 use Snopix\Infrastructure\Job_Status;
 use Snopix\Infrastructure\Logger;
+use Snopix\Hooks\Settings;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -21,12 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Instead of scheduling all batches upfront with fixed delays, only the first
  * batch is scheduled immediately. Each batch schedules the next one after it
  * finishes, so the gap is always BATCH_DELAY seconds from actual completion.
+ *
+ * Batch size is read from {@see Settings::get_batch_size()} so admins can
+ * trade off speed against PHP memory pressure from the Settings tab.
  */
 class Bulk_Indexer {
-	/**
-	 * Batch size for processing.
-	 */
-	private const BATCH_SIZE = 50;
 
 	/**
 	 * Seconds between consecutive chained batches.
@@ -166,8 +166,8 @@ class Bulk_Indexer {
 			return;
 		}
 
-		$batch     = array_slice( $pending, 0, self::BATCH_SIZE );
-		$remaining = array_slice( $pending, self::BATCH_SIZE );
+		$batch     = array_slice( $pending, 0, Settings::get_batch_size() );
+		$remaining = array_slice( $pending, Settings::get_batch_size() );
 
 		if ( ! empty( $remaining ) ) {
 			set_transient( self::PENDING_KEY, array_values( $remaining ), DAY_IN_SECONDS );

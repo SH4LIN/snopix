@@ -17,6 +17,8 @@ export interface DuplicateImage {
 
 export interface DuplicateGroup {
 	match_type: 'exact' | 'perceptual';
+	similarity: number;
+	wasted_bytes: number;
 	images: DuplicateImage[];
 }
 

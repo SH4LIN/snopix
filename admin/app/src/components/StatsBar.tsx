@@ -12,10 +12,11 @@ interface Props {
 }
 
 /**
- * Three-card metrics row shown at the top of the Dashboard.
+ * Four-tile metrics row at the top of the Dashboard.
  *
- * Displays the current `total`, `indexed`, and `pending` counts from
- * `/wp-json/snopix/v1/status`. Falls back to em-dashes while data is still loading.
+ * Renders Total / Indexed / Pending / Failed from the `/status` payload. Each
+ * tile uses tabular numerals so the values align visually regardless of digit
+ * width.
  *
  * @param {Props}   props        Component props.
  * @param {Status=} props.status Status payload from `/status`. Undefined while loading.
@@ -25,39 +26,40 @@ interface Props {
 export default function StatsBar({ status }: Props) {
 	const cards = [
 		{
-			label: __('Total Images', 'snopix'),
-			value: status?.total ?? '—',
-			className: 'text-snopix-text',
+			label: __('Total', 'snopix'),
+			value: status?.total,
+			valueClass: '',
+			delta: __('Attachments in library', 'snopix'),
 		},
 		{
 			label: __('Indexed', 'snopix'),
-			value: status?.indexed ?? '—',
-			className: 'text-snopix-success',
+			value: status?.indexed,
+			valueClass: '',
+			delta: __('Fingerprinted and searchable', 'snopix'),
 		},
 		{
 			label: __('Pending', 'snopix'),
-			value: status?.pending ?? '—',
-			className: 'text-snopix-warning',
+			value: status?.pending,
+			valueClass: 'text-[#a05c00]',
+			delta: __('Queued for next cron tick', 'snopix'),
 		},
 		{
 			label: __('Failed', 'snopix'),
-			value: status?.failed ?? '—',
-			className: 'text-snopix-danger',
+			value: status?.failed,
+			valueClass: 'text-[#c0392b]',
+			delta: __('Unsupported or corrupted', 'snopix'),
 		},
 	];
 
 	return (
-		<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-			{cards.map(({ label, value, className }) => (
-				<div key={label} className="snopix-card">
-					<div className={`text-[32px] font-bold ${className}`}>
-						{typeof value === 'number'
-							? value.toLocaleString()
-							: value}
+		<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+			{cards.map(({ label, value, valueClass, delta }) => (
+				<div key={label} className="snopix-stat">
+					<div className="snopix-stat__label">{label}</div>
+					<div className={`snopix-stat__value ${valueClass}`}>
+						{typeof value === 'number' ? value.toLocaleString() : '—'}
 					</div>
-					<div className="text-[13px] text-snopix-muted mt-1">
-						{label}
-					</div>
+					<div className="snopix-stat__delta">{delta}</div>
 				</div>
 			))}
 		</div>

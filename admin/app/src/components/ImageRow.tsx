@@ -1,5 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { formatBytes } from '../lib/format';
+import { IconChevron } from './icons';
 
 interface ImageData {
 	attachment_id: number;
@@ -17,9 +18,7 @@ interface ImageData {
 }
 
 /**
- * Resolve a translated label for an indexer `error_code`. Keys are hardcoded
- * (not pulled from a dynamic map) so each `__()` call sees a literal string
- * and the i18n extractor can pick it up at build time.
+ * Resolve a translated label for an indexer `error_code`.
  *
  * @param {string|undefined} code error_code value from the /images payload.
  *
@@ -42,14 +41,14 @@ interface Props {
 }
 
 /**
- * Render one row of the `ImageTable` grid for a single attachment.
+ * One row of the `ImageTable`.
  *
- * Clicking the row opens the attachment's WP edit screen in a new tab; clicking
- * the thumbnail invokes `onImageClick` so the parent can mount its lightbox.
+ * Row click opens the attachment edit screen in a new tab. Thumbnail click
+ * invokes `onImageClick` so the parent can mount the lightbox.
  *
  * @param {Props} props              Component props.
- * @param {ImageData} props.image    Attachment row payload from the `/images` REST endpoint.
- * @param {(url: string) => void} props.onImageClick Callback fired with the full-size URL when the thumbnail is clicked.
+ * @param {ImageData} props.image    Attachment row payload from `/images`.
+ * @param {(url: string) => void} props.onImageClick Lightbox open handler.
  *
  * @return {JSX.Element}
  */
@@ -65,8 +64,8 @@ export default function ImageRow({ image, onImageClick }: Props) {
 	const label = isFailed
 		? errorLabel(image.error_code)
 		: isIndexed
-			? __('Indexed', 'snopix')
-			: __('Pending', 'snopix');
+			? __('indexed', 'snopix')
+			: __('pending', 'snopix');
 	const date = image.indexed_at
 		? new Date(image.indexed_at).toLocaleDateString()
 		: '—';
@@ -79,37 +78,49 @@ export default function ImageRow({ image, onImageClick }: Props) {
 			onClick={() => window.open(editUrl, '_blank')}
 			className="cursor-pointer"
 		>
-			<td className="w-14 min-w-[3.5rem]">
+			<td className="pl-6">
 				{previewUrl ? (
 					<img
 						src={previewUrl}
 						alt={displayName}
-						className="w-12 h-12 object-contain rounded-[6px] block cursor-zoom-in bg-snopix-surface"
+						className="snopix-thumb cursor-zoom-in object-cover"
 						onClick={(e) => {
 							e.stopPropagation();
 							onImageClick(previewUrl);
 						}}
 					/>
 				) : (
-					<div className="w-12 h-12 bg-snopix-surface rounded-[6px] flex items-center justify-center text-[10px] text-snopix-muted">
+					<div className="snopix-thumb flex items-center justify-center text-[10px] text-snopix-muted">
 						{__('IMG', 'snopix')}
 					</div>
 				)}
 			</td>
-			<td className="text-[13px]">
-				{displayName}
-				<br />
-				<span className="text-snopix-muted text-[11px]">
-					{image.mime_type}
+			<td>
+				<div className="font-medium">{displayName}</div>
+				<div className="snopix-mono text-[11px] text-snopix-muted mt-0.5">
+					id · {image.attachment_id}
+				</div>
+			</td>
+			<td>
+				<span className={pillClass} title={image.error_code}>
+					{label}
 				</span>
 			</td>
-			<td className="text-[13px]">
-				{image.width} &times; {image.height}
+			<td className="snopix-mono text-[12px] text-snopix-muted">
+				{formatBytes(image.file_size)}
 			</td>
-			<td className="text-[13px]">{formatBytes(image.file_size)}</td>
-			<td className="text-[13px]">{date}</td>
-			<td>
-				<span className={pillClass}>{label}</span>
+			<td className="text-snopix-muted">{date}</td>
+			<td className="pr-6 text-right">
+				<button
+					className="snopix-btn snopix-btn--ghost snopix-btn--sm"
+					aria-label={__('Actions', 'snopix')}
+					onClick={(e) => {
+						e.stopPropagation();
+						window.open(editUrl, '_blank');
+					}}
+				>
+					<IconChevron size={14} />
+				</button>
 			</td>
 		</tr>
 	);
