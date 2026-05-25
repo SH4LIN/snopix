@@ -1,5 +1,5 @@
 === Snopix ===
-Contributors: pixelscout
+Contributors: SH4LIN
 Tags: image-search, reverse-image-search, similarity-search, duplicates, media-library
 Requires at least: 6.0
 Tested up to: 7.0
@@ -15,7 +15,7 @@ Source code and issue tracker: https://github.com/SH4LIN/snopix
 == Accuracy notice ==
 
 Snopix is functional, but search ranking, duplicate detection and the
-threshold tuning may be less accurate than expected — you may see occasional
+threshold tuning may be less accurate than expected - you may see occasional
 false positives or miss visually-similar images depending on your media
 library. Please report anything that looks off.
 
