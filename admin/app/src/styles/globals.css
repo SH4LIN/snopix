@@ -114,3 +114,16 @@
 		background-position: -200% 0;
 	}
 }
+
+/* ─── wp-admin chrome overrides ───────────────────────
+	Snopix uses a full-bleed header band; the default
+	20px gutter from core wp-admin clips the brand row.
+	─────────────────────────────────────────────────────── */
+body.media_page_snopix #wpcontent,
+body.toplevel_page_snopix #wpcontent {
+	padding-left: 0;
+}
+body.media_page_snopix #wpbody-content,
+body.toplevel_page_snopix #wpbody-content {
+	padding-bottom: 0;
+}
