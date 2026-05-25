@@ -35,7 +35,7 @@ type ActionRow = {
  *
  * @return {JSX.Element}
  */
-export default function MobileTools() {
+export default function ToolsMobile() {
 	const { indexingState } = useStore();
 	const progress = useIndexingProgress();
 	const { mutate: reindexAll, isPending: isReindexing } = useReindexAll();

@@ -26,7 +26,7 @@ function groupKey(group: DuplicateGroup): string {
  *
  * @return {JSX.Element}
  */
-export default function MobileDuplicates() {
+export default function DuplicatesMobile() {
 	const { data, isLoading } = useDuplicates();
 	const { indexingState, duplicateScanState } = useStore();
 	const { mutate: startScan, isPending: isStarting } = useStartDuplicateScan();

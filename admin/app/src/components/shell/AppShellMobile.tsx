@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { useNavigate, useRouterState, Outlet } from '@tanstack/react-router';
 import { useStore } from '../../store/use-store';
 import { useIndexStatus } from '../../hooks/use-index-status';
 import { useReindex } from '../../hooks/use-reindex';
@@ -10,10 +10,6 @@ import {
 	IconTool,
 	IconUpload,
 } from '../icons';
-import MobileDashboard from './MobileDashboard';
-import MobileDuplicates from './MobileDuplicates';
-import MobileTools from './MobileTools';
-import MobileSettings from './MobileSettings';
 
 type TabId = 'dashboard' | 'duplicates' | 'tools' | 'settings';
 
@@ -65,15 +61,13 @@ function routeToTab(pathname: string): TabId {
 /**
  * Mobile / tablet admin shell.
  *
- * Replaces the desktop WP-admin chrome (sidebar-aware header + tab strip)
- * with a phone-style top app bar and a thumb-reachable bottom tab bar. The
- * shell still drives TanStack Router so the URL stays in sync — that keeps
- * deep-linking, browser-back, and the desktop ↔ mobile viewport switch
- * coherent.
+ * Phone-style top app bar (brand + index button) plus a thumb-reachable
+ * bottom tab bar. The route `<Outlet />` renders the active screen's
+ * mobile variant (each screen is HOC-wrapped via `withResponsive`).
  *
  * @return {JSX.Element}
  */
-export default function MobileApp() {
+export default function AppShellMobile() {
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const activeTab = routeToTab(pathname);
@@ -84,19 +78,6 @@ export default function MobileApp() {
 
 	const pending = status?.pending ?? 0;
 	const canReindex = pending > 0 && indexingState === 'idle';
-
-	const Screen = (() => {
-		switch (activeTab) {
-			case 'duplicates':
-				return MobileDuplicates;
-			case 'tools':
-				return MobileTools;
-			case 'settings':
-				return MobileSettings;
-			default:
-				return MobileDashboard;
-		}
-	})();
 
 	return (
 		<div
@@ -134,7 +115,7 @@ export default function MobileApp() {
 			</div>
 
 			<main className="flex-1 pb-24">
-				<Screen />
+				<Outlet />
 			</main>
 
 			<nav

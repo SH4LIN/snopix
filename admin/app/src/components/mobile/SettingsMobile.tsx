@@ -27,7 +27,7 @@ const DEFAULTS: PSSettings = {
  *
  * @return {JSX.Element}
  */
-export default function MobileSettings() {
+export default function SettingsMobile() {
 	const { data, isLoading, isError } = useSettings();
 	const { mutate: save, isPending } = useUpdateSettings();
 
