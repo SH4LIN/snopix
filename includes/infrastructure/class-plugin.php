@@ -15,6 +15,7 @@ use Snopix\Hooks\{Media_Hooks, Cron_Handler, Settings};
 use Snopix\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller};
 use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, Duplicate_Cron_Handler};
 use Snopix\Admin\Admin_Page;
+use Snopix\Admin\Editor_Assets;
 use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -70,6 +71,17 @@ class Plugin {
 		add_action( 'init', array( $this, 'register_shortcode' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
+		add_action( 'init', array( $this, 'register_editor_assets' ) );
+	}
+
+	/**
+	 * Register block-editor asset enqueueing for the shortcode inspector
+	 * panel.
+	 *
+	 * @return void
+	 */
+	public function register_editor_assets(): void {
+		( new Editor_Assets() )->register();
 	}
 
 	/**
