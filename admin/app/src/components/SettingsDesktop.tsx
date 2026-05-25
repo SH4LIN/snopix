@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
 	useSettings,
@@ -50,13 +50,13 @@ export default function Settings() {
 	const [serverState, setServerState] = useState<PSSettings>(DEFAULTS);
 	const [toast, setToast] = useState<string | null>(null);
 
-	useEffect(() => {
-		if (data) {
-			const merged = { ...DEFAULTS, ...data };
-			setForm(merged);
-			setServerState(merged);
-		}
-	}, [data]);
+	const [syncedData, setSyncedData] = useState<typeof data>();
+	if (data && data !== syncedData) {
+		const merged = { ...DEFAULTS, ...data };
+		setSyncedData(data);
+		setForm(merged);
+		setServerState(merged);
+	}
 
 	const set = <K extends keyof PSSettings>(k: K, v: PSSettings[K]) =>
 		setForm((p) => ({ ...p, [k]: v }));
