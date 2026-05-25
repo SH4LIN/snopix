@@ -1,14 +1,14 @@
 <?php
 /**
- * Base test case for all Pixel Scout tests.
+ * Base test case for all Snopix tests.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 /**
  * Base test case class.
  */
-class Pixel_Scout_TestCase extends WP_UnitTestCase {
+class Snopix_TestCase extends WP_UnitTestCase {
 	/**
 	 * Per-test setup. Verifies the plugin class is autoloaded before running.
 	 *
@@ -17,7 +17,7 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	public function setUp(): void {
 		parent::setUp();
 		// Ensure plugin is loaded.
-		$this->assertTrue( class_exists( 'PixelScout\Infrastructure\Plugin' ), 'Plugin class not loaded' );
+		$this->assertTrue( class_exists( 'Snopix\Infrastructure\Plugin' ), 'Plugin class not loaded' );
 	}
 
 	/**
@@ -31,23 +31,23 @@ class Pixel_Scout_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Clear every transient written by Pixel Scout's bulk indexer.
+	 * Clear every transient written by Snopix's bulk indexer.
 	 *
 	 * @return void
 	 */
 	protected function clear_ps_transients(): void {
-		delete_transient( 'ps_bulk_progress' );
-		delete_transient( 'ps_bulk_total' );
+		delete_transient( 'snopix_bulk_progress' );
+		delete_transient( 'snopix_bulk_total' );
 	}
 
 	/**
-	 * Get the ps_index table name.
+	 * Get the snopix_index table name.
 	 *
 	 * @return string
 	 */
 	protected function get_ps_table(): string {
 		global $wpdb;
-		return $wpdb->prefix . 'ps_index';
+		return $wpdb->prefix . 'snopix_index';
 	}
 
 	/**

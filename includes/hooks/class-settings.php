@@ -2,10 +2,10 @@
 /**
  * Plugin settings registration and rendering.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Hooks;
+namespace Snopix\Hooks;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -22,8 +22,8 @@ class Settings {
 	 */
 	public function register(): void {
 		register_setting(
-			'ps_settings',
-			'ps_settings',
+			'snopix_settings',
+			'snopix_settings',
 			array(
 				'sanitize_callback' => array( $this, 'sanitize' ),
 				'default'           => array( 'search_visibility' => 'anyone' ),
@@ -31,18 +31,18 @@ class Settings {
 		);
 
 		add_settings_section(
-			'ps_general',
-			__( 'General', 'pixel-scout' ),
+			'snopix_general',
+			__( 'General', 'snopix' ),
 			'__return_false',
-			'ps_settings'
+			'snopix_settings'
 		);
 
 		add_settings_field(
-			'ps_search_visibility',
-			__( 'Search visibility', 'pixel-scout' ),
+			'snopix_search_visibility',
+			__( 'Search visibility', 'snopix' ),
 			array( $this, 'render_visibility_field' ),
-			'ps_settings',
-			'ps_general'
+			'snopix_settings',
+			'snopix_general'
 		);
 	}
 
@@ -68,16 +68,16 @@ class Settings {
 	 * @return void
 	 */
 	public function render_visibility_field(): void {
-		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		$settings = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
 		$current  = $settings['search_visibility'] ?? 'anyone';
 		$options  = array(
-			'anyone'    => __( 'Anyone', 'pixel-scout' ),
-			'logged_in' => __( 'Logged-in users only', 'pixel-scout' ),
+			'anyone'    => __( 'Anyone', 'snopix' ),
+			'logged_in' => __( 'Logged-in users only', 'snopix' ),
 		);
 
 		foreach ( $options as $value => $label ) {
 			printf(
-				'<label><input type="radio" name="ps_settings[search_visibility]" value="%s"%s> %s</label><br>',
+				'<label><input type="radio" name="snopix_settings[search_visibility]" value="%s"%s> %s</label><br>',
 				esc_attr( $value ),
 				checked( $current, $value, false ),
 				esc_html( $label )
@@ -91,7 +91,7 @@ class Settings {
 	 * @return string
 	 */
 	public function get_visibility(): string {
-		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		$settings = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
 		return $settings['search_visibility'] ?? 'anyone';
 	}
 }

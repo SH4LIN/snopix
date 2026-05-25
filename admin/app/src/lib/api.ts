@@ -1,10 +1,10 @@
 /**
- * Shared REST client for the Pixel Scout admin app.
+ * Shared REST client for the Snopix admin app.
  *
  * Wraps `@wordpress/api-fetch` so the entire app talks to WordPress through
  * the canonical core helper:
  *   - `nonce` middleware (auto-attaches X-WP-Nonce + refreshes after writes)
- *   - `rootURLMiddleware` (resolves `/ps/v1/foo` against the live REST root)
+ *   - `rootURLMiddleware` (resolves `/snopix/v1/foo` against the live REST root)
  *   - 401 / 403 handling integrated with core's user-switch behaviour
  *
  * The wrapper layers Pixel-Scout-specific behaviour on top:
@@ -18,7 +18,7 @@
 
 import wpApiFetch from '@wordpress/api-fetch';
 
-declare const ps_data: { rest_url: string; nonce: string };
+declare const snopix_data: { rest_url: string; nonce: string };
 
 let middlewareRegistered = false;
 
@@ -28,12 +28,12 @@ function ensureMiddleware(): void {
 	}
 	middlewareRegistered = true;
 
-	// ps_data.rest_url ends with `ps/v1/` — strip back to the site REST root
-	// so callers can pass either bare `ps/v1/foo` or core paths like
+	// snopix_data.rest_url ends with `snopix/v1/` — strip back to the site REST root
+	// so callers can pass either bare `snopix/v1/foo` or core paths like
 	// `/wp/v2/media/123`.
-	const restRoot = ps_data.rest_url.replace(/ps\/v1\/?$/, '');
+	const restRoot = snopix_data.rest_url.replace(/snopix\/v1\/?$/, '');
 	wpApiFetch.use(wpApiFetch.createRootURLMiddleware(restRoot));
-	wpApiFetch.use(wpApiFetch.createNonceMiddleware(ps_data.nonce));
+	wpApiFetch.use(wpApiFetch.createNonceMiddleware(snopix_data.nonce));
 }
 
 /**
@@ -68,7 +68,7 @@ export class ApiError extends Error {
 
 interface ApiFetchInit {
 	/**
-	 * REST path. Plugin paths can be passed as `ps/v1/foo` or `/ps/v1/foo`;
+	 * REST path. Plugin paths can be passed as `snopix/v1/foo` or `/snopix/v1/foo`;
 	 * core paths as `/wp/v2/...`. The `@wordpress/api-fetch` root middleware
 	 * resolves either form against the live REST URL.
 	 */

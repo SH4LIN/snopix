@@ -1,193 +1,193 @@
 @layer components {
-	.ps-card {
-		@apply bg-ps-bg border border-ps-border rounded-[var(--ps-radius-card)] p-6;
-		box-shadow: var(--ps-shadow-card);
+	.snopix-card {
+		@apply bg-snopix-bg border border-snopix-border rounded-[var(--snopix-radius-card)] p-6;
+		box-shadow: var(--snopix-shadow-card);
 	}
 
-	.ps-pill {
-		@apply inline-flex items-center gap-[5px] px-[10px] py-[3px] rounded-[var(--ps-radius-pill)] text-xs font-medium leading-[1.4] whitespace-nowrap;
+	.snopix-pill {
+		@apply inline-flex items-center gap-[5px] px-[10px] py-[3px] rounded-[var(--snopix-radius-pill)] text-xs font-medium leading-[1.4] whitespace-nowrap;
 	}
 
-	.ps-pill::before {
+	.snopix-pill::before {
 		content: "";
 		@apply block w-1.5 h-1.5 rounded-full shrink-0;
 	}
 
-	.ps-pill--indexed {
+	.snopix-pill--indexed {
 		@apply bg-[rgba(52,199,89,0.12)] text-[#1a7a3c];
 	}
-	.ps-pill--indexed::before {
-		@apply bg-ps-success;
+	.snopix-pill--indexed::before {
+		@apply bg-snopix-success;
 	}
-	.ps-pill--pending {
+	.snopix-pill--pending {
 		@apply bg-[rgba(255,149,0,0.12)] text-[#a05c00];
 	}
-	.ps-pill--pending::before {
-		@apply bg-ps-warning;
+	.snopix-pill--pending::before {
+		@apply bg-snopix-warning;
 	}
-	.ps-pill--failed {
+	.snopix-pill--failed {
 		@apply bg-[rgba(255,59,48,0.1)] text-[#c0392b];
 	}
-	.ps-pill--failed::before {
-		@apply bg-ps-danger;
+	.snopix-pill--failed::before {
+		@apply bg-snopix-danger;
 	}
 
-	.ps-btn {
-		@apply inline-flex items-center gap-1.5 px-[18px] py-[9px] bg-ps-accent text-white border-none rounded-[var(--ps-radius-input)] text-sm font-medium cursor-pointer select-none whitespace-nowrap no-underline;
+	.snopix-btn {
+		@apply inline-flex items-center gap-1.5 px-[18px] py-[9px] bg-snopix-accent text-white border-none rounded-[var(--snopix-radius-input)] text-sm font-medium cursor-pointer select-none whitespace-nowrap no-underline;
 		transition:
-			background var(--ps-duration) var(--ps-easing),
-			transform var(--ps-duration) var(--ps-easing),
-			box-shadow var(--ps-duration) var(--ps-easing);
+			background var(--snopix-duration) var(--snopix-easing),
+			transform var(--snopix-duration) var(--snopix-easing),
+			box-shadow var(--snopix-duration) var(--snopix-easing);
 	}
 
-	.ps-btn:hover {
+	.snopix-btn:hover {
 		@apply bg-[#0077ed] shadow-[0_2px_8px_rgba(0,113,227,0.3)];
 	}
-	.ps-btn:active {
+	.snopix-btn:active {
 		@apply bg-[#006acc] scale-[0.98] shadow-none;
 	}
-	.ps-btn:disabled {
+	.snopix-btn:disabled {
 		@apply bg-[#b0c8ef] cursor-not-allowed shadow-none scale-100;
 	}
 
-	.ps-btn--ghost {
-		@apply bg-transparent text-ps-accent border border-ps-border;
+	.snopix-btn--ghost {
+		@apply bg-transparent text-snopix-accent border border-snopix-border;
 	}
-	.ps-btn--ghost:hover {
-		@apply bg-ps-surface shadow-none;
+	.snopix-btn--ghost:hover {
+		@apply bg-snopix-surface shadow-none;
 	}
-	.ps-btn--ghost:active {
-		@apply bg-ps-border shadow-none;
-	}
-
-	.ps-btn--neutral {
-		@apply bg-ps-surface text-ps-text border border-ps-border;
-	}
-	.ps-btn--neutral:hover {
-		@apply bg-ps-border text-ps-text shadow-none;
-	}
-	.ps-btn--neutral:active {
-		@apply bg-ps-border shadow-none scale-[0.98];
-	}
-	.ps-btn--neutral:disabled {
-		@apply bg-ps-surface text-ps-muted shadow-none scale-100;
+	.snopix-btn--ghost:active {
+		@apply bg-snopix-border shadow-none;
 	}
 
-	.ps-btn--danger {
-		@apply bg-ps-danger text-white border border-ps-danger;
+	.snopix-btn--neutral {
+		@apply bg-snopix-surface text-snopix-text border border-snopix-border;
 	}
-	.ps-btn--danger:hover {
+	.snopix-btn--neutral:hover {
+		@apply bg-snopix-border text-snopix-text shadow-none;
+	}
+	.snopix-btn--neutral:active {
+		@apply bg-snopix-border shadow-none scale-[0.98];
+	}
+	.snopix-btn--neutral:disabled {
+		@apply bg-snopix-surface text-snopix-muted shadow-none scale-100;
+	}
+
+	.snopix-btn--danger {
+		@apply bg-snopix-danger text-white border border-snopix-danger;
+	}
+	.snopix-btn--danger:hover {
 		@apply bg-[#e0271d] border-[#e0271d] shadow-[0_2px_8px_rgba(255,59,48,0.3)];
 	}
-	.ps-btn--danger:active {
+	.snopix-btn--danger:active {
 		@apply bg-[#c41f16] border-[#c41f16] scale-[0.98] shadow-none;
 	}
-	.ps-btn--danger:disabled {
+	.snopix-btn--danger:disabled {
 		@apply bg-[#f5b5b1] border-[#f5b5b1] cursor-not-allowed shadow-none scale-100;
 	}
 
-	.ps-progress {
-		@apply w-full h-1 bg-ps-border rounded-sm overflow-hidden;
+	.snopix-progress {
+		@apply w-full h-1 bg-snopix-border rounded-sm overflow-hidden;
 	}
 
-	.ps-progress__fill {
-		@apply h-full rounded-sm bg-ps-accent;
-		transition: width 400ms var(--ps-easing);
+	.snopix-progress__fill {
+		@apply h-full rounded-sm bg-snopix-accent;
+		transition: width 400ms var(--snopix-easing);
 	}
 
-	.ps-progress--indeterminate .ps-progress__fill {
+	.snopix-progress--indeterminate .snopix-progress__fill {
 		width: 40% !important;
 		background: linear-gradient(
 			90deg,
-			var(--ps-accent) 0%,
+			var(--snopix-accent) 0%,
 			#5ab8ff 50%,
-			var(--ps-accent) 100%
+			var(--snopix-accent) 100%
 		);
 		background-size: 200% 100%;
-		animation: ps-progress-slide 1.6s ease-in-out infinite;
+		animation: snopix-progress-slide 1.6s ease-in-out infinite;
 	}
 
-	.ps-table {
+	.snopix-table {
 		@apply w-full border-collapse text-sm;
 	}
-	.ps-table thead tr {
-		@apply border-b border-ps-border;
+	.snopix-table thead tr {
+		@apply border-b border-snopix-border;
 	}
 
-	.ps-table th {
-		@apply py-[10px] px-3 text-left text-xs font-medium text-ps-muted tracking-[0.03em] uppercase whitespace-nowrap;
+	.snopix-table th {
+		@apply py-[10px] px-3 text-left text-xs font-medium text-snopix-muted tracking-[0.03em] uppercase whitespace-nowrap;
 	}
 
-	.ps-table td {
-		@apply py-3 px-3 text-ps-text border-b border-ps-border align-middle;
+	.snopix-table td {
+		@apply py-3 px-3 text-snopix-text border-b border-snopix-border align-middle;
 	}
 
-	.ps-table tbody tr:last-child td {
+	.snopix-table tbody tr:last-child td {
 		@apply border-b-0;
 	}
-	.ps-table tbody tr {
-		transition: background var(--ps-duration) var(--ps-easing);
+	.snopix-table tbody tr {
+		transition: background var(--snopix-duration) var(--snopix-easing);
 	}
-	.ps-table tbody tr:hover {
-		@apply bg-ps-surface;
-	}
-
-	.ps-table__thumb {
-		@apply w-12 h-12 rounded-[6px] object-cover bg-ps-surface border border-ps-border block shrink-0;
+	.snopix-table tbody tr:hover {
+		@apply bg-snopix-surface;
 	}
 
-	.ps-input {
-		@apply w-full px-[14px] py-[10px] bg-ps-bg border border-ps-border rounded-[var(--ps-radius-input)] text-sm text-ps-text outline-none;
+	.snopix-table__thumb {
+		@apply w-12 h-12 rounded-[6px] object-cover bg-snopix-surface border border-snopix-border block shrink-0;
+	}
+
+	.snopix-input {
+		@apply w-full px-[14px] py-[10px] bg-snopix-bg border border-snopix-border rounded-[var(--snopix-radius-input)] text-sm text-snopix-text outline-none;
 		transition:
-			border-color var(--ps-duration) var(--ps-easing),
-			box-shadow var(--ps-duration) var(--ps-easing);
+			border-color var(--snopix-duration) var(--snopix-easing),
+			box-shadow var(--snopix-duration) var(--snopix-easing);
 	}
 
-	.ps-input::placeholder {
-		@apply text-ps-muted;
+	.snopix-input::placeholder {
+		@apply text-snopix-muted;
 	}
-	.ps-input:hover {
+	.snopix-input:hover {
 		@apply border-[#c7c7cc];
 	}
-	.ps-input:focus {
-		@apply border-ps-accent shadow-[0_0_0_3px_rgba(0,113,227,0.12)];
+	.snopix-input:focus {
+		@apply border-snopix-accent shadow-[0_0_0_3px_rgba(0,113,227,0.12)];
 	}
 
-	.ps-input-wrap {
+	.snopix-input-wrap {
 		@apply relative;
 	}
-	.ps-input-wrap .ps-input {
+	.snopix-input-wrap .snopix-input {
 		@apply pl-[38px];
 	}
-	.ps-input-wrap__icon {
-		@apply absolute left-3 top-1/2 -translate-y-1/2 text-ps-muted pointer-events-none;
+	.snopix-input-wrap__icon {
+		@apply absolute left-3 top-1/2 -translate-y-1/2 text-snopix-muted pointer-events-none;
 	}
 
-	.ps-drop-zone {
-		@apply flex flex-col items-center justify-center gap-3 py-12 px-6 border-[1.5px] border-dashed border-ps-border rounded-[var(--ps-radius-card)] bg-ps-surface cursor-pointer text-center select-none;
+	.snopix-drop-zone {
+		@apply flex flex-col items-center justify-center gap-3 py-12 px-6 border-[1.5px] border-dashed border-snopix-border rounded-[var(--snopix-radius-card)] bg-snopix-surface cursor-pointer text-center select-none;
 		transition:
-			border-color var(--ps-duration) var(--ps-easing),
-			background var(--ps-duration) var(--ps-easing);
+			border-color var(--snopix-duration) var(--snopix-easing),
+			background var(--snopix-duration) var(--snopix-easing);
 	}
 
-	.ps-drop-zone:hover,
-	.ps-drop-zone--over {
-		@apply border-ps-accent bg-[rgba(0,113,227,0.04)];
+	.snopix-drop-zone:hover,
+	.snopix-drop-zone--over {
+		@apply border-snopix-accent bg-[rgba(0,113,227,0.04)];
 	}
 
-	.ps-drop-zone__icon {
-		@apply text-ps-muted;
-		transition: color var(--ps-duration) var(--ps-easing);
+	.snopix-drop-zone__icon {
+		@apply text-snopix-muted;
+		transition: color var(--snopix-duration) var(--snopix-easing);
 	}
-	.ps-drop-zone:hover .ps-drop-zone__icon,
-	.ps-drop-zone--over .ps-drop-zone__icon {
-		@apply text-ps-accent;
+	.snopix-drop-zone:hover .snopix-drop-zone__icon,
+	.snopix-drop-zone--over .snopix-drop-zone__icon {
+		@apply text-snopix-accent;
 	}
 
-	.ps-drop-zone__label {
-		@apply text-[15px] font-medium text-ps-text;
+	.snopix-drop-zone__label {
+		@apply text-[15px] font-medium text-snopix-text;
 	}
-	.ps-drop-zone__hint {
-		@apply text-[13px] text-ps-muted;
+	.snopix-drop-zone__hint {
+		@apply text-[13px] text-snopix-muted;
 	}
 }

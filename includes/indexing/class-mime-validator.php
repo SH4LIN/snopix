@@ -2,10 +2,10 @@
 /**
  * MIME type validator for image indexing.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Indexing;
+namespace Snopix\Indexing;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

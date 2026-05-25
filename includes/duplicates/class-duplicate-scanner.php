@@ -2,17 +2,17 @@
 /**
  * Duplicate scan orchestrator.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Duplicates;
+namespace Snopix\Duplicates;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Infrastructure\Action_Scheduler;
+use Snopix\Repository\Index_Repository;
+use Snopix\Infrastructure\Action_Scheduler;
 
 /**
  * Schedules and executes duplicate detection as a background WP-Cron job.
@@ -28,27 +28,27 @@ class Duplicate_Scanner {
 	/**
 	 * Cron hook for the scan job.
 	 */
-	public const CRON_HOOK = 'ps_duplicate_scan';
+	public const CRON_HOOK = 'snopix_duplicate_scan';
 
 	/**
 	 * Cron hook for the daily trigger.
 	 */
-	public const DAILY_HOOK = 'ps_duplicate_daily';
+	public const DAILY_HOOK = 'snopix_duplicate_daily';
 
 	/**
 	 * Option key for stored duplicate groups.
 	 */
-	private const RESULTS_OPTION = 'ps_duplicate_results';
+	private const RESULTS_OPTION = 'snopix_duplicate_results';
 
 	/**
 	 * Option key for last scan timestamp.
 	 */
-	private const LAST_SCANNED_OPTION = 'ps_duplicate_last_scanned';
+	private const LAST_SCANNED_OPTION = 'snopix_duplicate_last_scanned';
 
 	/**
 	 * Transient that holds the cross-batch union-find state.
 	 */
-	private const STATE_TRANSIENT = 'ps_duplicate_scan_state';
+	private const STATE_TRANSIENT = 'snopix_duplicate_scan_state';
 
 	/**
 	 * Soft per-tick wall-clock budget. Once this is exceeded the scanner

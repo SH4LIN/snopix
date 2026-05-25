@@ -15,7 +15,7 @@ interface SearchResultItem {
  * Reverse-image search side panel rendered next to the indexed-image table.
  *
  * Accepts a single image via drag-drop or click-to-browse, POSTs it to
- * `/wp-json/ps/v1/search`, and renders the top six matches with their
+ * `/wp-json/snopix/v1/search`, and renders the top six matches with their
  * composite score. Falls back to a "no similar images" message on empty
  * results and a generic error string on any HTTP failure.
  *
@@ -45,7 +45,7 @@ export default function SearchPreview() {
 		try {
 			setResults(
 				await apiFetch<SearchResultItem[]>({
-					path: 'ps/v1/search',
+					path: 'snopix/v1/search',
 					method: 'POST',
 					formData: fd,
 				})
@@ -54,7 +54,7 @@ export default function SearchPreview() {
 			setError(
 				__(
 					'Something went wrong. Try a different image.',
-					'pixel-scout'
+					'snopix'
 				)
 			);
 		} finally {
@@ -63,13 +63,13 @@ export default function SearchPreview() {
 	}
 
 	return (
-		<div className="ps-card">
-			<div className="text-sm font-semibold mb-3 text-ps-text">
-				{__('Search by Image', 'pixel-scout')}
+		<div className="snopix-card">
+			<div className="text-sm font-semibold mb-3 text-snopix-text">
+				{__('Search by Image', 'snopix')}
 			</div>
 
 			<div
-				className="ps-drop-zone"
+				className="snopix-drop-zone"
 				onClick={() => inputRef.current?.click()}
 				onDragOver={(e) => e.preventDefault()}
 				onDrop={(e) => {
@@ -80,11 +80,11 @@ export default function SearchPreview() {
 					}
 				}}
 			>
-				<div className="text-[13px] text-ps-muted">
-					{__('Drop an image to test search', 'pixel-scout')}
+				<div className="text-[13px] text-snopix-muted">
+					{__('Drop an image to test search', 'snopix')}
 				</div>
-				<div className="text-xs text-ps-muted mt-1">
-					{__('or click to browse', 'pixel-scout')}
+				<div className="text-xs text-snopix-muted mt-1">
+					{__('or click to browse', 'snopix')}
 				</div>
 				<input
 					ref={inputRef}
@@ -101,20 +101,20 @@ export default function SearchPreview() {
 			</div>
 
 			{loading && (
-				<div className="mt-3 text-[13px] text-ps-muted">
-					{__('Searching…', 'pixel-scout')}
+				<div className="mt-3 text-[13px] text-snopix-muted">
+					{__('Searching…', 'snopix')}
 				</div>
 			)}
 
 			{error && (
-				<div className="mt-3 text-[13px] text-ps-danger">{error}</div>
+				<div className="mt-3 text-[13px] text-snopix-danger">{error}</div>
 			)}
 
 			{results !== null && results.length === 0 && (
-				<div className="mt-3 text-[13px] text-ps-muted">
+				<div className="mt-3 text-[13px] text-snopix-muted">
 					{__(
 						'No similar images found. Try a different image.',
-						'pixel-scout'
+						'snopix'
 					)}
 				</div>
 			)}
@@ -127,7 +127,7 @@ export default function SearchPreview() {
 							href={r.attachment_url}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="block no-underline rounded-[8px] overflow-hidden bg-ps-surface border border-ps-border hover:border-ps-accent transition-colors"
+							className="block no-underline rounded-[8px] overflow-hidden bg-snopix-surface border border-snopix-border hover:border-snopix-accent transition-colors"
 						>
 							<img
 								src={r.url}
@@ -135,10 +135,10 @@ export default function SearchPreview() {
 								className="w-full object-contain block max-h-64"
 							/>
 							<div className="flex items-center justify-between px-3 py-2">
-								<span className="text-[12px] text-ps-text truncate">
+								<span className="text-[12px] text-snopix-text truncate">
 									{r.title}
 								</span>
-								<span className="text-[11px] font-medium text-ps-accent ml-2 shrink-0">
+								<span className="text-[11px] font-medium text-snopix-accent ml-2 shrink-0">
 									{Math.round(r.score * 100)}%
 								</span>
 							</div>

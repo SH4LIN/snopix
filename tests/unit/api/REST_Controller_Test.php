@@ -2,24 +2,24 @@
 /**
  * Tests for REST_Controller route registration + permission handling.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Api\Rate_Limiter;
-use PixelScout\Api\REST_Controller;
-use PixelScout\Indexing\Bulk_Indexer;
-use PixelScout\Indexing\Index_Progress;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
-use PixelScout\Search\Query_Image;
-use PixelScout\Search\Search_Pipeline;
+use Snopix\Api\Rate_Limiter;
+use Snopix\Api\REST_Controller;
+use Snopix\Indexing\Bulk_Indexer;
+use Snopix\Indexing\Index_Progress;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
+use Snopix\Search\Query_Image;
+use Snopix\Search\Search_Pipeline;
 
 /**
  * REST_Controller integration tests via the WP REST server.
  */
-class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
+class Snopix_REST_Controller_Test extends Snopix_TestCase {
 
 	private \WP_REST_Server $server;
 
@@ -84,17 +84,17 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_routes_are_registered(): void {
 		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( '/ps/v1/search', $routes );
-		$this->assertArrayHasKey( '/ps/v1/status', $routes );
-		$this->assertArrayHasKey( '/ps/v1/images', $routes );
-		$this->assertArrayHasKey( '/ps/v1/reindex', $routes );
-		$this->assertArrayHasKey( '/ps/v1/progress', $routes );
-		$this->assertArrayHasKey( '/ps/v1/tools/reindex-all', $routes );
-		$this->assertArrayHasKey( '/ps/v1/tools/clear-index', $routes );
-		$this->assertArrayHasKey( '/ps/v1/tools/orphans', $routes );
-		$this->assertArrayHasKey( '/ps/v1/tools/delete-orphans', $routes );
-		$this->assertArrayHasKey( '/ps/v1/tools/clear-cache', $routes );
-		$this->assertArrayHasKey( '/ps/v1/settings', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/search', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/status', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/images', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/reindex', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/progress', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/tools/reindex-all', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/tools/clear-index', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/tools/orphans', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/tools/delete-orphans', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/tools/clear-cache', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/settings', $routes );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_status_requires_manage_options(): void {
 		wp_set_current_user( 0 );
-		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/ps/v1/status' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/snopix/v1/status' ) );
 		$this->assertSame( 401, $response->get_status() );
 	}
 
@@ -115,7 +115,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_status_returns_counts_for_admin(): void {
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/ps/v1/status' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/snopix/v1/status' ) );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'total', $data );
@@ -129,7 +129,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 * @return void
 	 */
 	public function test_search_without_file_returns_400(): void {
-		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/ps/v1/search' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/snopix/v1/search' ) );
 		$this->assertSame( 400, $response->get_status() );
 	}
 
@@ -140,7 +140,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_progress_returns_envelope(): void {
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/ps/v1/progress' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/snopix/v1/progress' ) );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'status', $data );
@@ -155,7 +155,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_get_settings_returns_visibility(): void {
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/ps/v1/settings' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/snopix/v1/settings' ) );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'search_visibility', $data );
@@ -169,14 +169,14 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_update_settings_persists_value(): void {
 		$this->login_as_admin();
-		$req = new \WP_REST_Request( 'POST', '/ps/v1/settings' );
+		$req = new \WP_REST_Request( 'POST', '/snopix/v1/settings' );
 		$req->set_param( 'search_visibility', 'logged_in' );
 
 		$response = $this->server->dispatch( $req );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'logged_in', $response->get_data()['search_visibility'] );
 
-		$stored = get_option( 'ps_settings' );
+		$stored = get_option( 'snopix_settings' );
 		$this->assertSame( 'logged_in', $stored['search_visibility'] );
 	}
 
@@ -203,7 +203,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 		$controller->register_routes();
 
 		$this->login_as_admin();
-		$response = $wp_rest_server->dispatch( new \WP_REST_Request( 'POST', '/ps/v1/reindex' ) );
+		$response = $wp_rest_server->dispatch( new \WP_REST_Request( 'POST', '/snopix/v1/reindex' ) );
 		$this->assertSame( 200, $response->get_status() );
 	}
 
@@ -214,7 +214,7 @@ class Pixel_Scout_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_clear_index_calls_repository_clear_all(): void {
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/ps/v1/tools/clear-index' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/snopix/v1/tools/clear-index' ) );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'deleted', $response->get_data() );
 	}

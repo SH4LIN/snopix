@@ -2,19 +2,19 @@
 /**
  * Tests for Fingerprint_Factory composition.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\GD_Loader;
-use PixelScout\Imaging\Processor_Interface;
-use PixelScout\Search\Fingerprint_Factory;
+use Snopix\Imaging\GD_Loader;
+use Snopix\Imaging\Processor_Interface;
+use Snopix\Search\Fingerprint_Factory;
 
 /**
  * Fingerprint_Factory unit tests.
  */
-class Pixel_Scout_Fingerprint_Factory_Test extends Pixel_Scout_TestCase {
+class Snopix_Fingerprint_Factory_Test extends Snopix_TestCase {
 
 	/**
 	 * Build a small in-memory GD image to feed the factory.

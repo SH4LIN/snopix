@@ -8,12 +8,12 @@ import {
 
 /**
  * Settings tab — exposes the same plugin options that used to live under
- * Settings → Connectors → Pixel Scout, so the user does not have to leave the
- * Pixel Scout admin app to manage them.
+ * Settings → Connectors → Snopix, so the user does not have to leave the
+ * Snopix admin app to manage them.
  *
  * Currently surfaces:
- *   - `search_visibility` — whether the public `[ps_search]` shortcode and
- *     `POST /wp-json/ps/v1/search` endpoint accept anonymous requests or
+ *   - `search_visibility` — whether the public `[snopix_search]` shortcode and
+ *     `POST /wp-json/snopix/v1/search` endpoint accept anonymous requests or
  *     require the user to be logged in.
  *
  * @return {JSX.Element}
@@ -51,40 +51,40 @@ export default function Settings() {
 
 	if (isLoading) {
 		return (
-			<div className="ps-card text-sm text-ps-muted">
-				{__('Loading settings…', 'pixel-scout')}
+			<div className="snopix-card text-sm text-snopix-muted">
+				{__('Loading settings…', 'snopix')}
 			</div>
 		);
 	}
 
 	if (isError) {
 		return (
-			<div className="ps-card text-sm text-ps-danger">
-				{__('Could not load settings.', 'pixel-scout')}
+			<div className="snopix-card text-sm text-snopix-danger">
+				{__('Could not load settings.', 'snopix')}
 			</div>
 		);
 	}
 
 	return (
 		<div className="flex flex-col gap-4 max-w-2xl">
-			<div className="ps-card flex flex-col gap-4">
+			<div className="snopix-card flex flex-col gap-4">
 				<div>
-					<h2 className="text-[15px] font-semibold text-ps-text mb-1">
-						{__('Search visibility', 'pixel-scout')}
+					<h2 className="text-[15px] font-semibold text-snopix-text mb-1">
+						{__('Search visibility', 'snopix')}
 					</h2>
-					<p className="text-[13px] text-ps-muted leading-snug">
+					<p className="text-[13px] text-snopix-muted leading-snug">
 						{__(
-							'Controls who can use the public reverse-image search endpoint exposed by the [ps_search] shortcode.',
-							'pixel-scout'
+							'Controls who can use the public reverse-image search endpoint exposed by the [snopix_search] shortcode.',
+							'snopix'
 						)}
 					</p>
 				</div>
 
 				<div className="flex flex-col gap-2">
-					<label className="grid grid-cols-[auto_1fr] items-center gap-x-2 cursor-pointer text-[13px] text-ps-text">
+					<label className="grid grid-cols-[auto_1fr] items-center gap-x-2 cursor-pointer text-[13px] text-snopix-text">
 						<input
 							type="radio"
-							className="!m-0 mt-[3px] flex-shrink-0 accent-[var(--ps-accent,#2271b1)]"
+							className="!m-0 mt-[3px] flex-shrink-0 accent-[var(--snopix-accent,#2271b1)]"
 							name="search_visibility"
 							value="anyone"
 							checked={visibility === 'anyone'}
@@ -92,21 +92,21 @@ export default function Settings() {
 						/>
 						<span>
 							<span className="font-medium">
-								{__('Anyone', 'pixel-scout')}
+								{__('Anyone', 'snopix')}
 							</span>
-							<span className="block text-ps-muted text-[12px]">
+							<span className="block text-snopix-muted text-[12px]">
 								{__(
 									'Front-end visitors can drop an image and run a search without logging in.',
-									'pixel-scout'
+									'snopix'
 								)}
 							</span>
 						</span>
 					</label>
 
-					<label className="grid grid-cols-[auto_1fr] items-center gap-x-2 cursor-pointer text-[13px] text-ps-text">
+					<label className="grid grid-cols-[auto_1fr] items-center gap-x-2 cursor-pointer text-[13px] text-snopix-text">
 						<input
 							type="radio"
-							className="!m-0 mt-[3px] flex-shrink-0 accent-[var(--ps-accent,#2271b1)]"
+							className="!m-0 mt-[3px] flex-shrink-0 accent-[var(--snopix-accent,#2271b1)]"
 							name="search_visibility"
 							value="logged_in"
 							checked={visibility === 'logged_in'}
@@ -114,12 +114,12 @@ export default function Settings() {
 						/>
 						<span>
 							<span className="font-medium">
-								{__('Logged-in users only', 'pixel-scout')}
+								{__('Logged-in users only', 'snopix')}
 							</span>
-							<span className="block text-ps-muted text-[12px]">
+							<span className="block text-snopix-muted text-[12px]">
 								{__(
 									'Anonymous requests to the search endpoint are rejected with HTTP 401.',
-									'pixel-scout'
+									'snopix'
 								)}
 							</span>
 						</span>
@@ -128,22 +128,22 @@ export default function Settings() {
 
 				<div className="flex items-center gap-3">
 					<button
-						className="ps-btn"
+						className="snopix-btn"
 						onClick={onSave}
 						disabled={!dirty || isPending}
 					>
 						{isPending
-							? __('Saving…', 'pixel-scout')
-							: __('Save changes', 'pixel-scout')}
+							? __('Saving…', 'snopix')
+							: __('Save changes', 'snopix')}
 					</button>
 					{savedAt && !dirty && !isPending && (
-						<span className="text-[12px] text-ps-success">
-							{__('Saved.', 'pixel-scout')}
+						<span className="text-[12px] text-snopix-success">
+							{__('Saved.', 'snopix')}
 						</span>
 					)}
 					{saveError && (
-						<span className="text-[12px] text-ps-danger">
-							{__('Could not save. Try again.', 'pixel-scout')}
+						<span className="text-[12px] text-snopix-danger">
+							{__('Could not save. Try again.', 'snopix')}
 						</span>
 					)}
 				</div>

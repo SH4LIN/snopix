@@ -2,10 +2,10 @@
 /**
  * Color histogram processor — produces a 48-float RGB channel histogram vector.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Imaging;
+namespace Snopix\Imaging;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

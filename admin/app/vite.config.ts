@@ -1,8 +1,8 @@
 /**
- * Vite build configuration for the Pixel Scout admin app.
+ * Vite build configuration for the Snopix admin app.
  *
- * Bundles `src/main.tsx` (the React entry) into `dist/ps-admin.js` and emits
- * any CSS / asset side-products as `ps-admin.<ext>`. The names are stable so
+ * Bundles `src/main.tsx` (the React entry) into `dist/snopix-admin.js` and emits
+ * any CSS / asset side-products as `snopix-admin.<ext>`. The names are stable so
  * `includes/admin/class-admin-page.php` can enqueue the bundle without a
  * manifest lookup.
  */
@@ -17,8 +17,8 @@ export default defineConfig({
 		rollupOptions: {
 			input: 'src/main.tsx',
 			output: {
-				entryFileNames: 'ps-admin.js',
-				assetFileNames: 'ps-admin.[ext]',
+				entryFileNames: 'snopix-admin.js',
+				assetFileNames: 'snopix-admin.[ext]',
 			},
 		},
 	},

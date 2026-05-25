@@ -1,18 +1,18 @@
 <?php
 /**
- * Tests for Pixel_Scout_Query fluent builder.
+ * Tests for Snopix_Query fluent builder.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/../class-testcase.php';
 
-use PixelScout\Infrastructure\Query;
+use Snopix\Infrastructure\Query;
 
 /**
  * Test Query builder.
  */
-class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
+class Snopix_Query_Test extends Snopix_TestCase {
 	/**
 	 * Test factory constructor.
 	 */
@@ -58,14 +58,14 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	}
 
 	/**
-	 * Test ps_index table prefix.
+	 * Test snopix_index table prefix.
 	 */
 	public function test_from_ps_index(): void {
 		$query = Query::create()
-			->from( 'ps_index' );
+			->from( 'snopix_index' );
 
 		$sql = $query->build_sql();
-		$this->assertStringContainsString( 'ps_index', $sql );
+		$this->assertStringContainsString( 'snopix_index', $sql );
 	}
 
 	/**
@@ -73,7 +73,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_where_condition(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where( 'attachment_id', 42, '=', '%d' );
 
 		$sql = $query->build_sql();
@@ -86,7 +86,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_multiple_where_and(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where( 'attachment_id', 42, '=', '%d' )
 			->where( 'phash', 'abc123', '=', '%s' );
 
@@ -101,7 +101,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_where_in(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where_in( 'attachment_id', [ 1, 2, 3 ], '%d' );
 
 		$sql = $query->build_sql();
@@ -114,7 +114,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_where_not_in(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where_not_in( 'attachment_id', [ 1, 2 ], '%d' );
 
 		$sql = $query->build_sql();
@@ -126,7 +126,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_or_where_group(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where( 'mime_type', 'image/gif', '!=', '%s' )
 			->or_where_group( function( $q ) {
 				$q->where( 'phash', 'abc', '=', '%s' );
@@ -144,7 +144,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_order_by(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->order_by( 'indexed_at', 'DESC' );
 
 		$sql = $query->build_sql();
@@ -156,7 +156,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_limit(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->limit( 10 );
 
 		$sql = $query->build_sql();
@@ -168,7 +168,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_offset(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->limit( 10 )
 			->offset( 20 );
 
@@ -182,7 +182,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_paginate(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->paginate( 2, 25 );
 
 		$sql = $query->build_sql();
@@ -195,7 +195,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_group_by(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->group_by( 'mime_type' );
 
 		$sql = $query->build_sql();
@@ -208,7 +208,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	public function test_inner_join(): void {
 		global $wpdb;
 		$query = Query::create()
-			->from( 'ps_index', 'idx' )
+			->from( 'snopix_index', 'idx' )
 			->inner_join( 'posts', 'idx.attachment_id = p.ID', 'p' );
 
 		$sql = $query->build_sql();
@@ -222,7 +222,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	public function test_left_join(): void {
 		$query = Query::create()
 			->from( 'posts', 'p' )
-			->left_join( 'ps_index', 'idx.attachment_id = p.ID', 'idx' );
+			->left_join( 'snopix_index', 'idx.attachment_id = p.ID', 'idx' );
 
 		$sql = $query->build_sql();
 		$this->assertStringContainsString( 'LEFT JOIN', $sql );
@@ -250,7 +250,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_where_between(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where_between( 'file_size', 100, 1000, '%d' );
 
 		$sql = $query->build_sql();
@@ -262,7 +262,7 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_where_raw(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->where_raw( 'phash IS NOT NULL', [] );
 
 		$sql = $query->build_sql();
@@ -274,13 +274,13 @@ class Pixel_Scout_Query_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_no_cache_flag(): void {
 		$query = Query::create()
-			->from( 'ps_index' )
+			->from( 'snopix_index' )
 			->no_cache();
 
 		$this->assertTrue( $query->is_no_cache() );
 
 		$query2 = Query::create()
-			->from( 'ps_index' );
+			->from( 'snopix_index' );
 
 		$this->assertFalse( $query2->is_no_cache() );
 	}

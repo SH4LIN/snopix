@@ -19,7 +19,7 @@ interface UseImagesParams {
 /**
  * Fetch a keyset-paginated page of indexed image attachments.
  *
- * Backed by `GET /wp-json/ps/v1/images`. The cache key is keyed on `afterId`
+ * Backed by `GET /wp-json/snopix/v1/images`. The cache key is keyed on `afterId`
  * and `search`, so changing either issues a fresh request and the previous
  * page stays cached for an instant "previous" navigation.
  *
@@ -38,7 +38,7 @@ export function useImages({ afterId, search }: UseImagesParams) {
 				per_page: '25',
 				search,
 			});
-			return apiFetch<ImageRow[]>(`ps/v1/images?${params}`);
+			return apiFetch<ImageRow[]>(`snopix/v1/images?${params}`);
 		},
 		staleTime: 30_000,
 	});

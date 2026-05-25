@@ -15,7 +15,7 @@ import { FIXTURES, runCron, wpLogin, getRestNonce } from './helpers';
 const FIXTURE_ID = 1;
 const FIXTURE_FILE = `${ String( FIXTURE_ID ).padStart( 3, '0' ) }.jpg`;
 
-test.describe( 'Pixel Scout — reverse-search variant robustness', () => {
+test.describe( 'Snopix — reverse-search variant robustness', () => {
 	test.setTimeout( 300_000 );
 
 	test.beforeAll( async () => {
@@ -33,7 +33,7 @@ test.describe( 'Pixel Scout — reverse-search variant robustness', () => {
 		await wpLogin( page );
 		const nonce = await getRestNonce( page );
 
-		await page.request.post( '/wp-json/ps/v1/tools/clear-index', {
+		await page.request.post( '/wp-json/snopix/v1/tools/clear-index', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 
@@ -49,15 +49,15 @@ test.describe( 'Pixel Scout — reverse-search variant robustness', () => {
 		expect( res.status() ).toBe( 201 );
 		const attachmentId = ( await res.json() ).id as number;
 
-		await page.request.post( '/wp-json/ps/v1/tools/reindex-all', {
+		await page.request.post( '/wp-json/snopix/v1/tools/reindex-all', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
-		runCron( 'cron', 'event', 'run', 'ps_bulk_index_batch' );
+		runCron( 'cron', 'event', 'run', 'snopix_bulk_index_batch' );
 
 		await expect.poll(
 			async () => {
 				runCron( 'cron', 'event', 'run', '--due-now' );
-				const r = await page.request.get( '/wp-json/ps/v1/progress', {
+				const r = await page.request.get( '/wp-json/snopix/v1/progress', {
 					headers: { 'X-WP-Nonce': nonce },
 				} );
 				return ( await r.json() ).status;
@@ -69,7 +69,7 @@ test.describe( 'Pixel Scout — reverse-search variant robustness', () => {
 	}
 
 	/**
-	 * Submit `queryBuffer` to /ps/v1/search and assert the top result is
+	 * Submit `queryBuffer` to /snopix/v1/search and assert the top result is
 	 * `expectedId` with score above `minScore`.
 	 */
 	async function expectTopMatch(
@@ -79,7 +79,7 @@ test.describe( 'Pixel Scout — reverse-search variant robustness', () => {
 		expectedId: number,
 		minScore: number,
 	) {
-		const res = await page.request.post( '/wp-json/ps/v1/search', {
+		const res = await page.request.post( '/wp-json/snopix/v1/search', {
 			multipart: {
 				file: {
 					name:     queryName,

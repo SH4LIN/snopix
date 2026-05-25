@@ -2,12 +2,12 @@
 /**
  * Duplicate scan progress tracker.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Duplicates;
+namespace Snopix\Duplicates;
 
-use PixelScout\Infrastructure\Job_Status;
+use Snopix\Infrastructure\Job_Status;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -29,7 +29,7 @@ class Duplicate_Progress {
 	/**
 	 * Single envelope key.
 	 */
-	private const KEY = 'ps_dup_progress_state';
+	private const KEY = 'snopix_dup_progress_state';
 
 	/**
 	 * Get current progress state. Missing transient returns the idle sentinel

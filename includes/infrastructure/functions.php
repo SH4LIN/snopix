@@ -2,20 +2,20 @@
 /**
  * Shared helper functions.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'pixel_scout_get_allowed_mime_types' ) ) {
+if ( ! function_exists( 'snopix_get_allowed_mime_types' ) ) {
 	/**
-	 * Get image MIME types allowed by Pixel Scout.
+	 * Get image MIME types allowed by Snopix.
 	 *
 	 * @return array<string>
 	 */
-	function pixel_scout_get_allowed_mime_types(): array {
+	function snopix_get_allowed_mime_types(): array {
 		return array(
 			'image/jpeg',
 			'image/png',
@@ -26,7 +26,7 @@ if ( ! function_exists( 'pixel_scout_get_allowed_mime_types' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pixel_scout_format_filesize' ) ) {
+if ( ! function_exists( 'snopix_format_filesize' ) ) {
 	/**
 	 * Format byte size for admin output.
 	 *
@@ -34,7 +34,7 @@ if ( ! function_exists( 'pixel_scout_format_filesize' ) ) {
 	 *
 	 * @return string
 	 */
-	function pixel_scout_format_filesize( int $bytes ): string {
+	function snopix_format_filesize( int $bytes ): string {
 		return size_format( max( 0, $bytes ) );
 	}
 }

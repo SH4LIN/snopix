@@ -179,11 +179,11 @@ export default function Duplicates() {
 
 	if (isIndexing) {
 		return (
-			<div className="ps-card text-center py-8">
-				<p className="text-ps-muted text-sm">
+			<div className="snopix-card text-center py-8">
+				<p className="text-snopix-muted text-sm">
 					{__(
 						'Indexing is in progress. Duplicate scan is unavailable while indexing.',
-						'pixel-scout'
+						'snopix'
 					)}
 				</p>
 			</div>
@@ -192,15 +192,15 @@ export default function Duplicates() {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="ps-card">
+			<div className="snopix-card">
 				<div className="flex justify-between items-center">
 					<div>
-						<h2 className="text-[15px] font-semibold text-ps-text mb-1">
-							{__('Duplicate Images', 'pixel-scout')}
+						<h2 className="text-[15px] font-semibold text-snopix-text mb-1">
+							{__('Duplicate Images', 'snopix')}
 						</h2>
 						{lastScanned && (
-							<p className="text-xs text-ps-muted">
-								{__('Last scanned:', 'pixel-scout')}{' '}
+							<p className="text-xs text-snopix-muted">
+								{__('Last scanned:', 'snopix')}{' '}
 								{lastScanned}
 							</p>
 						)}
@@ -208,28 +208,28 @@ export default function Duplicates() {
 
 					<div className="flex gap-2">
 						<button
-							className="ps-btn"
+							className="snopix-btn"
 							onClick={() => startScan()}
 							disabled={isPending || isScanning}
 						>
 							{isScanning
-								? __('Scanning…', 'pixel-scout')
-								: __('Scan Now', 'pixel-scout')}
+								? __('Scanning…', 'snopix')
+								: __('Scan Now', 'snopix')}
 						</button>
 
 						{duplicateScanState === 'running' && (
 							<button
-								className="ps-btn ps-btn--neutral"
+								className="snopix-btn snopix-btn--neutral"
 								onClick={() => resetScan()}
 								disabled={isResetting}
 								title={__(
 									'Cancel the running scan and clear its progress so a new one can start.',
-									'pixel-scout'
+									'snopix'
 								)}
 							>
 								{isResetting
-									? __('Resetting…', 'pixel-scout')
-									: __('Reset', 'pixel-scout')}
+									? __('Resetting…', 'snopix')
+									: __('Reset', 'snopix')}
 							</button>
 						)}
 					</div>
@@ -237,12 +237,12 @@ export default function Duplicates() {
 
 				{isScanning && (
 					<div className="mt-3">
-						<div className="ps-progress">
+						<div className="snopix-progress">
 							<div
 								className={`h-full transition-all duration-500 rounded-[inherit] ${
 									duplicateScanState === 'done'
-										? 'bg-ps-success'
-										: 'bg-ps-accent'
+										? 'bg-snopix-success'
+										: 'bg-snopix-accent'
 								}`}
 								style={{
 									width:
@@ -254,32 +254,32 @@ export default function Duplicates() {
 								}}
 							/>
 						</div>
-						<div className="text-xs text-ps-muted mt-1.5">
+						<div className="text-xs text-snopix-muted mt-1.5">
 							{duplicateScanState === 'done'
-								? `✓ ${__('Scan complete', 'pixel-scout')}`
-								: __('Scanning for duplicates…', 'pixel-scout')}
+								? `✓ ${__('Scan complete', 'snopix')}`
+								: __('Scanning for duplicates…', 'snopix')}
 						</div>
 					</div>
 				)}
 
 				{conflictMessage && (
-					<div className="text-xs text-ps-danger mt-3">
+					<div className="text-xs text-snopix-danger mt-3">
 						{conflictMessage}
 					</div>
 				)}
 			</div>
 
 			{!isScanning && !isLoading && groups.length === 0 && (
-				<div className="ps-card text-center py-8">
-					<p className="text-ps-text font-medium mb-1">
+				<div className="snopix-card text-center py-8">
+					<p className="text-snopix-text font-medium mb-1">
 						{lastScanned
-							? __('No duplicate images found.', 'pixel-scout')
-							: __('No scan run yet.', 'pixel-scout')}
+							? __('No duplicate images found.', 'snopix')
+							: __('No scan run yet.', 'snopix')}
 					</p>
-					<p className="text-ps-muted text-sm">
+					<p className="text-snopix-muted text-sm">
 						{__(
 							'Click "Scan Now" to find duplicate images in your media library.',
-							'pixel-scout'
+							'snopix'
 						)}
 					</p>
 				</div>
@@ -288,20 +288,20 @@ export default function Duplicates() {
 			{!isScanning && groups.length > 0 && (
 				<div className="flex flex-col gap-4">
 					<div className="flex items-center justify-between">
-						<label className="flex items-center gap-2 text-xs text-ps-muted cursor-pointer select-none">
+						<label className="flex items-center gap-2 text-xs text-snopix-muted cursor-pointer select-none">
 							<input
 								type="checkbox"
 								checked={allSelected}
 								onChange={toggleSelectAll}
-								className="w-4 h-4 cursor-pointer accent-[var(--ps-accent,#2271b1)]"
+								className="w-4 h-4 cursor-pointer accent-[var(--snopix-accent,#2271b1)]"
 							/>
 							{groups.length === 1
-								? __('1 duplicate group found.', 'pixel-scout')
+								? __('1 duplicate group found.', 'snopix')
 								: sprintf(
 										/* translators: %d: number of duplicate groups */
 										__(
 											'%d duplicate groups found.',
-											'pixel-scout'
+											'snopix'
 										),
 										groups.length
 									)}
@@ -309,17 +309,17 @@ export default function Duplicates() {
 
 						{selectedGroups.size > 0 && (
 							<button
-								className="ps-btn ps-btn--danger text-xs"
+								className="snopix-btn snopix-btn--danger text-xs"
 								onClick={handleBulkDelete}
 								disabled={isBulkDeleting}
 							>
 								{isBulkDeleting
-									? __('Deleting…', 'pixel-scout')
+									? __('Deleting…', 'snopix')
 									: sprintf(
 											/* translators: %d: number of selected groups */
 											__(
 												'Delete %d selected',
-												'pixel-scout'
+												'snopix'
 											),
 											selectedGroups.size
 										)}

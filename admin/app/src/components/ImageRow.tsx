@@ -28,11 +28,11 @@ interface ImageData {
 function errorLabel(code: string | undefined): string {
 	switch (code) {
 		case 'unsupported_mime':
-			return __('Unsupported format', 'pixel-scout');
+			return __('Unsupported format', 'snopix');
 		case 'unfingerprintable':
-			return __('Corrupt / unreadable', 'pixel-scout');
+			return __('Corrupt / unreadable', 'snopix');
 		default:
-			return __('Failed', 'pixel-scout');
+			return __('Failed', 'snopix');
 	}
 }
 
@@ -58,15 +58,15 @@ export default function ImageRow({ image, onImageClick }: Props) {
 	const isFailed = !!image.error_code;
 	const isIndexed = !isFailed && !!image.phash;
 	const pillClass = isFailed
-		? 'ps-pill ps-pill--failed'
+		? 'snopix-pill snopix-pill--failed'
 		: isIndexed
-			? 'ps-pill ps-pill--indexed'
-			: 'ps-pill ps-pill--pending';
+			? 'snopix-pill snopix-pill--indexed'
+			: 'snopix-pill snopix-pill--pending';
 	const label = isFailed
 		? errorLabel(image.error_code)
 		: isIndexed
-			? __('Indexed', 'pixel-scout')
-			: __('Pending', 'pixel-scout');
+			? __('Indexed', 'snopix')
+			: __('Pending', 'snopix');
 	const date = image.indexed_at
 		? new Date(image.indexed_at).toLocaleDateString()
 		: '—';
@@ -84,22 +84,22 @@ export default function ImageRow({ image, onImageClick }: Props) {
 					<img
 						src={previewUrl}
 						alt={displayName}
-						className="w-12 h-12 object-contain rounded-[6px] block cursor-zoom-in bg-ps-surface"
+						className="w-12 h-12 object-contain rounded-[6px] block cursor-zoom-in bg-snopix-surface"
 						onClick={(e) => {
 							e.stopPropagation();
 							onImageClick(previewUrl);
 						}}
 					/>
 				) : (
-					<div className="w-12 h-12 bg-ps-surface rounded-[6px] flex items-center justify-center text-[10px] text-ps-muted">
-						{__('IMG', 'pixel-scout')}
+					<div className="w-12 h-12 bg-snopix-surface rounded-[6px] flex items-center justify-center text-[10px] text-snopix-muted">
+						{__('IMG', 'snopix')}
 					</div>
 				)}
 			</td>
 			<td className="text-[13px]">
 				{displayName}
 				<br />
-				<span className="text-ps-muted text-[11px]">
+				<span className="text-snopix-muted text-[11px]">
 					{image.mime_type}
 				</span>
 			</td>

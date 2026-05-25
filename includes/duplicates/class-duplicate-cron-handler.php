@@ -2,10 +2,10 @@
 /**
  * WordPress cron handler for duplicate scan.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Duplicates;
+namespace Snopix\Duplicates;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

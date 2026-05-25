@@ -2,7 +2,7 @@
  * Playwright end-to-end tests for the duplicate-scan REST endpoints.
  *
  * Uploads two byte-identical copies of one fixture image + one unrelated
- * image, runs the scanner via /ps/v1/duplicates/scan, polls /progress until
+ * image, runs the scanner via /snopix/v1/duplicates/scan, polls /progress until
  * done, then asserts /duplicates returns exactly one group containing both
  * copies of the duplicate fixture.
  */
@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FIXTURES, runCron, wpLogin, getRestNonce } from './helpers';
 
-test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
+test.describe( 'Snopix — duplicate scan REST flow', () => {
 	test.setTimeout( 300_000 );
 
 	/**
@@ -35,7 +35,7 @@ test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
 		await wpLogin( page );
 		const nonce = await getRestNonce( page );
 
-		await page.request.post( '/wp-json/ps/v1/tools/clear-index', {
+		await page.request.post( '/wp-json/snopix/v1/tools/clear-index', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 
@@ -47,14 +47,14 @@ test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
 		const c = await uploadAs( page, altSrc, 'unique.jpg', nonce );
 
 		// Index everything.
-		await page.request.post( '/wp-json/ps/v1/tools/reindex-all', {
+		await page.request.post( '/wp-json/snopix/v1/tools/reindex-all', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
-		runCron( 'cron', 'event', 'run', 'ps_bulk_index_batch' );
+		runCron( 'cron', 'event', 'run', 'snopix_bulk_index_batch' );
 		await expect.poll(
 			async () => {
 				runCron( 'cron', 'event', 'run', '--due-now' );
-				const r = await page.request.get( '/wp-json/ps/v1/progress', {
+				const r = await page.request.get( '/wp-json/snopix/v1/progress', {
 					headers: { 'X-WP-Nonce': nonce },
 				} );
 				return ( await r.json() ).status;
@@ -63,17 +63,17 @@ test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
 		).toBe( 'done' );
 
 		// Trigger the duplicate scan.
-		const scanRes = await page.request.post( '/wp-json/ps/v1/duplicates/scan', {
+		const scanRes = await page.request.post( '/wp-json/snopix/v1/duplicates/scan', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 		expect( scanRes.status() ).toBe( 200 );
 
-		runCron( 'cron', 'event', 'run', 'ps_duplicate_scan' );
+		runCron( 'cron', 'event', 'run', 'snopix_duplicate_scan' );
 
 		await expect.poll(
 			async () => {
 				runCron( 'cron', 'event', 'run', '--due-now' );
-				const r = await page.request.get( '/wp-json/ps/v1/duplicates/progress', {
+				const r = await page.request.get( '/wp-json/snopix/v1/duplicates/progress', {
 					headers: { 'X-WP-Nonce': nonce },
 				} );
 				return ( await r.json() ).status;
@@ -82,7 +82,7 @@ test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
 		).toBe( 'done' );
 
 		// Fetch the resulting groups.
-		const dupRes = await page.request.get( '/wp-json/ps/v1/duplicates', {
+		const dupRes = await page.request.get( '/wp-json/snopix/v1/duplicates', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 		expect( dupRes.status() ).toBe( 200 );
@@ -104,11 +104,11 @@ test.describe( 'Pixel Scout — duplicate scan REST flow', () => {
 		await wpLogin( page );
 		const nonce = await getRestNonce( page );
 
-		await page.request.post( '/wp-json/ps/v1/duplicates/scan', {
+		await page.request.post( '/wp-json/snopix/v1/duplicates/scan', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 
-		const second = await page.request.post( '/wp-json/ps/v1/duplicates/scan', {
+		const second = await page.request.post( '/wp-json/snopix/v1/duplicates/scan', {
 			headers: { 'X-WP-Nonce': nonce },
 		} );
 		// First call may have already completed; accept either 200 or 409.

@@ -2,10 +2,10 @@
 /**
  * Rate limiter for REST API endpoints.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Api;
+namespace Snopix\Api;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -74,7 +74,7 @@ class Rate_Limiter {
 	 * `REMOTE_ADDR` is always the immediate peer — behind any reverse proxy
 	 * that is the proxy itself, which would coalesce every visitor into one
 	 * bucket. When the request is forwarded by a configured trusted proxy
-	 * (constant `PIXEL_SCOUT_TRUSTED_PROXIES`, a comma-separated list of IPs)
+	 * (constant `SNOPIX_TRUSTED_PROXIES`, a comma-separated list of IPs)
 	 * we walk `X-Forwarded-For` right-to-left and return the first entry that
 	 * is not in the trust list.
 	 *
@@ -85,7 +85,7 @@ class Rate_Limiter {
 			? trim( sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) )
 			: '';
 
-		$trusted_raw = defined( 'PIXEL_SCOUT_TRUSTED_PROXIES' ) ? (string) PIXEL_SCOUT_TRUSTED_PROXIES : '';
+		$trusted_raw = defined( 'SNOPIX_TRUSTED_PROXIES' ) ? (string) SNOPIX_TRUSTED_PROXIES : '';
 		if ( '' === $trusted_raw || '' === $remote ) {
 			return $remote;
 		}
@@ -113,13 +113,13 @@ class Rate_Limiter {
 
 	/**
 	 * Build the transient key for an IP. Plugin-namespaced to avoid collisions
-	 * with anything else writing to the `ps_rl_*` space.
+	 * with anything else writing to the `snopix_rl_*` space.
 	 *
 	 * @param string $ip Client IP.
 	 *
 	 * @return string
 	 */
 	private static function transient_key( string $ip ): string {
-		return 'pixel_scout_ratelimit_' . hash( 'sha256', $ip );
+		return 'snopix_ratelimit_' . hash( 'sha256', $ip );
 	}
 }

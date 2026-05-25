@@ -2,17 +2,17 @@
 /**
  * Tests for Color_Processor.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\Color_Processor;
+use Snopix\Imaging\Color_Processor;
 
 /**
  * Color_Processor tests.
  */
-class Pixel_Scout_Color_Processor_Test extends Pixel_Scout_TestCase {
+class Snopix_Color_Processor_Test extends Snopix_TestCase {
 
 	private Color_Processor $processor;
 	private static string $fixtures_dir;

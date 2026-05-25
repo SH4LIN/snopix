@@ -3,12 +3,12 @@ import { useStore } from '../store/use-store';
 import { apiFetch } from '../lib/api';
 
 const post = <T>(path: string): Promise<T> =>
-	apiFetch<T>({ path: `ps/v1/${path}`, method: 'POST' });
-const get = <T>(path: string): Promise<T> => apiFetch<T>(`ps/v1/${path}`);
+	apiFetch<T>({ path: `snopix/v1/${path}`, method: 'POST' });
+const get = <T>(path: string): Promise<T> => apiFetch<T>(`snopix/v1/${path}`);
 
 /**
  * Mutation that triggers a full wipe-and-reindex via
- * `POST /wp-json/ps/v1/tools/reindex-all`. Sets the indexing state to
+ * `POST /wp-json/snopix/v1/tools/reindex-all`. Sets the indexing state to
  * `'running'` and invalidates every status-driven query on success.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<{scheduled: boolean}, Error, void>}
@@ -29,7 +29,7 @@ export function useReindexAll() {
 
 /**
  * Mutation that empties the entire fingerprint table via
- * `POST /wp-json/ps/v1/tools/clear-index`. Returns the deletion count for the
+ * `POST /wp-json/snopix/v1/tools/clear-index`. Returns the deletion count for the
  * Tools tab to display.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<{deleted: number}, Error, void>}
@@ -48,7 +48,7 @@ export function useClearIndex() {
 
 /**
  * Mutation that removes index rows whose backing attachment no longer exists,
- * via `POST /wp-json/ps/v1/tools/delete-orphans`.
+ * via `POST /wp-json/snopix/v1/tools/delete-orphans`.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<{deleted: number}, Error, void>}
  */
@@ -66,7 +66,7 @@ export function useDeleteOrphans() {
 
 /**
  * Mutation that flushes plugin caches and progress transients via
- * `POST /wp-json/ps/v1/tools/clear-cache`. Invalidates every cached query so
+ * `POST /wp-json/snopix/v1/tools/clear-cache`. Invalidates every cached query so
  * the UI re-reads from the server.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<{cleared: boolean}, Error, void>}
@@ -82,7 +82,7 @@ export function useClearCache() {
 }
 
 /**
- * Poll `/wp-json/ps/v1/tools/orphans` every 30 s for the current orphan-row
+ * Poll `/wp-json/snopix/v1/tools/orphans` every 30 s for the current orphan-row
  * count so the Tools tab can render the actionable number on the
  * "Delete Orphans" card.
  *

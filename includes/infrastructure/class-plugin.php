@@ -2,20 +2,20 @@
 /**
  * Plugin bootstrap and lifecycle handlers.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
-use PixelScout\Repository\{Index_Repository, Schema};
-use PixelScout\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor, Similarity};
-use PixelScout\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
-use PixelScout\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
-use PixelScout\Hooks\{Media_Hooks, Cron_Handler, Settings};
-use PixelScout\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller};
-use PixelScout\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, Duplicate_Cron_Handler};
-use PixelScout\Admin\Admin_Page;
-use PixelScout\Frontend\Shortcode;
+use Snopix\Repository\{Index_Repository, Schema};
+use Snopix\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor, Similarity};
+use Snopix\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
+use Snopix\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
+use Snopix\Hooks\{Media_Hooks, Cron_Handler, Settings};
+use Snopix\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller};
+use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, Duplicate_Cron_Handler};
+use Snopix\Admin\Admin_Page;
+use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -73,7 +73,7 @@ class Plugin {
 	}
 
 	/**
-	 * Register the Pixel Scout admin page.
+	 * Register the Snopix admin page.
 	 *
 	 * @return void
 	 */
@@ -203,7 +203,7 @@ class Plugin {
 	 * @return void
 	 */
 	public static function deactivate(): void {
-		wp_clear_scheduled_hook( 'ps_bulk_index_batch' );
+		wp_clear_scheduled_hook( 'snopix_bulk_index_batch' );
 		wp_clear_scheduled_hook( Duplicate_Scanner::CRON_HOOK );
 		wp_clear_scheduled_hook( Duplicate_Scanner::DAILY_HOOK );
 	}
@@ -220,12 +220,12 @@ class Plugin {
 		( new Index_Progress() )->reset();
 		( new Duplicate_Progress() )->reset();
 
-		delete_option( 'ps_settings' );
-		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
-		delete_option( 'ps_duplicate_results' );
-		delete_option( 'ps_duplicate_last_scanned' );
+		delete_option( 'snopix_settings' );
+		delete_option( SNOPIX_OPTION_DB_VERSION );
+		delete_option( 'snopix_duplicate_results' );
+		delete_option( 'snopix_duplicate_last_scanned' );
 
 		delete_transient( Bulk_Indexer::PENDING_KEY );
-		delete_transient( 'ps_duplicate_scan_state' );
+		delete_transient( 'snopix_duplicate_scan_state' );
 	}
 }

@@ -2,23 +2,23 @@
 /**
  * Tests for Duplicate_Scanner cross-batch orchestration.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Duplicates\Duplicate_Finder;
-use PixelScout\Duplicates\Duplicate_Progress;
-use PixelScout\Duplicates\Duplicate_Scanner;
-use PixelScout\Imaging\Similarity;
-use PixelScout\Infrastructure\Action_Scheduler;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
+use Snopix\Duplicates\Duplicate_Finder;
+use Snopix\Duplicates\Duplicate_Progress;
+use Snopix\Duplicates\Duplicate_Scanner;
+use Snopix\Imaging\Similarity;
+use Snopix\Infrastructure\Action_Scheduler;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
 
 /**
  * Duplicate_Scanner unit tests.
  */
-class Pixel_Scout_Duplicate_Scanner_Test extends Pixel_Scout_TestCase {
+class Snopix_Duplicate_Scanner_Test extends Snopix_TestCase {
 
 	private Index_Repository $repo;
 
@@ -33,9 +33,9 @@ class Pixel_Scout_Duplicate_Scanner_Test extends Pixel_Scout_TestCase {
 		global $wpdb;
 		( new Schema() )->install();
 		$this->repo = new Index_Repository( $wpdb );
-		delete_option( 'ps_duplicate_results' );
-		delete_option( 'ps_duplicate_last_scanned' );
-		delete_transient( 'ps_duplicate_scan_state' );
+		delete_option( 'snopix_duplicate_results' );
+		delete_option( 'snopix_duplicate_last_scanned' );
+		delete_transient( 'snopix_duplicate_scan_state' );
 		( new Duplicate_Progress() )->reset();
 	}
 
@@ -45,9 +45,9 @@ class Pixel_Scout_Duplicate_Scanner_Test extends Pixel_Scout_TestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		delete_option( 'ps_duplicate_results' );
-		delete_option( 'ps_duplicate_last_scanned' );
-		delete_transient( 'ps_duplicate_scan_state' );
+		delete_option( 'snopix_duplicate_results' );
+		delete_option( 'snopix_duplicate_last_scanned' );
+		delete_transient( 'snopix_duplicate_scan_state' );
 		( new Duplicate_Progress() )->reset();
 		parent::tearDown();
 	}
@@ -96,7 +96,7 @@ class Pixel_Scout_Duplicate_Scanner_Test extends Pixel_Scout_TestCase {
 	 * @return void
 	 */
 	public function test_schedule_queues_first_batch(): void {
-		set_transient( 'ps_duplicate_scan_state', array( 'cursor' => 5 ), HOUR_IN_SECONDS );
+		set_transient( 'snopix_duplicate_scan_state', array( 'cursor' => 5 ), HOUR_IN_SECONDS );
 
 		$scheduler = $this->createMock( Action_Scheduler::class );
 		$scheduler->expects( $this->once() )->method( 'cancel_all' )->with( Duplicate_Scanner::CRON_HOOK );
@@ -106,7 +106,7 @@ class Pixel_Scout_Duplicate_Scanner_Test extends Pixel_Scout_TestCase {
 
 		$this->scanner( $scheduler )->schedule();
 
-		$this->assertFalse( get_transient( 'ps_duplicate_scan_state' ) );
+		$this->assertFalse( get_transient( 'snopix_duplicate_scan_state' ) );
 	}
 
 	/**

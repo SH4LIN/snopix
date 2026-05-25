@@ -2,26 +2,26 @@
 /**
  * REST API controller for duplicate detection endpoints.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Api;
+namespace Snopix\Api;
 
-use PixelScout\Duplicates\{Duplicate_Scanner, Duplicate_Progress};
-use PixelScout\Infrastructure\Job_Status;
+use Snopix\Duplicates\{Duplicate_Scanner, Duplicate_Progress};
+use Snopix\Infrastructure\Job_Status;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Registers and handles ps/v1/duplicates/* REST routes.
+ * Registers and handles snopix/v1/duplicates/* REST routes.
  */
 class Duplicates_REST_Controller {
 
 	/**
 	 * REST namespace.
 	 */
-	private const REST_NAMESPACE = 'ps/v1';
+	private const REST_NAMESPACE = 'snopix/v1';
 
 	/**
 	 * Constructor.
@@ -114,7 +114,7 @@ class Duplicates_REST_Controller {
 		if ( Job_Status::RUNNING === $this->progress->get()['status'] ) {
 			return new \WP_Error(
 				'scan_running',
-				__( 'A duplicate scan is already in progress.', 'pixel-scout' ),
+				__( 'A duplicate scan is already in progress.', 'snopix' ),
 				array( 'status' => 409 )
 			);
 		}

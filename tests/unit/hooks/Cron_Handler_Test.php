@@ -2,18 +2,18 @@
 /**
  * Tests for Cron_Handler bulk batch wiring.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Hooks\Cron_Handler;
-use PixelScout\Indexing\Bulk_Indexer;
+use Snopix\Hooks\Cron_Handler;
+use Snopix\Indexing\Bulk_Indexer;
 
 /**
  * Cron_Handler unit tests.
  */
-class Pixel_Scout_Cron_Handler_Test extends Pixel_Scout_TestCase {
+class Snopix_Cron_Handler_Test extends Snopix_TestCase {
 
 	/**
 	 * `register` hooks `process_batch` onto the bulk-index cron action.
@@ -23,8 +23,8 @@ class Pixel_Scout_Cron_Handler_Test extends Pixel_Scout_TestCase {
 	public function test_register_attaches_action(): void {
 		$handler = new Cron_Handler( $this->createMock( Bulk_Indexer::class ) );
 		$handler->register();
-		$this->assertNotFalse( has_action( 'ps_bulk_index_batch', array( $handler, 'process_batch' ) ) );
-		remove_action( 'ps_bulk_index_batch', array( $handler, 'process_batch' ) );
+		$this->assertNotFalse( has_action( 'snopix_bulk_index_batch', array( $handler, 'process_batch' ) ) );
+		remove_action( 'snopix_bulk_index_batch', array( $handler, 'process_batch' ) );
 	}
 
 	/**

@@ -1,11 +1,11 @@
 #!/bin/bash
-# Setup script for Pixel Scout test environment
+# Setup script for Snopix test environment
 # Uses @wordpress/env (wp-env) for WordPress testing environment
 
 set -e
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║   Pixel Scout Test Environment Setup                           ║"
+echo "║   Snopix Test Environment Setup                           ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -106,7 +106,7 @@ start_wp_env() {
         print_step "Initializing WordPress..."
         wp-env run cli wp core install \
             --url=http://localhost:8000 \
-            --title="Pixel Scout Test" \
+            --title="Snopix Test" \
             --admin_user=wordpress \
             --admin_password=wordpress \
             --admin_email=test@example.com
@@ -116,8 +116,8 @@ start_wp_env() {
 
 # Activate the plugin
 activate_plugin() {
-    print_step "Activating Pixel Scout plugin..."
-    wp-env run cli wp plugin activate pixel-scout
+    print_step "Activating Snopix plugin..."
+    wp-env run cli wp plugin activate snopix
     print_success "Plugin activated"
 }
 

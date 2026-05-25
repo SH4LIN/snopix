@@ -4,7 +4,7 @@
  * uploads dir and registers them as WP attachments so the full PHP pipeline
  * (indexer + repository + search) can run against them.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/unit/class-testcase.php';
@@ -12,7 +12,7 @@ require_once dirname( __DIR__ ) . '/unit/class-testcase.php';
 /**
  * Base class for integration tests that need real image files on disk.
  */
-abstract class Pixel_Scout_Integration_TestCase extends Pixel_Scout_TestCase {
+abstract class Snopix_Integration_TestCase extends Snopix_TestCase {
 
 	/**
 	 * Track files created so we can clean up.

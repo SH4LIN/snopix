@@ -2,10 +2,10 @@
 /**
  * Search result value object.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Search;
+namespace Snopix\Search;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

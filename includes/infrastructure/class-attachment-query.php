@@ -2,10 +2,10 @@
 /**
  * WP-native attachment query helpers.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

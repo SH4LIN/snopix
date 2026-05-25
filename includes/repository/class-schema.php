@@ -2,10 +2,10 @@
 /**
  * Database schema management.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Repository;
+namespace Snopix\Repository;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -25,7 +25,7 @@ class Schema {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$table_name      = $wpdb->prefix . 'ps_index';
+		$table_name      = $wpdb->prefix . 'snopix_index';
 
 		$sql = "CREATE TABLE {$table_name} (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -47,7 +47,7 @@ class Schema {
 		) {$charset_collate};";
 
 		dbDelta( $sql );
-		update_option( PIXEL_SCOUT_OPTION_DB_VERSION, PIXEL_SCOUT_DB_VERSION );
+		update_option( SNOPIX_OPTION_DB_VERSION, SNOPIX_DB_VERSION );
 	}
 
 	/**
@@ -59,7 +59,7 @@ class Schema {
 		global $wpdb;
 
 		// Table identifier is built from $wpdb->prefix and a literal — no user input is interpolated.
-		$table_name = esc_sql( $wpdb->prefix . 'ps_index' );
+		$table_name = esc_sql( $wpdb->prefix . 'snopix_index' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
 	}
@@ -70,9 +70,9 @@ class Schema {
 	 * @return void
 	 */
 	public function maybe_upgrade(): void {
-		$installed_version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION, '' );
+		$installed_version = get_option( SNOPIX_OPTION_DB_VERSION, '' );
 
-		if ( PIXEL_SCOUT_DB_VERSION === $installed_version ) {
+		if ( SNOPIX_DB_VERSION === $installed_version ) {
 			return;
 		}
 

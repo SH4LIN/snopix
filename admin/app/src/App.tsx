@@ -11,7 +11,7 @@ interface ProgressResponse {
 
 const safeProgress = async (path: string): Promise<ProgressResponse> => {
 	try {
-		return await apiFetch<ProgressResponse>(`ps/v1/${path}`);
+		return await apiFetch<ProgressResponse>(`snopix/v1/${path}`);
 	} catch {
 		// Boot-time probe — swallow errors and assume idle so the UI mounts
 		// cleanly even if the REST endpoint is unreachable on first paint.
@@ -85,7 +85,7 @@ function useInitProgress() {
 /**
  * Top-level admin app shell.
  *
- * Renders the Pixel Scout heading and the Dashboard / Duplicates / Tools tab
+ * Renders the Snopix heading and the Dashboard / Duplicates / Tools tab
  * strip. The active route's component is rendered into the router `<Outlet />`.
  * Also bootstraps the global progress store via {@link useInitProgress}.
  *
@@ -108,44 +108,44 @@ export default function App() {
 		const active = pathname === path;
 		return `px-4 py-2 text-[14px] font-medium border-b-2 cursor-pointer transition-colors ${
 			active
-				? 'text-ps-accent border-ps-accent'
-				: 'text-ps-muted border-transparent hover:text-ps-text'
+				? 'text-snopix-accent border-snopix-accent'
+				: 'text-snopix-muted border-transparent hover:text-snopix-text'
 		}`;
 	};
 
 	return (
-		<div id="pixel-scout-app" className="p-6 w-full">
-			<h1 className="text-[28px] font-bold mb-1 text-ps-text">
-				{__('Pixel Scout', 'pixel-scout')}
+		<div id="snopix-app" className="p-6 w-full">
+			<h1 className="text-[28px] font-bold mb-1 text-snopix-text">
+				{__('Snopix', 'snopix')}
 			</h1>
-			<p className="text-ps-muted text-sm mb-4">
-				{__('Image similarity search', 'pixel-scout')}
+			<p className="text-snopix-muted text-sm mb-4">
+				{__('Image similarity search', 'snopix')}
 			</p>
 
-			<div className="flex gap-1 border-b border-ps-border mb-6">
+			<div className="flex gap-1 border-b border-snopix-border mb-6">
 				<button
 					className={tabClass('/dashboard')}
 					onClick={() => navigate({ to: '/dashboard' })}
 				>
-					{__('Dashboard', 'pixel-scout')}
+					{__('Dashboard', 'snopix')}
 				</button>
 				<button
 					className={tabClass('/duplicates')}
 					onClick={() => navigate({ to: '/duplicates' })}
 				>
-					{__('Duplicates', 'pixel-scout')}
+					{__('Duplicates', 'snopix')}
 				</button>
 				<button
 					className={tabClass('/tools')}
 					onClick={() => navigate({ to: '/tools' })}
 				>
-					{__('Tools', 'pixel-scout')}
+					{__('Tools', 'snopix')}
 				</button>
 				<button
 					className={tabClass('/settings')}
 					onClick={() => navigate({ to: '/settings' })}
 				>
-					{__('Settings', 'pixel-scout')}
+					{__('Settings', 'snopix')}
 				</button>
 			</div>
 

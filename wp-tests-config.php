@@ -3,7 +3,7 @@
  * WordPress test configuration.
  * Uses WORDPRESS_DB_* env vars when set (wp-env container), falls back to local defaults.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 define( 'ABSPATH', getenv( 'WORDPRESS_ABSPATH' ) ?: '/var/www/html/' );
@@ -18,6 +18,6 @@ $table_prefix = 'wptests_';
 
 define( 'WP_TESTS_DOMAIN', 'example.org' );
 define( 'WP_TESTS_EMAIL', 'admin@example.org' );
-define( 'WP_TESTS_TITLE', 'Pixel Scout Tests' );
+define( 'WP_TESTS_TITLE', 'Snopix Tests' );
 define( 'WP_PHP_BINARY', 'php' );
 define( 'WPLANG', '' );

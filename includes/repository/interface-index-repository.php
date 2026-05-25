@@ -2,10 +2,10 @@
 /**
  * Index repository contract.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Repository;
+namespace Snopix\Repository;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -35,7 +35,7 @@ interface Index_Repository_Interface {
 	/**
 	 * Fetch indexed rows within `$max_distance` Hamming bits of the query
 	 * pHash. Used as a SQL-side pre-filter in the search pipeline so the
-	 * entire ps_index table never lands in PHP.
+	 * entire snopix_index table never lands in PHP.
 	 *
 	 * @param string $query_phash  16-char lowercase hex query hash.
 	 * @param int    $max_distance Maximum Hamming distance to return.

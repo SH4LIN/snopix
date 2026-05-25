@@ -2,12 +2,12 @@
 /**
  * WordPress scheduled event handler for bulk indexing.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Hooks;
+namespace Snopix\Hooks;
 
-use PixelScout\Indexing\Bulk_Indexer;
+use Snopix\Indexing\Bulk_Indexer;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -31,7 +31,7 @@ class Cron_Handler {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'ps_bulk_index_batch', array( $this, 'process_batch' ), 10, 0 );
+		add_action( 'snopix_bulk_index_batch', array( $this, 'process_batch' ), 10, 0 );
 	}
 
 	/**

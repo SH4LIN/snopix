@@ -2,21 +2,21 @@
 /**
  * Tests for Bulk_Indexer batch orchestration.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Indexing\Bulk_Indexer;
-use PixelScout\Indexing\Image_Indexer;
-use PixelScout\Indexing\Index_Progress;
-use PixelScout\Infrastructure\Action_Scheduler;
-use PixelScout\Repository\Index_Repository;
+use Snopix\Indexing\Bulk_Indexer;
+use Snopix\Indexing\Image_Indexer;
+use Snopix\Indexing\Index_Progress;
+use Snopix\Infrastructure\Action_Scheduler;
+use Snopix\Repository\Index_Repository;
 
 /**
  * Bulk_Indexer unit tests.
  */
-class Pixel_Scout_Bulk_Indexer_Test extends Pixel_Scout_TestCase {
+class Snopix_Bulk_Indexer_Test extends Snopix_TestCase {
 
 	/**
 	 * Reset transient state before each test to avoid cross-test bleed.

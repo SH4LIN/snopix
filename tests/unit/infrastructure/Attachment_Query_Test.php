@@ -2,17 +2,17 @@
 /**
  * Tests for Attachment_Query keyset pagination + search helpers.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Infrastructure\Attachment_Query;
+use Snopix\Infrastructure\Attachment_Query;
 
 /**
  * Attachment_Query unit tests.
  */
-class Pixel_Scout_Attachment_Query_Test extends Pixel_Scout_TestCase {
+class Snopix_Attachment_Query_Test extends Snopix_TestCase {
 
 	/**
 	 * Spawn an image attachment for fixture data.

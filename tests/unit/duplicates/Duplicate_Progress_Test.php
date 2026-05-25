@@ -2,17 +2,17 @@
 /**
  * Tests for Duplicate_Progress transient-backed state machine.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Duplicates\Duplicate_Progress;
+use Snopix\Duplicates\Duplicate_Progress;
 
 /**
  * Duplicate_Progress unit tests.
  */
-class Pixel_Scout_Duplicate_Progress_Test extends Pixel_Scout_TestCase {
+class Snopix_Duplicate_Progress_Test extends Snopix_TestCase {
 
 	private Duplicate_Progress $progress;
 

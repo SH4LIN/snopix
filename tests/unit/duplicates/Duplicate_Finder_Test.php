@@ -2,18 +2,18 @@
 /**
  * Tests for Duplicate_Finder grouping algorithm.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Duplicates\Duplicate_Finder;
-use PixelScout\Imaging\Similarity;
+use Snopix\Duplicates\Duplicate_Finder;
+use Snopix\Imaging\Similarity;
 
 /**
  * Duplicate_Finder unit tests — pure algorithm.
  */
-class Pixel_Scout_Duplicate_Finder_Test extends Pixel_Scout_TestCase {
+class Snopix_Duplicate_Finder_Test extends Snopix_TestCase {
 
 	private Duplicate_Finder $finder;
 

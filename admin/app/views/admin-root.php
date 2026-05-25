@@ -2,11 +2,11 @@
 /**
  * Admin page mount point for the React app.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div id="ps-root"></div>
+<div id="snopix-root"></div>

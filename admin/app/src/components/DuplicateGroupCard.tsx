@@ -43,7 +43,7 @@ export default function DuplicateGroupCard({
 
 	return (
 		<div
-			className={`ps-card transition-colors ${selected ? 'ring-2 ring-ps-accent' : ''}`}
+			className={`snopix-card transition-colors ${selected ? 'ring-2 ring-snopix-accent' : ''}`}
 		>
 			<div className="flex justify-between items-center mb-3">
 				<div className="flex items-center gap-2">
@@ -51,30 +51,30 @@ export default function DuplicateGroupCard({
 						type="checkbox"
 						checked={selected}
 						onChange={onToggleSelect}
-						className="w-4 h-4 cursor-pointer accent-[var(--ps-accent,#2271b1)]"
+						className="w-4 h-4 cursor-pointer accent-[var(--snopix-accent,#2271b1)]"
 					/>
 					<span
 						className={`text-xs font-medium px-2 py-0.5 rounded-full ${
 							group.match_type === 'exact'
-								? 'bg-ps-accent/10 text-ps-accent'
-								: 'bg-ps-muted/10 text-ps-muted'
+								? 'bg-snopix-accent/10 text-snopix-accent'
+								: 'bg-snopix-muted/10 text-snopix-muted'
 						}`}
 					>
 						{group.match_type === 'exact'
-							? __('Exact duplicate', 'pixel-scout')
-							: __('Similar image', 'pixel-scout')}
+							? __('Exact duplicate', 'snopix')
+							: __('Similar image', 'snopix')}
 					</span>
 				</div>
 
 				{toDelete.length > 0 && (
 					<button
-						className="ps-btn ps-btn--danger text-xs"
+						className="snopix-btn snopix-btn--danger text-xs"
 						onClick={handleDelete}
 						disabled={isDeleting}
 					>
 						{sprintf(
 							/* translators: %d: number of images to delete */
-							__('Delete %d other(s)', 'pixel-scout'),
+							__('Delete %d other(s)', 'snopix'),
 							toDelete.length
 						)}
 					</button>
@@ -119,13 +119,13 @@ function ImageCard({ image, isKeep, onKeep }: ImageCardProps) {
 		<div
 			className={`flex-shrink-0 w-[140px] rounded-lg border-2 cursor-pointer transition-colors ${
 				isKeep
-					? 'border-ps-accent'
-					: 'border-ps-border hover:border-ps-muted'
+					? 'border-snopix-accent'
+					: 'border-snopix-border hover:border-snopix-muted'
 			}`}
 			onClick={onKeep}
 			title={image.filename}
 		>
-			<div className="w-full aspect-square overflow-hidden rounded-t-md bg-ps-surface">
+			<div className="w-full aspect-square overflow-hidden rounded-t-md bg-snopix-surface">
 				{image.thumbnail_url ? (
 					<img
 						src={image.thumbnail_url}
@@ -133,29 +133,29 @@ function ImageCard({ image, isKeep, onKeep }: ImageCardProps) {
 						className="w-full h-full object-cover"
 					/>
 				) : (
-					<div className="w-full h-full flex items-center justify-center text-ps-muted text-[11px]">
-						{__('No preview', 'pixel-scout')}
+					<div className="w-full h-full flex items-center justify-center text-snopix-muted text-[11px]">
+						{__('No preview', 'snopix')}
 					</div>
 				)}
 			</div>
 
 			<div className="p-2">
 				{isKeep && (
-					<div className="text-[11px] font-semibold text-ps-accent mb-0.5">
-						{__('Keep', 'pixel-scout')}
+					<div className="text-[11px] font-semibold text-snopix-accent mb-0.5">
+						{__('Keep', 'snopix')}
 					</div>
 				)}
 				<div
-					className="text-[11px] text-ps-text truncate"
+					className="text-[11px] text-snopix-text truncate"
 					title={image.filename}
 				>
 					{image.filename || image.title}
 				</div>
-				<div className="text-[11px] text-ps-muted mt-0.5">
+				<div className="text-[11px] text-snopix-muted mt-0.5">
 					{formatBytes(image.file_size)}
 				</div>
 				{image.width > 0 && (
-					<div className="text-[11px] text-ps-muted">
+					<div className="text-[11px] text-snopix-muted">
 						{image.width}×{image.height}
 					</div>
 				)}

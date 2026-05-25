@@ -17,7 +17,7 @@ interface PSStore {
 }
 
 /**
- * Pixel Scout admin Zustand store.
+ * Snopix admin Zustand store.
  *
  * Pair of independent state machines:
  *   - `indexingState`      idle → running → done|stalled → idle

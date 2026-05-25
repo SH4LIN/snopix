@@ -1,28 +1,28 @@
 <?php
 /**
- * REST API controller for Pixel Scout endpoints.
+ * REST API controller for Snopix endpoints.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Api;
+namespace Snopix\Api;
 
-use PixelScout\Search\{Search_Pipeline, Query_Image};
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Indexing\{Bulk_Indexer, Index_Progress};
+use Snopix\Search\{Search_Pipeline, Query_Image};
+use Snopix\Repository\Index_Repository;
+use Snopix\Indexing\{Bulk_Indexer, Index_Progress};
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Registers and handles all ps/v1 REST API routes.
+ * Registers and handles all snopix/v1 REST API routes.
  */
 class REST_Controller {
 
 	/**
 	 * REST API namespace.
 	 */
-	private const REST_NAMESPACE = 'ps/v1';
+	private const REST_NAMESPACE = 'snopix/v1';
 
 	/**
 	 * Constructor.
@@ -56,7 +56,7 @@ class REST_Controller {
 				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'handle_search' ),
 				'permission_callback' => static function () {
-					$settings   = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+					$settings   = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
 					$visibility = isset( $settings['search_visibility'] ) && 'logged_in' === $settings['search_visibility']
 						? 'logged_in'
 						: 'anyone';
@@ -238,7 +238,7 @@ class REST_Controller {
 		if ( '' !== $ip && ! $this->rate_limiter->is_allowed( $ip ) ) {
 			return new \WP_Error(
 				'rate_limited',
-				__( 'Too many requests.', 'pixel-scout' ),
+				__( 'Too many requests.', 'snopix' ),
 				array( 'status' => 429 )
 			);
 		}
@@ -248,7 +248,7 @@ class REST_Controller {
 		if ( empty( $files['file'] ) ) {
 			return new \WP_Error(
 				'no_file',
-				__( 'No file provided.', 'pixel-scout' ),
+				__( 'No file provided.', 'snopix' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -258,7 +258,7 @@ class REST_Controller {
 		if ( false === $attachment_id ) {
 			return new \WP_Error(
 				'unprocessable_image',
-				__( 'Could not process image.', 'pixel-scout' ),
+				__( 'Could not process image.', 'snopix' ),
 				array( 'status' => 422 )
 			);
 		}
@@ -268,7 +268,7 @@ class REST_Controller {
 		} catch ( \RuntimeException $e ) {
 			return new \WP_Error(
 				'unprocessable_image',
-				__( 'Could not process image.', 'pixel-scout' ),
+				__( 'Could not process image.', 'snopix' ),
 				array( 'status' => 422 )
 			);
 		} finally {
@@ -382,7 +382,7 @@ class REST_Controller {
 		if ( ! $this->bulk_indexer->schedule() ) {
 			return new \WP_Error(
 				'indexing_running',
-				__( 'A bulk indexing job is already in progress.', 'pixel-scout' ),
+				__( 'A bulk indexing job is already in progress.', 'snopix' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -423,7 +423,7 @@ class REST_Controller {
 		if ( ! $deleted ) {
 			return new \WP_Error(
 				'not_found',
-				__( 'Not found.', 'pixel-scout' ),
+				__( 'Not found.', 'snopix' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -440,7 +440,7 @@ class REST_Controller {
 		if ( ! $this->bulk_indexer->schedule_all() ) {
 			return new \WP_Error(
 				'indexing_running',
-				__( 'A bulk indexing job is already in progress.', 'pixel-scout' ),
+				__( 'A bulk indexing job is already in progress.', 'snopix' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -456,7 +456,7 @@ class REST_Controller {
 		if ( $this->bulk_indexer->is_running() ) {
 			return new \WP_Error(
 				'indexing_running',
-				__( 'Cannot clear the index while a bulk indexing job is in progress.', 'pixel-scout' ),
+				__( 'Cannot clear the index while a bulk indexing job is in progress.', 'snopix' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -498,7 +498,7 @@ class REST_Controller {
 		if ( $this->bulk_indexer->is_running() ) {
 			return new \WP_Error(
 				'indexing_running',
-				__( 'Cannot clear the cache while a bulk indexing job is in progress.', 'pixel-scout' ),
+				__( 'Cannot clear the cache while a bulk indexing job is in progress.', 'snopix' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -508,12 +508,12 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /settings — return the current ps_settings option.
+	 * Handle GET /settings — return the current snopix_settings option.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public function handle_get_settings(): \WP_REST_Response {
-		$settings = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		$settings = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
 		if ( ! is_array( $settings ) ) {
 			$settings = array( 'search_visibility' => 'anyone' );
 		}
@@ -531,14 +531,14 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /settings — persist a sanitised ps_settings payload.
+	 * Handle POST /settings — persist a sanitised snopix_settings payload.
 	 *
 	 * @param \WP_REST_Request $request REST request.
 	 *
 	 * @return \WP_REST_Response
 	 */
 	public function handle_update_settings( \WP_REST_Request $request ): \WP_REST_Response {
-		$current = get_option( 'ps_settings', array( 'search_visibility' => 'anyone' ) );
+		$current = get_option( 'snopix_settings', array( 'search_visibility' => 'anyone' ) );
 		if ( ! is_array( $current ) ) {
 			$current = array( 'search_visibility' => 'anyone' );
 		}
@@ -548,7 +548,7 @@ class REST_Controller {
 			$current['search_visibility'] = $visibility;
 		}
 
-		update_option( 'ps_settings', $current );
+		update_option( 'snopix_settings', $current );
 
 		return new \WP_REST_Response(
 			array(

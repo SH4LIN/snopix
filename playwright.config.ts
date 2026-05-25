@@ -1,5 +1,5 @@
 /**
- * Playwright configuration for the Pixel Scout end-to-end test suite.
+ * Playwright configuration for the Snopix end-to-end test suite.
  *
  * Runs the specs in `tests/e2e/` against five browser/device projects:
  * Chromium, Firefox, WebKit, plus the Mobile Chrome (Pixel 5) and Mobile Safari

@@ -1,4 +1,4 @@
-# Contributing to Pixel Scout
+# Contributing to Snopix
 
 Thanks for taking the time to contribute. This document covers the dev
 environment, the conventions the codebase follows, and the checks every
@@ -22,8 +22,8 @@ so Composer is only needed for dev dependencies (PHPUnit, PHPCS, PHPStan).
 ## Bootstrapping a local dev environment
 
 ```bash
-git clone <repo> wp-content/plugins/pixel-scout
-cd wp-content/plugins/pixel-scout
+git clone <repo> wp-content/plugins/snopix
+cd wp-content/plugins/snopix
 
 composer install
 ( cd admin/app && npm ci && npm run build )
@@ -96,14 +96,14 @@ python3 tests/fixtures/images/run_search_tests.py        # exercises /search
 
 | Element | Convention | Example |
 | --- | --- | --- |
-| Classes | `PixelScout\<Domain>\<Class_Name>` | `PixelScout\Search\Search_Pipeline` |
+| Classes | `Snopix\<Domain>\<Class_Name>` | `Snopix\Search\Search_Pipeline` |
 | Methods | `snake_case` | `handle_search()` |
-| Constants | `PIXEL_SCOUT_*` | `PIXEL_SCOUT_VERSION` |
-| Hooks | `ps_<action_or_filter>` | `ps_after_index` |
-| Options / transients | `ps_*` | `ps_bulk_progress` |
-| DB tables | `{prefix}ps_*` | `wp_ps_index` |
-| REST namespace | `ps/v1` | `/wp-json/ps/v1/search` |
-| Text domain | `pixel-scout` | `__( 'Indexing…', 'pixel-scout' )` |
+| Constants | `SNOPIX_*` | `SNOPIX_VERSION` |
+| Hooks | `snopix_<action_or_filter>` | `snopix_after_index` |
+| Options / transients | `snopix_*` | `snopix_bulk_progress` |
+| DB tables | `{prefix}snopix_*` | `wp_snopix_index` |
+| REST namespace | `snopix/v1` | `/wp-json/snopix/v1/search` |
+| Text domain | `snopix` | `__( 'Indexing…', 'snopix' )` |
 
 ---
 
@@ -146,7 +146,7 @@ Before requesting review, confirm:
 * [ ] New / changed functions carry PHPDoc or JSDoc with `@param` and
       `@return`
 * [ ] User-facing strings are wrapped in `__()` / `esc_html__()` with the
-      `pixel-scout` text domain
+      `snopix` text domain
 * [ ] No `$wpdb` outside `includes/repository/`
 * [ ] No new top-level files end up in the release zip — re-run
       `bash bin/build-zip.sh` and inspect the staging tree if you added
@@ -165,7 +165,7 @@ open an issue with:
 
 1. The source attachment (URL or attached file).
 2. The probe image you uploaded.
-3. The full JSON response from `POST /wp-json/ps/v1/search` or the
+3. The full JSON response from `POST /wp-json/snopix/v1/search` or the
    `/duplicates` payload.
 4. Plugin version, WordPress version, and PHP version.
 
@@ -176,6 +176,6 @@ fastest way to improve ranking.
 
 ## License
 
-By contributing to Pixel Scout you agree that your contributions will be
+By contributing to Snopix you agree that your contributions will be
 licensed under the GNU General Public License v2 or later, matching the
 plugin's license.

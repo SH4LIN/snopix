@@ -2,10 +2,10 @@
 /**
  * GD image loader — creates and destroys GD resources from WordPress attachments.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Imaging;
+namespace Snopix\Imaging;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

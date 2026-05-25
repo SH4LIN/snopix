@@ -2,10 +2,10 @@
 /**
  * Admin page registration and asset enqueueing.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Admin;
+namespace Snopix\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -22,10 +22,10 @@ class Admin_Page {
 	 */
 	public function register(): void {
 		add_media_page(
-			__( 'Pixel Scout', 'pixel-scout' ),
-			__( 'Pixel Scout', 'pixel-scout' ),
+			__( 'Snopix', 'snopix' ),
+			__( 'Snopix', 'snopix' ),
 			'manage_options',
-			'pixel-scout',
+			'snopix',
 			array( $this, 'render' )
 		);
 
@@ -33,47 +33,47 @@ class Admin_Page {
 	}
 
 	/**
-	 * Enqueue admin assets on the Pixel Scout page.
+	 * Enqueue admin assets on the Snopix page.
 	 *
 	 * @param string $hook Current admin page hook suffix.
 	 *
 	 * @return void
 	 */
 	public function enqueue( string $hook ): void {
-		if ( false === strpos( $hook, 'pixel-scout' ) ) {
+		if ( false === strpos( $hook, 'snopix' ) ) {
 			return;
 		}
 
 		wp_enqueue_style(
-			'ps-admin',
-			PIXEL_SCOUT_PLUGIN_URL . 'admin/app/dist/ps-admin.css',
+			'snopix-admin',
+			SNOPIX_PLUGIN_URL . 'admin/app/dist/snopix-admin.css',
 			array(),
-			PIXEL_SCOUT_VERSION
+			SNOPIX_VERSION
 		);
 
 		wp_enqueue_script(
-			'ps-admin',
-			PIXEL_SCOUT_PLUGIN_URL . 'admin/app/dist/ps-admin.js',
+			'snopix-admin',
+			SNOPIX_PLUGIN_URL . 'admin/app/dist/snopix-admin.js',
 			// wp-api-fetch is core's REST helper; declaring it here guarantees
 			// the `wp.apiFetch` global is loaded before our bundle boots so the
 			// shared `@wordpress/api-fetch` import resolves to the same
 			// already-initialised instance instead of a duplicate.
 			array( 'wp-api-fetch' ),
-			PIXEL_SCOUT_VERSION,
+			SNOPIX_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'ps-admin',
-			'ps_data',
+			'snopix-admin',
+			'snopix_data',
 			array(
-				'rest_url' => esc_url_raw( rest_url( 'ps/v1/' ) ),
+				'rest_url' => esc_url_raw( rest_url( 'snopix/v1/' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'is_admin' => current_user_can( 'manage_options' ),
 			)
 		);
 
-		wp_set_script_translations( 'ps-admin', 'pixel-scout', PIXEL_SCOUT_PLUGIN_DIR . 'languages' );
+		wp_set_script_translations( 'snopix-admin', 'snopix', SNOPIX_PLUGIN_DIR . 'languages' );
 	}
 
 	/**
@@ -82,6 +82,6 @@ class Admin_Page {
 	 * @return void
 	 */
 	public function render(): void {
-		require PIXEL_SCOUT_PLUGIN_DIR . 'admin/app/views/admin-root.php';
+		require SNOPIX_PLUGIN_DIR . 'admin/app/views/admin-root.php';
 	}
 }

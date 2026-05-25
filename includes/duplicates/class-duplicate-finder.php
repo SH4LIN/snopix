@@ -2,16 +2,16 @@
 /**
  * Duplicate image finder — pure algorithm class.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Duplicates;
+namespace Snopix\Duplicates;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use PixelScout\Imaging\Similarity;
+use Snopix\Imaging\Similarity;
 
 /**
  * Groups indexed images into duplicate sets using exact hash and perceptual hash.

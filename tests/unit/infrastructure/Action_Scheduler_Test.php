@@ -2,21 +2,21 @@
 /**
  * Tests for Action_Scheduler WP-Cron wrapper.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Infrastructure\Action_Scheduler;
+use Snopix\Infrastructure\Action_Scheduler;
 
 /**
  * Action_Scheduler unit tests.
  */
-class Pixel_Scout_Action_Scheduler_Test extends Pixel_Scout_TestCase {
+class Snopix_Action_Scheduler_Test extends Snopix_TestCase {
 
 	private Action_Scheduler $scheduler;
 
-	private const HOOK = 'ps_test_action';
+	private const HOOK = 'snopix_test_action';
 
 	/**
 	 * Set up a clean scheduler before each test.

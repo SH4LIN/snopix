@@ -2,20 +2,20 @@
 /**
  * Tests for Image_Indexer single-image indexing flow.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Indexing\Image_Indexer;
-use PixelScout\Indexing\Mime_Validator;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Search\Fingerprint_Factory;
+use Snopix\Indexing\Image_Indexer;
+use Snopix\Indexing\Mime_Validator;
+use Snopix\Repository\Index_Repository;
+use Snopix\Search\Fingerprint_Factory;
 
 /**
  * Image_Indexer unit tests.
  */
-class Pixel_Scout_Image_Indexer_Test extends Pixel_Scout_TestCase {
+class Snopix_Image_Indexer_Test extends Snopix_TestCase {
 
 	/**
 	 * Build a fingerprint payload matching the factory shape.

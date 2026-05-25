@@ -2,15 +2,15 @@
 /**
  * Bulk indexing orchestrator for background processing.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Indexing;
+namespace Snopix\Indexing;
 
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Infrastructure\Action_Scheduler;
-use PixelScout\Infrastructure\Job_Status;
-use PixelScout\Infrastructure\Logger;
+use Snopix\Repository\Index_Repository;
+use Snopix\Infrastructure\Action_Scheduler;
+use Snopix\Infrastructure\Job_Status;
+use Snopix\Infrastructure\Logger;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -36,12 +36,12 @@ class Bulk_Indexer {
 	/**
 	 * Cron hook name.
 	 */
-	public const CRON_HOOK = 'ps_bulk_index_batch';
+	public const CRON_HOOK = 'snopix_bulk_index_batch';
 
 	/**
 	 * Transient key for the pending attachment ID queue.
 	 */
-	public const PENDING_KEY = 'ps_bulk_pending';
+	public const PENDING_KEY = 'snopix_bulk_pending';
 
 	/**
 	 * Constructor.

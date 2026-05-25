@@ -6,18 +6,18 @@
  * Fixture images (tests/fixtures/images/) are used for integration-style tests
  * and are skipped if not yet downloaded (run: composer fixtures).
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\PHash_Processor;
-use PixelScout\Imaging\Similarity;
+use Snopix\Imaging\PHash_Processor;
+use Snopix\Imaging\Similarity;
 
 /**
  * PHash_Processor tests.
  */
-class Pixel_Scout_PHash_Processor_Test extends Pixel_Scout_TestCase {
+class Snopix_PHash_Processor_Test extends Snopix_TestCase {
 
 	private PHash_Processor $processor;
 	private Similarity $sim;

@@ -2,13 +2,13 @@
 /**
  * WordPress media attachment hooks for automatic indexing.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Hooks;
+namespace Snopix\Hooks;
 
-use PixelScout\Indexing\Image_Indexer;
-use PixelScout\Search\Query_Image;
+use Snopix\Indexing\Image_Indexer;
+use Snopix\Search\Query_Image;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

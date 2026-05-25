@@ -1,18 +1,18 @@
 <?php
 /**
- * Tests for Pixel_Scout_Schema database management.
+ * Tests for Snopix_Schema database management.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/../class-testcase.php';
 
-use PixelScout\Repository\Schema;
+use Snopix\Repository\Schema;
 
 /**
  * Test Schema manager.
  */
-class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
+class Snopix_Schema_Test extends Snopix_TestCase {
 	/**
 	 * Table name for tests.
 	 *
@@ -139,13 +139,13 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 	 * Test db version option is set during install.
 	 */
 	public function test_install_sets_db_version(): void {
-		delete_option( PIXEL_SCOUT_OPTION_DB_VERSION );
+		delete_option( SNOPIX_OPTION_DB_VERSION );
 
 		$schema = new Schema();
 		$schema->install();
 
-		$version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION );
-		$this->assertEquals( PIXEL_SCOUT_DB_VERSION, $version );
+		$version = get_option( SNOPIX_OPTION_DB_VERSION );
+		$this->assertEquals( SNOPIX_DB_VERSION, $version );
 	}
 
 	/**
@@ -156,7 +156,7 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 		$schema->install();
 
 		// Update to current version.
-		update_option( PIXEL_SCOUT_OPTION_DB_VERSION, PIXEL_SCOUT_DB_VERSION );
+		update_option( SNOPIX_OPTION_DB_VERSION, SNOPIX_DB_VERSION );
 
 		// Call maybe_upgrade - should not re-create table.
 		$schema->maybe_upgrade();
@@ -172,13 +172,13 @@ class Pixel_Scout_Schema_Test extends Pixel_Scout_TestCase {
 		$schema->install();
 
 		// Force old version.
-		update_option( PIXEL_SCOUT_OPTION_DB_VERSION, '0.0.1' );
+		update_option( SNOPIX_OPTION_DB_VERSION, '0.0.1' );
 
 		// Call maybe_upgrade - should update.
 		$schema->maybe_upgrade();
 
-		$version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION );
-		$this->assertEquals( PIXEL_SCOUT_DB_VERSION, $version );
+		$version = get_option( SNOPIX_OPTION_DB_VERSION );
+		$this->assertEquals( SNOPIX_DB_VERSION, $version );
 	}
 
 	/**

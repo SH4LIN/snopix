@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Pixel Scout test runner commands — copy/paste as needed.
+# Snopix test runner commands — copy/paste as needed.
 
 CONTAINER=$(docker ps --format "{{.Names}}" | grep "tests-cli" | head -1)
-PLUGIN_PATH="/var/www/html/wp-content/plugins/pixel-scout"
+PLUGIN_PATH="/var/www/html/wp-content/plugins/snopix"
 PHPUNIT="WP_TESTS_DIR=/wordpress-phpunit php $PLUGIN_PATH/vendor/bin/phpunit --configuration $PLUGIN_PATH/phpunit.xml.dist"
 
 # ---------------------------------------------------------------------------
@@ -13,10 +13,10 @@ PHPUNIT="WP_TESTS_DIR=/wordpress-phpunit php $PLUGIN_PATH/vendor/bin/phpunit --c
 docker exec $CONTAINER bash -c "$PHPUNIT"
 
 # Run a specific test class (replace filter value as needed)
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Pixel_Scout_Repository"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Pixel_Scout_Schema"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Pixel_Scout_Plugin"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Pixel_Scout_Query"
+docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Repository"
+docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Schema"
+docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Plugin"
+docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Query"
 
 # Run a specific test method
 docker exec $CONTAINER bash -c "$PHPUNIT --filter test_upsert_inserts_new_row"

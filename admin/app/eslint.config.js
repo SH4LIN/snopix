@@ -1,5 +1,5 @@
 /**
- * ESLint flat-config for the Pixel Scout admin app.
+ * ESLint flat-config for the Snopix admin app.
  *
  * Combines `@eslint/js` recommended rules with `typescript-eslint`'s
  * recommended rules, layers in the React Hooks + React Refresh plugins, and

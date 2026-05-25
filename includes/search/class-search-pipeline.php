@@ -2,12 +2,12 @@
 /**
  * Search pipeline — scores indexed images against a query fingerprint.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Search;
+namespace Snopix\Search;
 
-use PixelScout\Repository\Index_Repository;
+use Snopix\Repository\Index_Repository;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

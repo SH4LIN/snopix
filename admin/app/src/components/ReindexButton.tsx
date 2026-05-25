@@ -26,7 +26,7 @@ interface Props {
  * inline beneath the bar.
  *
  * @param {Props}    props        Component props.
- * @param {Status=}  props.status Latest status payload from `/wp-json/ps/v1/status`.
+ * @param {Status=}  props.status Latest status payload from `/wp-json/snopix/v1/status`.
  *
  * @return {JSX.Element}
  */
@@ -51,13 +51,13 @@ export default function ReindexButton({ status }: Props) {
 		startError instanceof ConflictError ? startError.message : null;
 
 	return (
-		<div className="ps-card mb-4">
+		<div className="snopix-card mb-4">
 			<div className="flex justify-between items-center mb-3">
 				<span className="text-sm">
 					{status
 						? sprintf(
 								/* translators: 1: indexed image count, 2: total image count */
-								__('%1$s of %2$s images indexed', 'pixel-scout'),
+								__('%1$s of %2$s images indexed', 'snopix'),
 								status.indexed.toLocaleString(),
 								status.total.toLocaleString()
 							)
@@ -67,42 +67,42 @@ export default function ReindexButton({ status }: Props) {
 				<div className="flex gap-2">
 					{isIdle && (
 						<button
-							className="ps-btn"
+							className="snopix-btn"
 							onClick={() => startReindex()}
 							disabled={isPending || !status?.pending}
 						>
-							{__('Index Remaining', 'pixel-scout')}{' '}
+							{__('Index Remaining', 'snopix')}{' '}
 							{status?.pending ?? ''} &rarr;
 						</button>
 					)}
 
 					{(isRunning || isStalled) && (
 						<button
-							className="ps-btn ps-btn--neutral"
+							className="snopix-btn snopix-btn--neutral"
 							onClick={() => resetProgress()}
 							disabled={isResetting}
 							title={__(
 								'Cancel the running job and clear its progress so a new one can start.',
-								'pixel-scout'
+								'snopix'
 							)}
 						>
 							{isResetting
-								? __('Resetting…', 'pixel-scout')
-								: __('Reset', 'pixel-scout')}
+								? __('Resetting…', 'snopix')
+								: __('Reset', 'snopix')}
 						</button>
 					)}
 				</div>
 			</div>
 
 			{(isRunning || isDone || isStalled) && (
-				<div className="ps-progress">
+				<div className="snopix-progress">
 					<div
 						className={`h-full transition-all duration-[400ms] rounded-[inherit] ${
 							isDone
-								? 'bg-ps-success'
+								? 'bg-snopix-success'
 								: isStalled
-									? 'bg-ps-danger'
-									: 'bg-ps-accent'
+									? 'bg-snopix-danger'
+									: 'bg-snopix-accent'
 						}`}
 						style={{ width: `${isDone ? 100 : pct}%` }}
 					/>
@@ -110,10 +110,10 @@ export default function ReindexButton({ status }: Props) {
 			)}
 
 			{isRunning && progress && (
-				<div className="text-xs text-ps-muted mt-1.5">
+				<div className="text-xs text-snopix-muted mt-1.5">
 					{sprintf(
 						/* translators: 1: completed batch count, 2: total batch count */
-						__('Indexing… %1$d of %2$d', 'pixel-scout'),
+						__('Indexing… %1$d of %2$d', 'snopix'),
 						progress.done,
 						progress.total
 					)}
@@ -121,23 +121,23 @@ export default function ReindexButton({ status }: Props) {
 			)}
 
 			{isDone && (
-				<div className="text-xs text-ps-success mt-1.5">
-					✓ {__('Indexing complete', 'pixel-scout')}
+				<div className="text-xs text-snopix-success mt-1.5">
+					✓ {__('Indexing complete', 'snopix')}
 				</div>
 			)}
 
 			{isStalled && (
-				<div className="text-xs text-ps-danger mt-1.5">
+				<div className="text-xs text-snopix-danger mt-1.5">
 					✗{' '}
 					{__(
 						'Indexing stalled — click Reset to clear the queue and start a new run.',
-						'pixel-scout'
+						'snopix'
 					)}
 				</div>
 			)}
 
 			{conflictMessage && (
-				<div className="text-xs text-ps-danger mt-1.5">
+				<div className="text-xs text-snopix-danger mt-1.5">
 					{conflictMessage}
 				</div>
 			)}

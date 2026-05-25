@@ -2,12 +2,12 @@
 /**
  * Score calculator — computes a weighted similarity score between two fingerprints.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Search;
+namespace Snopix\Search;
 
-use PixelScout\Imaging\Similarity;
+use Snopix\Imaging\Similarity;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

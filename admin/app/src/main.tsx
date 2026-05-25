@@ -1,8 +1,8 @@
 /**
- * Pixel Scout admin app entry point.
+ * Snopix admin app entry point.
  *
  * Wires React Query, TanStack Router (hash history) and the App shell into the
- * `#ps-root` container injected by `includes/admin/class-admin-page.php`.
+ * `#snopix-root` container injected by `includes/admin/class-admin-page.php`.
  * Defines the four hash routes: `/` → redirect, `/dashboard`, `/duplicates`,
  * `/tools`.
  */
@@ -77,7 +77,7 @@ declare module '@tanstack/react-router' {
 	}
 }
 
-const container = document.getElementById('ps-root');
+const container = document.getElementById('snopix-root');
 if (container) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },

@@ -35,7 +35,7 @@ export interface DuplicateScanProgress {
 const DONE_RESET_MS = 3_000;
 
 /**
- * Fetch the cached duplicate-scan result via `GET /wp-json/ps/v1/duplicates`.
+ * Fetch the cached duplicate-scan result via `GET /wp-json/snopix/v1/duplicates`.
  *
  * Cached for 60 s on the client to keep the Duplicates tab responsive while
  * the user toggles between routes.
@@ -45,13 +45,13 @@ const DONE_RESET_MS = 3_000;
 export function useDuplicates() {
 	return useQuery<DuplicatesData>({
 		queryKey: ['duplicates'],
-		queryFn: () => apiFetch<DuplicatesData>('ps/v1/duplicates'),
+		queryFn: () => apiFetch<DuplicatesData>('snopix/v1/duplicates'),
 		staleTime: 60_000,
 	});
 }
 
 /**
- * Mutation that POSTs to `/wp-json/ps/v1/duplicates/scan` to schedule a fresh
+ * Mutation that POSTs to `/wp-json/snopix/v1/duplicates/scan` to schedule a fresh
  * duplicate-detection job. On success flips the duplicate-scan state to
  * `'running'` so the polling hook starts firing.
  *
@@ -65,7 +65,7 @@ export function useStartDuplicateScan() {
 
 	return useMutation({
 		mutationFn: () =>
-			apiFetch({ path: 'ps/v1/duplicates/scan', method: 'POST' }),
+			apiFetch({ path: 'snopix/v1/duplicates/scan', method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('running');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -74,7 +74,7 @@ export function useStartDuplicateScan() {
 }
 
 /**
- * Mutation that POSTs to `/wp-json/ps/v1/duplicates/reset` to abort an
+ * Mutation that POSTs to `/wp-json/snopix/v1/duplicates/reset` to abort an
  * in-flight scan, clear the cross-batch state, and reset progress to idle.
  *
  * @return {import('@tanstack/react-query').UseMutationResult<unknown, Error, void>}
@@ -85,7 +85,7 @@ export function useResetDuplicateScan() {
 
 	return useMutation({
 		mutationFn: () =>
-			apiFetch({ path: 'ps/v1/duplicates/reset', method: 'POST' }),
+			apiFetch({ path: 'snopix/v1/duplicates/reset', method: 'POST' }),
 		onSuccess: () => {
 			setDuplicateScanState('idle');
 			qc.invalidateQueries({ queryKey: ['duplicates-progress'] });
@@ -94,7 +94,7 @@ export function useResetDuplicateScan() {
 }
 
 /**
- * Poll `/wp-json/ps/v1/duplicates/progress` while a scan is running and drive
+ * Poll `/wp-json/snopix/v1/duplicates/progress` while a scan is running and drive
  * the running → done → idle transition. After completion the `/duplicates`
  * query is invalidated so the new group list is fetched.
  *
@@ -126,7 +126,7 @@ export function useDuplicateScanProgress() {
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {
 			const body = await apiFetch<DuplicateScanProgress>(
-				'ps/v1/duplicates/progress'
+				'snopix/v1/duplicates/progress'
 			);
 			if (
 				body.status === 'running' &&
@@ -142,7 +142,7 @@ export function useDuplicateScanProgress() {
 	const { data: progress } = useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress'],
 		queryFn: () =>
-			apiFetch<DuplicateScanProgress>('ps/v1/duplicates/progress'),
+			apiFetch<DuplicateScanProgress>('snopix/v1/duplicates/progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});

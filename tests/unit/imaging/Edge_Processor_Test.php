@@ -2,17 +2,17 @@
 /**
  * Tests for Edge_Processor.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\Edge_Processor;
+use Snopix\Imaging\Edge_Processor;
 
 /**
  * Edge_Processor tests.
  */
-class Pixel_Scout_Edge_Processor_Test extends Pixel_Scout_TestCase {
+class Snopix_Edge_Processor_Test extends Snopix_TestCase {
 
 	private Edge_Processor $processor;
 	private static string $fixtures_dir;

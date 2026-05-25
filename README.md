@@ -1,4 +1,4 @@
-# Pixel Scout
+# Snopix
 
 Reverse image search and duplicate detection for the WordPress media library.
 
@@ -13,11 +13,11 @@ Reverse image search and duplicate detection for the WordPress media library.
 ## Install (from source)
 
 ```bash
-git clone <repo> wp-content/plugins/pixel-scout
-cd wp-content/plugins/pixel-scout
+git clone <repo> wp-content/plugins/snopix
+cd wp-content/plugins/snopix
 composer install
 ( cd admin/app && npm ci && npm run build )
-wp plugin activate pixel-scout
+wp plugin activate snopix
 ```
 
 For a packaged zip, see **Build a release zip** below.
@@ -27,7 +27,7 @@ For a packaged zip, see **Build a release zip** below.
 ## How it works
 
 Each indexed attachment carries three fingerprints stored in
-`{prefix}ps_index`:
+`{prefix}snopix_index`:
 
 * a 64-bit perceptual hash (pHash) over a DCT of the greyscale thumbnail
 * a 48-element RGB colour histogram
@@ -45,17 +45,17 @@ Supported MIME types: `image/jpeg`, `image/png`, `image/gif`, `image/webp`,
 ## Front-end shortcode
 
 ```text
-[ps_search]
+[snopix_search]
 ```
 
 Drops a search widget on the front end. Visibility (`anyone` or
-`logged-in`) is configurable under **Settings → Connectors → Pixel Scout**.
+`logged-in`) is configurable under **Settings → Connectors → Snopix**.
 
 ---
 
 ## REST API
 
-Base namespace: `ps/v1`.
+Base namespace: `snopix/v1`.
 
 | Method | Path | Auth |
 | --- | --- | --- |
@@ -84,13 +84,13 @@ distinguish a broken upload from an empty result set.
 ## Build a release zip
 
 ```bash
-bash bin/build-zip.sh             # uses version from pixel-scout.php
+bash bin/build-zip.sh             # uses version from snopix.php
 bash bin/build-zip.sh 0.1.1       # override
 ```
 
 The script runs `npm ci && npm run build` for the admin app, then `rsync`s
 the source tree through `.distignore` to strip dev artifacts before zipping.
-Output lands at `build/pixel-scout-<version>.zip`.
+Output lands at `build/snopix-<version>.zip`.
 
 CI runs the same script in `.github/workflows/release.yml` on `v*` tag
 pushes and on manual `workflow_dispatch`.

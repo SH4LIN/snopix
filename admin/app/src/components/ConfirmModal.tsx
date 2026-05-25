@@ -69,7 +69,7 @@ export default function ConfirmModal({
 		return null;
 	}
 
-	const confirmBtn = danger ? 'ps-btn--danger' : '';
+	const confirmBtn = danger ? 'snopix-btn--danger' : '';
 
 	return (
 		<div
@@ -77,31 +77,31 @@ export default function ConfirmModal({
 			onClick={() => !loading && onCancel()}
 		>
 			<div
-				className="bg-ps-bg rounded-[12px] shadow-xl max-w-md w-full p-6"
+				className="bg-snopix-bg rounded-[12px] shadow-xl max-w-md w-full p-6"
 				onClick={(e) => e.stopPropagation()}
 			>
-				<h3 className="text-[17px] font-semibold text-ps-text mb-2">
+				<h3 className="text-[17px] font-semibold text-snopix-text mb-2">
 					{title}
 				</h3>
-				<p className="text-[14px] text-ps-muted mb-5 leading-snug">
+				<p className="text-[14px] text-snopix-muted mb-5 leading-snug">
 					{message}
 				</p>
 				<div className="flex justify-end gap-2">
 					<button
-						className="ps-btn ps-btn--neutral"
+						className="snopix-btn snopix-btn--neutral"
 						onClick={onCancel}
 						disabled={loading}
 					>
-						{cancelText ?? __('Cancel', 'pixel-scout')}
+						{cancelText ?? __('Cancel', 'snopix')}
 					</button>
 					<button
-						className={`ps-btn ${confirmBtn}`}
+						className={`snopix-btn ${confirmBtn}`}
 						onClick={onConfirm}
 						disabled={loading}
 					>
 						{loading
-							? __('Working…', 'pixel-scout')
-							: (confirmText ?? __('Confirm', 'pixel-scout'))}
+							? __('Working…', 'snopix')
+							: (confirmText ?? __('Confirm', 'snopix'))}
 					</button>
 				</div>
 			</div>

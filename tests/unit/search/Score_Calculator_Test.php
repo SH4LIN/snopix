@@ -2,18 +2,18 @@
 /**
  * Tests for Score_Calculator composite scoring.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\Similarity;
-use PixelScout\Search\Score_Calculator;
+use Snopix\Imaging\Similarity;
+use Snopix\Search\Score_Calculator;
 
 /**
  * Score_Calculator unit tests — pure math, no images needed.
  */
-class Pixel_Scout_Score_Calculator_Test extends Pixel_Scout_TestCase {
+class Snopix_Score_Calculator_Test extends Snopix_TestCase {
 
 	private Score_Calculator $calculator;
 

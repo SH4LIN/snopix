@@ -2,18 +2,18 @@
 /**
  * Tests for Media_Hooks attachment lifecycle wiring.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Hooks\Media_Hooks;
-use PixelScout\Indexing\Image_Indexer;
+use Snopix\Hooks\Media_Hooks;
+use Snopix\Indexing\Image_Indexer;
 
 /**
  * Media_Hooks unit tests.
  */
-class Pixel_Scout_Media_Hooks_Test extends Pixel_Scout_TestCase {
+class Snopix_Media_Hooks_Test extends Snopix_TestCase {
 
 	/**
 	 * `register` attaches handlers to add_attachment and delete_attachment.

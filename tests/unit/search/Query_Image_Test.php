@@ -2,17 +2,17 @@
 /**
  * Tests for Query_Image upload + cleanup.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Search\Query_Image;
+use Snopix\Search\Query_Image;
 
 /**
  * Query_Image unit tests.
  */
-class Pixel_Scout_Query_Image_Test extends Pixel_Scout_TestCase {
+class Snopix_Query_Image_Test extends Snopix_TestCase {
 
 	private Query_Image $query_image;
 

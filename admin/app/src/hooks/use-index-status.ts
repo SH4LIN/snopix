@@ -18,7 +18,7 @@ interface IndexStatus {
 }
 
 /**
- * Poll the indexing counters every 30 s from `GET /wp-json/ps/v1/status`.
+ * Poll the indexing counters every 30 s from `GET /wp-json/snopix/v1/status`.
  *
  * Also hydrates the global `indexingState` from the server-side progress
  * envelope so a hard reload during an active bulk job leaves the UI in the
@@ -42,7 +42,7 @@ export function useIndexStatus() {
 
 	const query = useQuery<IndexStatus>({
 		queryKey: ['status'],
-		queryFn: () => apiFetch<IndexStatus>('ps/v1/status'),
+		queryFn: () => apiFetch<IndexStatus>('snopix/v1/status'),
 		refetchInterval,
 	});
 

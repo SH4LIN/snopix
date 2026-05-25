@@ -50,7 +50,7 @@ export function useIndexingProgress() {
 
 	const { data: progress } = useQuery<Progress>({
 		queryKey: ['progress'],
-		queryFn: () => apiFetch<Progress>('ps/v1/progress'),
+		queryFn: () => apiFetch<Progress>('snopix/v1/progress'),
 		enabled: isRunning,
 		refetchInterval: isRunning ? 2_000 : false,
 	});
@@ -91,7 +91,7 @@ export function useIndexingProgress() {
 }
 
 /**
- * Mutation that POSTs to `/wp-json/ps/v1/reindex` to start an "index missing"
+ * Mutation that POSTs to `/wp-json/snopix/v1/reindex` to start an "index missing"
  * background job. On success flips the global state to `'running'` and
  * invalidates the `/status` query so the counter updates immediately.
  *
@@ -106,7 +106,7 @@ export function useReindex() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => apiFetch({ path: 'ps/v1/reindex', method: 'POST' }),
+		mutationFn: () => apiFetch({ path: 'snopix/v1/reindex', method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('running');
 			qc.invalidateQueries({ queryKey: ['status'] });
@@ -115,7 +115,7 @@ export function useReindex() {
 }
 
 /**
- * Mutation that POSTs to `/wp-json/ps/v1/reset-progress` to abort the
+ * Mutation that POSTs to `/wp-json/snopix/v1/reset-progress` to abort the
  * in-flight bulk job, clear pending queue, and reset the progress envelope.
  * Used by the Reset button surfaced on stalled/running progress bars.
  *
@@ -127,7 +127,7 @@ export function useResetProgress() {
 
 	return useMutation({
 		mutationFn: () =>
-			apiFetch({ path: 'ps/v1/reset-progress', method: 'POST' }),
+			apiFetch({ path: 'snopix/v1/reset-progress', method: 'POST' }),
 		onSuccess: () => {
 			setIndexingState('idle');
 			qc.invalidateQueries({ queryKey: ['status'] });

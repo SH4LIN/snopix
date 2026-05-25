@@ -2,21 +2,21 @@
 /**
  * Tests for Search_Pipeline orchestration.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Search\Fingerprint_Factory;
-use PixelScout\Search\Score_Calculator;
-use PixelScout\Search\Search_Pipeline;
-use PixelScout\Search\Search_Result;
+use Snopix\Repository\Index_Repository;
+use Snopix\Search\Fingerprint_Factory;
+use Snopix\Search\Score_Calculator;
+use Snopix\Search\Search_Pipeline;
+use Snopix\Search\Search_Result;
 
 /**
  * Search_Pipeline unit tests — mocked repo/factory/calculator.
  */
-class Pixel_Scout_Search_Pipeline_Test extends Pixel_Scout_TestCase {
+class Snopix_Search_Pipeline_Test extends Snopix_TestCase {
 
 	/**
 	 * Build a fingerprint payload mirroring the factory output.
@@ -57,7 +57,7 @@ class Pixel_Scout_Search_Pipeline_Test extends Pixel_Scout_TestCase {
 		$pipeline = new Search_Pipeline(
 			$this->createMock( Index_Repository::class ),
 			$factory,
-			new Score_Calculator( new \PixelScout\Imaging\Similarity() )
+			new Score_Calculator( new \Snopix\Imaging\Similarity() )
 		);
 
 		$this->expectException( \RuntimeException::class );
@@ -80,7 +80,7 @@ class Pixel_Scout_Search_Pipeline_Test extends Pixel_Scout_TestCase {
 		$pipeline = new Search_Pipeline(
 			$repo,
 			$factory,
-			new Score_Calculator( new \PixelScout\Imaging\Similarity() )
+			new Score_Calculator( new \Snopix\Imaging\Similarity() )
 		);
 
 		$this->assertSame( array(), $pipeline->search( 1 ) );
@@ -253,7 +253,7 @@ class Pixel_Scout_Search_Pipeline_Test extends Pixel_Scout_TestCase {
 		$pipeline = new Search_Pipeline(
 			$repo,
 			$factory,
-			new Score_Calculator( new \PixelScout\Imaging\Similarity() )
+			new Score_Calculator( new \Snopix\Imaging\Similarity() )
 		);
 
 		$this->assertSame( array(), $pipeline->search( $id ) );

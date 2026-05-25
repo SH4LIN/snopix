@@ -1,5 +1,5 @@
 /**
- * Playwright end-to-end tests for the [ps_search] frontend shortcode.
+ * Playwright end-to-end tests for the [snopix_search] frontend shortcode.
  *
  * Covers rendering of the drop-zone, drag-and-drop upload, score badges, the
  * "no results" empty state, click-through to the media library, visibility
@@ -7,22 +7,22 @@
  * responsive layout on mobile / tablet viewports.
  */
 import { test, expect } from '@playwright/test';
-test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
+test.describe('Snopix Frontend Search Shortcode (Phase 7)', () => {
 	test.beforeEach(async ({ page }) => {
-		// Navigate to page with [ps_search] shortcode
+		// Navigate to page with [snopix_search] shortcode
 		// Assumes a page exists with the shortcode
-		await page.goto('/pixel-scout-search/');
+		await page.goto('/snopix-search/');
 	});
 
 	test.skip('shortcode renders search drop zone', async ({ page }) => {
 		// Phase 7 test: verify shortcode renders
-		const dropZone = page.locator('[data-testid="ps-search-drop-zone"]');
+		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
 		await expect(dropZone).toBeVisible();
 	});
 
 	test.skip('can drag and drop image for search', async ({ page }) => {
 		// Phase 7 test: upload via drag-drop
-		const dropZone = page.locator('[data-testid="ps-search-drop-zone"]');
+		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
 
 		// File drag-drop simulation (Playwright specific)
 		const fileInput = page.locator('input[type="file"]');
@@ -32,7 +32,7 @@ test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 		await page.waitForLoadState('networkidle');
 
 		// Verify results display
-		const resultsGrid = page.locator('[data-testid="ps-search-results"]');
+		const resultsGrid = page.locator('[data-testid="snopix-search-results"]');
 		await expect(resultsGrid).toBeVisible();
 	});
 
@@ -63,9 +63,9 @@ test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 
 	test.skip('respects search visibility setting (public)', async ({ page }) => {
 		// Phase 7 test: if visibility is "anyone", public user can search
-		// This test assumes ps_settings option is set to 'anyone'
+		// This test assumes snopix_settings option is set to 'anyone'
 
-		const dropZone = page.locator('[data-testid="ps-search-drop-zone"]');
+		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
 		await expect(dropZone).toBeVisible();
 	});
 
@@ -82,7 +82,7 @@ test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 	test.skip('handles error states gracefully', async ({ page }) => {
 		// Phase 7 test: if search fails, show error message
 		// Mock network failure
-		await page.route('**/wp-json/ps/v1/search', route => route.abort());
+		await page.route('**/wp-json/snopix/v1/search', route => route.abort());
 
 		const fileInput = page.locator('input[type="file"]');
 		await fileInput.setInputFiles('./tests/fixtures/test-image.jpg');
@@ -96,7 +96,7 @@ test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 		const fileInput = page.locator('input[type="file"]');
 
 		// Slow down network to catch loading state
-		await page.route('**/wp-json/ps/v1/search', route => {
+		await page.route('**/wp-json/snopix/v1/search', route => {
 			setTimeout(() => route.continue(), 1000);
 		});
 
@@ -110,17 +110,17 @@ test.describe('Pixel Scout Frontend Search Shortcode (Phase 7)', () => {
 /**
  * Responsive design tests.
  */
-test.describe('Pixel Scout Frontend Responsive Design', () => {
+test.describe('Snopix Frontend Responsive Design', () => {
 	test.skip('shortcode adapts to mobile viewport', async ({ page }) => {
 		// Set mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 });
-		await page.goto('/pixel-scout-search/');
+		await page.goto('/snopix-search/');
 
-		const dropZone = page.locator('[data-testid="ps-search-drop-zone"]');
+		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
 		await expect(dropZone).toBeVisible();
 
 		// Verify grid reduces to 1 column on mobile
-		const resultsGrid = page.locator('[data-testid="ps-search-results"]');
+		const resultsGrid = page.locator('[data-testid="snopix-search-results"]');
 		const itemCount = await resultsGrid.locator('[data-testid="result-card"]').count();
 		// On mobile, should display differently (actual assertion depends on implementation)
 		expect(itemCount).toBeGreaterThanOrEqual(0);
@@ -129,9 +129,9 @@ test.describe('Pixel Scout Frontend Responsive Design', () => {
 	test.skip('search works on tablet', async ({ page }) => {
 		// Set tablet viewport
 		await page.setViewportSize({ width: 768, height: 1024 });
-		await page.goto('/pixel-scout-search/');
+		await page.goto('/snopix-search/');
 
-		const dropZone = page.locator('[data-testid="ps-search-drop-zone"]');
+		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
 		await expect(dropZone).toBeVisible();
 	});
 });

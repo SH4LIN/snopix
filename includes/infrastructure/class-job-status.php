@@ -2,10 +2,10 @@
 /**
  * Canonical status values for background jobs (indexing, duplicate scan).
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

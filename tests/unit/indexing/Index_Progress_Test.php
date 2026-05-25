@@ -2,17 +2,17 @@
 /**
  * Tests for Index_Progress transient-backed state machine.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Indexing\Index_Progress;
+use Snopix\Indexing\Index_Progress;
 
 /**
  * Index_Progress unit tests.
  */
-class Pixel_Scout_Index_Progress_Test extends Pixel_Scout_TestCase {
+class Snopix_Index_Progress_Test extends Snopix_TestCase {
 
 	private Index_Progress $progress;
 

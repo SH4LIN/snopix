@@ -2,10 +2,10 @@
 /**
  * Fluent query builder wrapper for $wpdb.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

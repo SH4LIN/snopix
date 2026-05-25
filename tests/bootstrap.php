@@ -1,8 +1,8 @@
 <?php
 /**
- * PHPUnit bootstrap for Pixel Scout tests.
+ * PHPUnit bootstrap for Snopix tests.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 // Load PHPUnit polyfills before WordPress test suite to provide removed PHPUnit classes.
@@ -32,7 +32,7 @@ require_once $wp_tests_dir . '/includes/functions.php';
  * @return void
  */
 function _manually_load_plugin() {
-	require_once dirname( dirname( __FILE__ ) ) . '/pixel-scout.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/snopix.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

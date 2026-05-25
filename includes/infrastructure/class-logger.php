@@ -2,10 +2,10 @@
 /**
  * Plugin-wide debug logger.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,7 +24,7 @@ final class Logger {
 	/**
 	 * Prefix prepended to every line so log greps can isolate plugin output.
 	 */
-	private const PREFIX = '[Pixel Scout] ';
+	private const PREFIX = '[Snopix] ';
 
 	/**
 	 * Emit a debug line to the PHP error log if WP_DEBUG is enabled. No-op

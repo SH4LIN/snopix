@@ -2,17 +2,17 @@
 /**
  * Tests for Mime_Validator allowed-MIME enforcement.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Indexing\Mime_Validator;
+use Snopix\Indexing\Mime_Validator;
 
 /**
  * Mime_Validator unit tests.
  */
-class Pixel_Scout_Mime_Validator_Test extends Pixel_Scout_TestCase {
+class Snopix_Mime_Validator_Test extends Snopix_TestCase {
 
 	private Mime_Validator $validator;
 

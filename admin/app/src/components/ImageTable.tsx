@@ -63,11 +63,11 @@ export default function ImageTable() {
 	}, [lightbox]);
 
 	return (
-		<div className="ps-card">
+		<div className="snopix-card">
 			<div className="mb-3">
 				<input
-					className="ps-input w-full"
-					placeholder={__('Search images…', 'pixel-scout')}
+					className="snopix-input w-full"
+					placeholder={__('Search images…', 'snopix')}
 					value={search}
 					onChange={(e) => {
 						setSearch(e.target.value);
@@ -77,15 +77,15 @@ export default function ImageTable() {
 			</div>
 
 			<div className="overflow-x-auto">
-				<table className="ps-table w-full min-w-[560px]">
+				<table className="snopix-table w-full min-w-[560px]">
 					<thead>
 						<tr>
 							<th></th>
-							<th>{__('File Name', 'pixel-scout')}</th>
-							<th>{__('Dimensions', 'pixel-scout')}</th>
-							<th>{__('Size', 'pixel-scout')}</th>
-							<th>{__('Indexed At', 'pixel-scout')}</th>
-							<th>{__('Status', 'pixel-scout')}</th>
+							<th>{__('File Name', 'snopix')}</th>
+							<th>{__('Dimensions', 'snopix')}</th>
+							<th>{__('Size', 'snopix')}</th>
+							<th>{__('Indexed At', 'snopix')}</th>
+							<th>{__('Status', 'snopix')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -93,9 +93,9 @@ export default function ImageTable() {
 							<tr>
 								<td
 									colSpan={6}
-									className="text-center text-ps-muted py-6"
+									className="text-center text-snopix-muted py-6"
 								>
-									{__('Loading…', 'pixel-scout')}
+									{__('Loading…', 'snopix')}
 								</td>
 							</tr>
 						)}
@@ -110,9 +110,9 @@ export default function ImageTable() {
 							<tr>
 								<td
 									colSpan={6}
-									className="text-center text-ps-muted py-6"
+									className="text-center text-snopix-muted py-6"
 								>
-									{__('No images found', 'pixel-scout')}
+									{__('No images found', 'snopix')}
 								</td>
 							</tr>
 						)}
@@ -120,22 +120,22 @@ export default function ImageTable() {
 				</table>
 			</div>
 
-			<div className="flex justify-between items-center mt-3 text-[13px] text-ps-muted">
+			<div className="flex justify-between items-center mt-3 text-[13px] text-snopix-muted">
 				<span>
-					{__('Page', 'pixel-scout')} {cursors.length}
+					{__('Page', 'snopix')} {cursors.length}
 				</span>
 				<div className="flex gap-2">
 					<button
 						onClick={goPrev}
 						disabled={cursors.length <= 1}
-						className="ps-btn py-1 px-2.5 text-[13px]"
+						className="snopix-btn py-1 px-2.5 text-[13px]"
 					>
 						&larr;
 					</button>
 					<button
 						onClick={goNext}
 						disabled={!images || images.length < 25}
-						className="ps-btn py-1 px-2.5 text-[13px]"
+						className="snopix-btn py-1 px-2.5 text-[13px]"
 					>
 						&rarr;
 					</button>

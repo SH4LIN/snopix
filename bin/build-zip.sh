@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 #
-# Build a WordPress.org-deployable zip of the Pixel Scout plugin.
+# Build a WordPress.org-deployable zip of the Snopix plugin.
 #
 # Usage:
 #   bin/build-zip.sh [version]
 #
 # - `version` is optional. When omitted, it is read from the plugin header
-#   in pixel-scout.php. When provided, it overrides the header value.
+#   in snopix.php. When provided, it overrides the header value.
 # - The zip is written to build/<slug>-<version>.zip.
 # - Files excluded from the zip are read from .distignore at the repo root.
 
 set -euo pipefail
 
-PLUGIN_SLUG="pixel-scout"
+PLUGIN_SLUG="snopix"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/build"
 STAGING_DIR="$BUILD_DIR/$PLUGIN_SLUG"
 ADMIN_APP_DIR="$ROOT_DIR/admin/app"
 DISTIGNORE="$ROOT_DIR/.distignore"
-PLUGIN_FILE="$ROOT_DIR/pixel-scout.php"
+PLUGIN_FILE="$ROOT_DIR/snopix.php"
 
 log() { printf '[build-zip] %s\n' "$*"; }
 
@@ -101,7 +101,7 @@ for forbidden in node_modules vendor tests .git .github composer.json package.js
     fi
 done
 
-for required in pixel-scout.php uninstall.php readme.txt includes admin/app/dist; do
+for required in snopix.php uninstall.php readme.txt includes admin/app/dist; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1

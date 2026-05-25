@@ -2,10 +2,10 @@
 /**
  * Query image handler — uploads a temporary image for similarity search.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Search;
+namespace Snopix\Search;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -37,7 +37,7 @@ class Query_Image {
 	 * Postmeta flag set on probe attachments so Media_Hooks::on_upload can skip
 	 * auto-indexing — the probe is a throwaway search input, not library media.
 	 */
-	public const PROBE_META_KEY = '_pixel_scout_probe';
+	public const PROBE_META_KEY = '_snopix_probe';
 
 	/**
 	 * Upload a query image from a $_FILES-style array and insert it as an attachment.
@@ -52,7 +52,6 @@ class Query_Image {
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		// Constrain wp_handle_upload to our explicit MIME allow-list. WP will

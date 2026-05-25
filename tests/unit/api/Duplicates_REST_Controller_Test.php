@@ -2,21 +2,21 @@
 /**
  * Tests for Duplicates_REST_Controller routes + permission handling.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Api\Duplicates_REST_Controller;
-use PixelScout\Duplicates\Duplicate_Progress;
-use PixelScout\Duplicates\Duplicate_Scanner;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
+use Snopix\Api\Duplicates_REST_Controller;
+use Snopix\Duplicates\Duplicate_Progress;
+use Snopix\Duplicates\Duplicate_Scanner;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
 
 /**
  * Duplicates_REST_Controller integration tests.
  */
-class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
+class Snopix_Duplicates_REST_Controller_Test extends Snopix_TestCase {
 
 	private \WP_REST_Server $server;
 	private Duplicate_Scanner $scanner;
@@ -73,9 +73,9 @@ class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_routes_are_registered(): void {
 		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( '/ps/v1/duplicates', $routes );
-		$this->assertArrayHasKey( '/ps/v1/duplicates/scan', $routes );
-		$this->assertArrayHasKey( '/ps/v1/duplicates/progress', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/duplicates', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/duplicates/scan', $routes );
+		$this->assertArrayHasKey( '/snopix/v1/duplicates/progress', $routes );
 	}
 
 	/**
@@ -85,7 +85,7 @@ class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_get_duplicates_requires_admin(): void {
 		wp_set_current_user( 0 );
-		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/ps/v1/duplicates' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'GET', '/snopix/v1/duplicates' ) );
 		$this->assertSame( 401, $response->get_status() );
 	}
 
@@ -98,7 +98,7 @@ class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
 		$this->scanner->expects( $this->once() )->method( 'schedule' );
 
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/ps/v1/duplicates/scan' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/snopix/v1/duplicates/scan' ) );
 		$this->assertSame( 200, $response->get_status() );
 	}
 
@@ -112,7 +112,7 @@ class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
 		$this->scanner->expects( $this->never() )->method( 'schedule' );
 
 		$this->login_as_admin();
-		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/ps/v1/duplicates/scan' ) );
+		$response = $this->server->dispatch( new \WP_REST_Request( 'POST', '/snopix/v1/duplicates/scan' ) );
 		$this->assertSame( 409, $response->get_status() );
 	}
 
@@ -124,7 +124,7 @@ class Pixel_Scout_Duplicates_REST_Controller_Test extends Pixel_Scout_TestCase {
 	public function test_delete_attachment_returns_404_when_missing(): void {
 		$this->login_as_admin();
 		$response = $this->server->dispatch(
-			new \WP_REST_Request( 'DELETE', '/ps/v1/duplicates/attachment/999999' )
+			new \WP_REST_Request( 'DELETE', '/snopix/v1/duplicates/attachment/999999' )
 		);
 		$this->assertSame( 404, $response->get_status() );
 	}

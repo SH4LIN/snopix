@@ -2,13 +2,13 @@
 /**
  * Single image indexing service.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Indexing;
+namespace Snopix\Indexing;
 
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Search\Fingerprint_Factory;
+use Snopix\Repository\Index_Repository;
+use Snopix\Search\Fingerprint_Factory;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

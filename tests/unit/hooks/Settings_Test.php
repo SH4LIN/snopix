@@ -2,17 +2,17 @@
 /**
  * Tests for Settings sanitisation.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Hooks\Settings;
+use Snopix\Hooks\Settings;
 
 /**
  * Settings unit tests.
  */
-class Pixel_Scout_Settings_Test extends Pixel_Scout_TestCase {
+class Snopix_Settings_Test extends Snopix_TestCase {
 
 	private Settings $settings;
 
@@ -23,7 +23,7 @@ class Pixel_Scout_Settings_Test extends Pixel_Scout_TestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
-		delete_option( 'ps_settings' );
+		delete_option( 'snopix_settings' );
 		$this->settings = new Settings();
 	}
 
@@ -33,7 +33,7 @@ class Pixel_Scout_Settings_Test extends Pixel_Scout_TestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		delete_option( 'ps_settings' );
+		delete_option( 'snopix_settings' );
 		parent::tearDown();
 	}
 
@@ -83,7 +83,7 @@ class Pixel_Scout_Settings_Test extends Pixel_Scout_TestCase {
 	 * @return void
 	 */
 	public function test_get_visibility_reads_option(): void {
-		update_option( 'ps_settings', array( 'search_visibility' => 'logged_in' ) );
+		update_option( 'snopix_settings', array( 'search_visibility' => 'logged_in' ) );
 		$this->assertSame( 'logged_in', $this->settings->get_visibility() );
 	}
 

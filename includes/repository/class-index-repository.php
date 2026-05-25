@@ -2,13 +2,13 @@
 /**
  * Image index repository implementation.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Repository;
+namespace Snopix\Repository;
 
-use PixelScout\Infrastructure\Attachment_Query;
-use PixelScout\Infrastructure\Query;
+use Snopix\Infrastructure\Attachment_Query;
+use Snopix\Infrastructure\Query;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -20,17 +20,17 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Cache group.
 	 */
-	private const CACHE_GROUP = 'pixel-scout';
+	private const CACHE_GROUP = 'snopix';
 
 	/**
 	 * Table slug for Query builder.
 	 */
-	private const TABLE = 'ps_index';
+	private const TABLE = 'snopix_index';
 
 	/**
 	 * Cache key for full index.
 	 */
-	private const CACHE_ALL = 'ps_all_indexed';
+	private const CACHE_ALL = 'snopix_all_indexed';
 
 	/**
 	 * Constructor.
@@ -102,7 +102,7 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Fetch indexed rows whose pHash is within `$max_distance` Hamming bits of
 	 * the query hash. Computed in MySQL via `BIT_COUNT(CONV(...) ^ CONV(...))`
-	 * so the entire ps_index table never has to land in PHP.
+	 * so the entire snopix_index table never has to land in PHP.
 	 *
 	 * @param string $query_phash 16-char lowercase hex query hash.
 	 * @param int    $max_distance Maximum Hamming distance to return.

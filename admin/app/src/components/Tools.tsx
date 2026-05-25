@@ -60,12 +60,12 @@ export default function Tools() {
 	const blockingMessage = indexingActive
 		? __(
 				'A bulk indexing job is currently active. Reset it from the Dashboard to run index tools.',
-				'pixel-scout'
+				'snopix'
 			)
 		: scanActive
 			? __(
 					'A duplicate scan is currently active. Wait for it to finish or reset it from the Duplicates tab.',
-					'pixel-scout'
+					'snopix'
 				)
 			: null;
 
@@ -82,82 +82,82 @@ export default function Tools() {
 
 	const cards: Record<Exclude<ToolKey, null>, ToolCard> = {
 		reindex: {
-			title: __('Index Missing Images', 'pixel-scout'),
+			title: __('Index Missing Images', 'snopix'),
 			description: __(
 				'Generate fingerprints for attachments that are not yet indexed. Existing index rows are kept.',
-				'pixel-scout'
+				'snopix'
 			),
-			buttonLabel: __('Index Missing', 'pixel-scout'),
-			confirmTitle: __('Index missing images?', 'pixel-scout'),
+			buttonLabel: __('Index Missing', 'snopix'),
+			confirmTitle: __('Index missing images?', 'snopix'),
 			confirmMessage: __(
 				'New attachments will be scheduled for background fingerprint generation.',
-				'pixel-scout'
+				'snopix'
 			),
-			confirmText: __('Start', 'pixel-scout'),
+			confirmText: __('Start', 'snopix'),
 			danger: false,
 		},
 		'reindex-all': {
-			title: __('Reindex Everything', 'pixel-scout'),
+			title: __('Reindex Everything', 'snopix'),
 			description: __(
 				'Wipe the entire index and regenerate fingerprints for every attachment. Required after algorithm updates.',
-				'pixel-scout'
+				'snopix'
 			),
-			buttonLabel: __('Reindex All', 'pixel-scout'),
-			confirmTitle: __('Reindex all images?', 'pixel-scout'),
+			buttonLabel: __('Reindex All', 'snopix'),
+			confirmTitle: __('Reindex all images?', 'snopix'),
 			confirmMessage: __(
 				'This deletes every existing fingerprint and re-processes every image. It can take a long time on large libraries.',
-				'pixel-scout'
+				'snopix'
 			),
-			confirmText: __('Wipe and reindex', 'pixel-scout'),
+			confirmText: __('Wipe and reindex', 'snopix'),
 			danger: true,
 		},
 		'clear-index': {
-			title: __('Clear Index', 'pixel-scout'),
+			title: __('Clear Index', 'snopix'),
 			description: __(
 				'Delete every row from the fingerprint table. No images will match until you reindex.',
-				'pixel-scout'
+				'snopix'
 			),
-			buttonLabel: __('Clear Index', 'pixel-scout'),
-			confirmTitle: __('Clear the entire index?', 'pixel-scout'),
+			buttonLabel: __('Clear Index', 'snopix'),
+			confirmTitle: __('Clear the entire index?', 'snopix'),
 			confirmMessage: __(
 				'All fingerprints will be deleted. Search will return no results until images are reindexed.',
-				'pixel-scout'
+				'snopix'
 			),
-			confirmText: __('Delete all', 'pixel-scout'),
+			confirmText: __('Delete all', 'snopix'),
 			danger: true,
 		},
 		orphans: {
-			title: __('Delete Orphans', 'pixel-scout'),
+			title: __('Delete Orphans', 'snopix'),
 			description: sprintf(
 				/* translators: %d: orphan count */
 				__(
 					'Remove index rows whose attachment no longer exists. Found %d orphan(s).',
-					'pixel-scout'
+					'snopix'
 				),
 				orphans
 			),
-			buttonLabel: __('Delete Orphans', 'pixel-scout'),
-			confirmTitle: __('Delete orphan index rows?', 'pixel-scout'),
+			buttonLabel: __('Delete Orphans', 'snopix'),
+			confirmTitle: __('Delete orphan index rows?', 'snopix'),
 			confirmMessage: __(
 				'Removes stale index entries for attachments that were deleted outside the plugin.',
-				'pixel-scout'
+				'snopix'
 			),
-			confirmText: __('Delete', 'pixel-scout'),
+			confirmText: __('Delete', 'snopix'),
 			danger: true,
 		},
 		cache: {
-			title: __('Clear Cache', 'pixel-scout'),
+			title: __('Clear Cache', 'snopix'),
 			description: __(
 				'Flush plugin caches and progress transients. Useful if counters or progress appear stuck.',
-				'pixel-scout'
+				'snopix'
 			),
-			buttonLabel: __('Clear Cache', 'pixel-scout'),
-			confirmTitle: __('Clear plugin cache?', 'pixel-scout'),
+			buttonLabel: __('Clear Cache', 'snopix'),
+			confirmTitle: __('Clear plugin cache?', 'snopix'),
 			confirmMessage: __(
 				'Discards cached index queries and resets indexing progress transients.',
-				'pixel-scout'
+				'snopix'
 			),
-			confirmText: __('Clear', 'pixel-scout'),
+			confirmText: __('Clear', 'snopix'),
 			danger: false,
 		},
 	};
@@ -182,16 +182,16 @@ export default function Tools() {
 		try {
 			if (key === 'reindex') {
 				await reindex.mutateAsync();
-				setResult(__('Indexing started.', 'pixel-scout'));
+				setResult(__('Indexing started.', 'snopix'));
 			} else if (key === 'reindex-all') {
 				await reindexAll.mutateAsync();
-				setResult(__('Full reindex started.', 'pixel-scout'));
+				setResult(__('Full reindex started.', 'snopix'));
 			} else if (key === 'clear-index') {
 				const res = await clearIndex.mutateAsync();
 				setResult(
 					sprintf(
 						/* translators: %d: deleted count */
-						__('Deleted %d rows.', 'pixel-scout'),
+						__('Deleted %d rows.', 'snopix'),
 						res.deleted
 					)
 				);
@@ -200,13 +200,13 @@ export default function Tools() {
 				setResult(
 					sprintf(
 						/* translators: %d: deleted count */
-						__('Deleted %d orphan(s).', 'pixel-scout'),
+						__('Deleted %d orphan(s).', 'snopix'),
 						res.deleted
 					)
 				);
 			} else if (key === 'cache') {
 				await clearCache.mutateAsync();
-				setResult(__('Cache cleared.', 'pixel-scout'));
+				setResult(__('Cache cleared.', 'snopix'));
 			}
 		} catch (err) {
 			if (err instanceof ConflictError) {
@@ -215,7 +215,7 @@ export default function Tools() {
 				setResult(
 					__(
 						'Action failed. Check console for details.',
-						'pixel-scout'
+						'snopix'
 					)
 				);
 			}
@@ -227,13 +227,13 @@ export default function Tools() {
 	return (
 		<div className="flex flex-col gap-4">
 			{result && (
-				<div className="ps-card text-[13px] text-ps-success">
+				<div className="snopix-card text-[13px] text-snopix-success">
 					{result}
 				</div>
 			)}
 
 			{blockingMessage && (
-				<div className="ps-card text-[13px] text-ps-danger">
+				<div className="snopix-card text-[13px] text-snopix-danger">
 					{blockingMessage}
 				</div>
 			)}
@@ -247,26 +247,26 @@ export default function Tools() {
 						return (
 							<div
 								key={key}
-								className="ps-card flex flex-col gap-3"
+								className="snopix-card flex flex-col gap-3"
 							>
 								<div>
-									<h3 className="text-[15px] font-semibold text-ps-text mb-1">
+									<h3 className="text-[15px] font-semibold text-snopix-text mb-1">
 										{card.title}
 									</h3>
-									<p className="text-[13px] text-ps-muted leading-snug">
+									<p className="text-[13px] text-snopix-muted leading-snug">
 										{card.description}
 									</p>
 								</div>
 								<div className="mt-auto">
 									<button
-										className={`ps-btn ${card.danger ? 'ps-btn--danger' : ''}`}
+										className={`snopix-btn ${card.danger ? 'snopix-btn--danger' : ''}`}
 										onClick={() => setActive(key)}
 										disabled={loading || locked}
 										title={
 											locked
 												? __(
 														'Disabled while a bulk indexing job is active.',
-														'pixel-scout'
+														'snopix'
 													)
 												: undefined
 										}

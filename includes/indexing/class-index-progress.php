@@ -2,12 +2,12 @@
 /**
  * Bulk indexing progress tracker.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Indexing;
+namespace Snopix\Indexing;
 
-use PixelScout\Infrastructure\Job_Status;
+use Snopix\Infrastructure\Job_Status;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -31,7 +31,7 @@ class Index_Progress {
 	/**
 	 * Transient that stores the full progress envelope.
 	 */
-	private const KEY = 'ps_bulk_progress_state';
+	private const KEY = 'snopix_bulk_progress_state';
 
 	/**
 	 * Get current progress state. A missing transient returns the `idle`

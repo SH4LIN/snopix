@@ -2,10 +2,10 @@
 /**
  * Sobel edge-density processor — produces a 32-float normalised edge vector.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Imaging;
+namespace Snopix\Imaging;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

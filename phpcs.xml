@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<ruleset name="Pixel Scout">
-	<description>WordPress Coding Standards for Pixel Scout Plugin</description>
+<ruleset name="Snopix">
+	<description>WordPress Coding Standards for Snopix Plugin</description>
 
 	<file>includes/</file>
-	<file>pixel-scout.php</file>
+	<file>snopix.php</file>
 	<file>uninstall.php</file>
 	<file>admin/app/views/</file>
 

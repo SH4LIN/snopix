@@ -1,20 +1,20 @@
 /**
- * Pixel Scout reverse-image search widget for front-end shortcode.
+ * Snopix reverse-image search widget for front-end shortcode.
  *
  * Renders into the markup emitted by `Frontend\Shortcode::render()`. Wires the
  * drop-zone / file-input pair to a multipart upload against
- * `/wp-json/ps/v1/search` and paints the returned matches as clickable cards.
+ * `/wp-json/snopix/v1/search` and paints the returned matches as clickable cards.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 (function () {
 	'use strict';
 
-	const widget = document.getElementById('ps-search-widget');
-	const dropZone = document.getElementById('ps-drop-zone');
-	const fileInput = document.getElementById('ps-file-input');
-	const results = document.getElementById('ps-results');
-	const errorEl = document.getElementById('ps-error');
+	const widget = document.getElementById('snopix-search-widget');
+	const dropZone = document.getElementById('snopix-drop-zone');
+	const fileInput = document.getElementById('snopix-file-input');
+	const results = document.getElementById('snopix-results');
+	const errorEl = document.getElementById('snopix-error');
 
 	if (!widget) return;
 
@@ -24,12 +24,12 @@
 	// Drag over highlight
 	dropZone.addEventListener('dragover', (e) => {
 		e.preventDefault();
-		dropZone.classList.add('ps-drag-over');
+		dropZone.classList.add('snopix-drag-over');
 	});
-	dropZone.addEventListener('dragleave', () => dropZone.classList.remove('ps-drag-over'));
+	dropZone.addEventListener('dragleave', () => dropZone.classList.remove('snopix-drag-over'));
 	dropZone.addEventListener('drop', (e) => {
 		e.preventDefault();
-		dropZone.classList.remove('ps-drag-over');
+		dropZone.classList.remove('snopix-drag-over');
 		const file = e.dataTransfer.files[0];
 		if (file) handleFile(file);
 	});
@@ -49,10 +49,10 @@
 		results.hidden = false;
 		errorEl.hidden = true;
 		const grid = document.createElement('div');
-		grid.className = 'ps-skeleton-grid';
+		grid.className = 'snopix-skeleton-grid';
 		for (let i = 0; i < 4; i++) {
 			const card = document.createElement('div');
-			card.className = 'ps-skeleton-card';
+			card.className = 'snopix-skeleton-card';
 			grid.appendChild(card);
 		}
 		results.innerHTML = '';
@@ -60,7 +60,7 @@
 	}
 
 	/**
-	 * Paint the result list returned by `/wp-json/ps/v1/search`. Each card
+	 * Paint the result list returned by `/wp-json/snopix/v1/search`. Each card
 	 * opens the matching attachment URL in a new tab when clicked. Falls back
 	 * to a "no results" paragraph when the response is empty.
 	 *
@@ -72,7 +72,7 @@
 		results.innerHTML = '';
 		if (!items.length) {
 			const noResults = document.createElement('p');
-			noResults.className = 'ps-no-results';
+			noResults.className = 'snopix-no-results';
 			noResults.textContent = 'No similar images found. Try a different image.';
 			results.appendChild(noResults);
 			results.hidden = false;
@@ -80,7 +80,7 @@
 		}
 		items.forEach((item) => {
 			const card = document.createElement('div');
-			card.className = 'ps-result-card';
+			card.className = 'snopix-result-card';
 			card.style.cursor = 'pointer';
 			card.addEventListener('click', () => window.open(escUrl(item.url), '_blank'));
 
@@ -90,11 +90,11 @@
 			img.loading = 'lazy';
 
 			const score = document.createElement('div');
-			score.className = 'ps-score';
+			score.className = 'snopix-score';
 			score.textContent = Math.round(item.score * 100) + '%';
 
 			const title = document.createElement('div');
-			title.className = 'ps-result-title';
+			title.className = 'snopix-result-title';
 			title.textContent = item.title;
 
 			card.appendChild(img);
@@ -119,7 +119,7 @@
 	}
 
 	/**
-	 * Upload a single image to `/wp-json/ps/v1/search` and pipe the response
+	 * Upload a single image to `/wp-json/snopix/v1/search` and pipe the response
 	 * into {@link showResults} (or {@link showError} on failure).
 	 *
 	 * @param {File} file Image selected via input or drag-drop.
@@ -134,9 +134,9 @@
 		fd.append('file', file);
 
 		try {
-			const res = await fetch(ps_public.rest_url + 'search', {
+			const res = await fetch(snopix_public.rest_url + 'search', {
 				method: 'POST',
-				headers: { 'X-WP-Nonce': ps_public.nonce },
+				headers: { 'X-WP-Nonce': snopix_public.nonce },
 				body: fd,
 			});
 			const data = await res.json().catch(() => null);

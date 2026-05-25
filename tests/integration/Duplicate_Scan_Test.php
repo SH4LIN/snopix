@@ -5,30 +5,30 @@
  * Exercises the full PHP path: index real images → Duplicate_Scanner::run →
  * verify the resulting groups exactly cover the seeded duplicates.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/class-fixture-helper.php';
 
-use PixelScout\Duplicates\Duplicate_Finder;
-use PixelScout\Duplicates\Duplicate_Progress;
-use PixelScout\Duplicates\Duplicate_Scanner;
-use PixelScout\Imaging\Color_Processor;
-use PixelScout\Imaging\Edge_Processor;
-use PixelScout\Imaging\GD_Loader;
-use PixelScout\Imaging\PHash_Processor;
-use PixelScout\Imaging\Similarity;
-use PixelScout\Indexing\Image_Indexer;
-use PixelScout\Indexing\Mime_Validator;
-use PixelScout\Infrastructure\Action_Scheduler;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
-use PixelScout\Search\Fingerprint_Factory;
+use Snopix\Duplicates\Duplicate_Finder;
+use Snopix\Duplicates\Duplicate_Progress;
+use Snopix\Duplicates\Duplicate_Scanner;
+use Snopix\Imaging\Color_Processor;
+use Snopix\Imaging\Edge_Processor;
+use Snopix\Imaging\GD_Loader;
+use Snopix\Imaging\PHash_Processor;
+use Snopix\Imaging\Similarity;
+use Snopix\Indexing\Image_Indexer;
+use Snopix\Indexing\Mime_Validator;
+use Snopix\Infrastructure\Action_Scheduler;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
+use Snopix\Search\Fingerprint_Factory;
 
 /**
  * Full-pipeline duplicate scan tests.
  */
-class Pixel_Scout_Duplicate_Scan_Test extends Pixel_Scout_Integration_TestCase {
+class Snopix_Duplicate_Scan_Test extends Snopix_Integration_TestCase {
 
 	private Index_Repository $repo;
 	private Image_Indexer $indexer;
@@ -62,9 +62,9 @@ class Pixel_Scout_Duplicate_Scan_Test extends Pixel_Scout_Integration_TestCase {
 			new Action_Scheduler()
 		);
 
-		delete_option( 'ps_duplicate_results' );
-		delete_option( 'ps_duplicate_last_scanned' );
-		delete_transient( 'ps_duplicate_scan_state' );
+		delete_option( 'snopix_duplicate_results' );
+		delete_option( 'snopix_duplicate_last_scanned' );
+		delete_transient( 'snopix_duplicate_scan_state' );
 	}
 
 	/**
@@ -73,9 +73,9 @@ class Pixel_Scout_Duplicate_Scan_Test extends Pixel_Scout_Integration_TestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		delete_option( 'ps_duplicate_results' );
-		delete_option( 'ps_duplicate_last_scanned' );
-		delete_transient( 'ps_duplicate_scan_state' );
+		delete_option( 'snopix_duplicate_results' );
+		delete_option( 'snopix_duplicate_last_scanned' );
+		delete_transient( 'snopix_duplicate_scan_state' );
 		( new Duplicate_Progress() )->reset();
 		parent::tearDown();
 	}

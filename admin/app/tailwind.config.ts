@@ -1,10 +1,10 @@
 /**
- * Tailwind configuration for the Pixel Scout admin app.
+ * Tailwind configuration for the Snopix admin app.
  *
- * Defines the Apple-inspired `ps-*` colour palette (background, surface,
+ * Defines the Apple-inspired `snopix-*` colour palette (background, surface,
  * accent, danger, …), the san-serif font stack, the card/input/pill radii,
- * card shadow, default transition duration/easing, the `ps-spin` and
- * `ps-progress` keyframe animations, and a `scale.press` utility used by
+ * card shadow, default transition duration/easing, the `snopix-spin` and
+ * `snopix-progress` keyframe animations, and a `scale.press` utility used by
  * pressable buttons.
  */
 import type { Config } from "tailwindcss";
@@ -53,18 +53,18 @@ const config: Config = {
 				DEFAULT: "ease-out",
 			},
 			keyframes: {
-				"ps-spin": {
+				"snopix-spin": {
 					"0%":   { transform: "rotate(0deg)" },
 					"100%": { transform: "rotate(360deg)" },
 				},
-				"ps-progress": {
+				"snopix-progress": {
 					"0%":   { backgroundPosition: "200% 0" },
 					"100%": { backgroundPosition: "-200% 0" },
 				},
 			},
 			animation: {
-				"ps-spin":     "ps-spin 1s linear infinite",
-				"ps-progress": "ps-progress 1.6s ease-in-out infinite",
+				"snopix-spin":     "snopix-spin 1s linear infinite",
+				"snopix-progress": "snopix-progress 1.6s ease-in-out infinite",
 			},
 			scale: {
 				press: "0.98",

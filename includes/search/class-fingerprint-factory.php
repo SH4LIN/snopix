@@ -2,12 +2,12 @@
 /**
  * Fingerprint factory — orchestrates GD loading and processor pipeline.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Search;
+namespace Snopix\Search;
 
-use PixelScout\Imaging\{GD_Loader, Processor_Interface};
+use Snopix\Imaging\{GD_Loader, Processor_Interface};
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

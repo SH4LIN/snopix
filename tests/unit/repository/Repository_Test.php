@@ -1,19 +1,19 @@
 <?php
 /**
- * Tests for Pixel_Scout_Index_Repository data access layer.
+ * Tests for Snopix_Index_Repository data access layer.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/../class-testcase.php';
 
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
 
 /**
  * Test Repository implementation.
  */
-class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
+class Snopix_Index_Repository_Test extends Snopix_TestCase {
 	/**
 	 * Repository instance.
 	 *
@@ -124,7 +124,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 		$result1 = $this->repo->get_all_indexed();
 
 		// Check cache was set.
-		$cached = wp_cache_get( 'ps_all_indexed', 'pixel-scout' );
+		$cached = wp_cache_get( 'snopix_all_indexed', 'snopix' );
 		$this->assertNotFalse( $cached );
 		$this->assertTrue( is_array( $cached ) );
 	}
@@ -194,7 +194,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 		$this->repo->delete( self::TEST_ATTACHMENT_ID );
 
 		// Cache should be cleared.
-		$cached = wp_cache_get( 'ps_all_indexed', 'pixel-scout' );
+		$cached = wp_cache_get( 'snopix_all_indexed', 'snopix' );
 		$this->assertFalse( $cached );
 	}
 
@@ -247,7 +247,7 @@ class Pixel_Scout_Index_Repository_Test extends Pixel_Scout_TestCase {
 		$this->repo->upsert( self::TEST_ATTACHMENT_ID + 1, $this->get_test_fingerprint() );
 
 		// Cache should be cleared.
-		$cached = wp_cache_get( 'ps_all_indexed', 'pixel-scout' );
+		$cached = wp_cache_get( 'snopix_all_indexed', 'snopix' );
 		$this->assertFalse( $cached );
 	}
 

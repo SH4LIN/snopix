@@ -6,28 +6,28 @@
  * with real GD-loaded JPEGs. These are regression smoke tests — if a
  * performance change breaks the matching algo, these fail loudly.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/class-fixture-helper.php';
 
-use PixelScout\Imaging\Color_Processor;
-use PixelScout\Imaging\Edge_Processor;
-use PixelScout\Imaging\GD_Loader;
-use PixelScout\Imaging\PHash_Processor;
-use PixelScout\Imaging\Similarity;
-use PixelScout\Indexing\Image_Indexer;
-use PixelScout\Indexing\Mime_Validator;
-use PixelScout\Repository\Index_Repository;
-use PixelScout\Repository\Schema;
-use PixelScout\Search\Fingerprint_Factory;
-use PixelScout\Search\Score_Calculator;
-use PixelScout\Search\Search_Pipeline;
+use Snopix\Imaging\Color_Processor;
+use Snopix\Imaging\Edge_Processor;
+use Snopix\Imaging\GD_Loader;
+use Snopix\Imaging\PHash_Processor;
+use Snopix\Imaging\Similarity;
+use Snopix\Indexing\Image_Indexer;
+use Snopix\Indexing\Mime_Validator;
+use Snopix\Repository\Index_Repository;
+use Snopix\Repository\Schema;
+use Snopix\Search\Fingerprint_Factory;
+use Snopix\Search\Score_Calculator;
+use Snopix\Search\Search_Pipeline;
 
 /**
  * Full-pipeline reverse image search tests.
  */
-class Pixel_Scout_Image_Search_Test extends Pixel_Scout_Integration_TestCase {
+class Snopix_Image_Search_Test extends Snopix_Integration_TestCase {
 
 	private Index_Repository $repo;
 	private Image_Indexer $indexer;

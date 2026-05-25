@@ -2,10 +2,10 @@
 /**
  * Perceptual hash (pHash) processor using 2D DCT on a 32×32 greyscale thumbnail.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Imaging;
+namespace Snopix\Imaging;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

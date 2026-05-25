@@ -2,17 +2,17 @@
 /**
  * Tests for GD_Loader attachment-to-resource conversion.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\GD_Loader;
+use Snopix\Imaging\GD_Loader;
 
 /**
  * GD_Loader unit tests.
  */
-class Pixel_Scout_GD_Loader_Test extends Pixel_Scout_TestCase {
+class Snopix_GD_Loader_Test extends Snopix_TestCase {
 
 	private GD_Loader $loader;
 

@@ -2,18 +2,18 @@
 /**
  * Tests for Duplicate_Cron_Handler scan wiring.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Duplicates\Duplicate_Cron_Handler;
-use PixelScout\Duplicates\Duplicate_Scanner;
+use Snopix\Duplicates\Duplicate_Cron_Handler;
+use Snopix\Duplicates\Duplicate_Scanner;
 
 /**
  * Duplicate_Cron_Handler unit tests.
  */
-class Pixel_Scout_Duplicate_Cron_Handler_Test extends Pixel_Scout_TestCase {
+class Snopix_Duplicate_Cron_Handler_Test extends Snopix_TestCase {
 
 	/**
 	 * `register` attaches the run handler to the scanner's CRON_HOOK.

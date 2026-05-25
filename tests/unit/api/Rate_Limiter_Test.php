@@ -2,17 +2,17 @@
 /**
  * Tests for Rate_Limiter fixed-window enforcement.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Api\Rate_Limiter;
+use Snopix\Api\Rate_Limiter;
 
 /**
  * Rate_Limiter unit tests.
  */
-class Pixel_Scout_Rate_Limiter_Test extends Pixel_Scout_TestCase {
+class Snopix_Rate_Limiter_Test extends Snopix_TestCase {
 
 	private Rate_Limiter $limiter;
 
@@ -38,7 +38,7 @@ class Pixel_Scout_Rate_Limiter_Test extends Pixel_Scout_TestCase {
 	}
 
 	/**
-	 * Drop every `pixel_scout_ratelimit_*` transient.
+	 * Drop every `snopix_ratelimit_*` transient.
 	 *
 	 * @return void
 	 */
@@ -46,7 +46,7 @@ class Pixel_Scout_Rate_Limiter_Test extends Pixel_Scout_TestCase {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_pixel_scout_ratelimit_%' OR option_name LIKE '_transient_timeout_pixel_scout_ratelimit_%'"
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_snopix_ratelimit_%' OR option_name LIKE '_transient_timeout_snopix_ratelimit_%'"
 		);
 	}
 

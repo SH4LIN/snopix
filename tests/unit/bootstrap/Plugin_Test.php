@@ -1,18 +1,18 @@
 <?php
 /**
- * Tests for Pixel_Scout_Plugin bootstrap and lifecycle.
+ * Tests for Snopix_Plugin bootstrap and lifecycle.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once __DIR__ . '/../class-testcase.php';
 
-use PixelScout\Infrastructure\Plugin;
+use Snopix\Infrastructure\Plugin;
 
 /**
  * Test Plugin bootstrap.
  */
-class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
+class Snopix_Plugin_Test extends Snopix_TestCase {
 	/**
 	 * Test singleton instance.
 	 */
@@ -41,8 +41,8 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		$this->assertTableExists( $table );
 
 		// DB version should be set.
-		$version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION );
-		$this->assertEquals( PIXEL_SCOUT_DB_VERSION, $version );
+		$version = get_option( SNOPIX_OPTION_DB_VERSION );
+		$this->assertEquals( SNOPIX_DB_VERSION, $version );
 	}
 
 	/**
@@ -50,17 +50,17 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 	 */
 	public function test_deactivation_hook(): void {
 		// Schedule a test event.
-		wp_schedule_single_event( time() + 3600, 'ps_bulk_index_batch' );
+		wp_schedule_single_event( time() + 3600, 'snopix_bulk_index_batch' );
 
 		// Verify it's scheduled.
-		$timestamp = wp_next_scheduled( 'ps_bulk_index_batch' );
+		$timestamp = wp_next_scheduled( 'snopix_bulk_index_batch' );
 		$this->assertNotFalse( $timestamp );
 
 		// Call deactivation.
 		Plugin::deactivate();
 
 		// Event should be cleared.
-		$timestamp = wp_next_scheduled( 'ps_bulk_index_batch' );
+		$timestamp = wp_next_scheduled( 'snopix_bulk_index_batch' );
 		$this->assertFalse( $timestamp );
 	}
 
@@ -79,9 +79,9 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 
 		// Ensure table and options exist.
 		Plugin::activate();
-		update_option( 'ps_settings', [ 'search_visibility' => 'anyone' ] );
-		set_transient( 'ps_bulk_progress', 50 );
-		set_transient( 'ps_bulk_total', 100 );
+		update_option( 'snopix_settings', [ 'search_visibility' => 'anyone' ] );
+		set_transient( 'snopix_bulk_progress', 50 );
+		set_transient( 'snopix_bulk_total', 100 );
 
 		// Call uninstall.
 		Plugin::uninstall();
@@ -94,17 +94,17 @@ class Pixel_Scout_Plugin_Test extends Pixel_Scout_TestCase {
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 
 		// Options should be removed.
-		$settings = get_option( 'ps_settings' );
+		$settings = get_option( 'snopix_settings' );
 		$this->assertEmpty( $settings );
 
-		$db_version = get_option( PIXEL_SCOUT_OPTION_DB_VERSION );
+		$db_version = get_option( SNOPIX_OPTION_DB_VERSION );
 		$this->assertEmpty( $db_version );
 
 		// Transients should be removed.
-		$progress = get_transient( 'ps_bulk_progress' );
+		$progress = get_transient( 'snopix_bulk_progress' );
 		$this->assertFalse( $progress );
 
-		$total = get_transient( 'ps_bulk_total' );
+		$total = get_transient( 'snopix_bulk_total' );
 		$this->assertFalse( $total );
 	}
 

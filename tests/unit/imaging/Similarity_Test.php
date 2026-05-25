@@ -2,17 +2,17 @@
 /**
  * Tests for Similarity metrics.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 require_once dirname( __DIR__ ) . '/class-testcase.php';
 
-use PixelScout\Imaging\Similarity;
+use Snopix\Imaging\Similarity;
 
 /**
  * Similarity unit tests — pure math, no images needed.
  */
-class Pixel_Scout_Similarity_Test extends Pixel_Scout_TestCase {
+class Snopix_Similarity_Test extends Snopix_TestCase {
 
 	private Similarity $sim;
 

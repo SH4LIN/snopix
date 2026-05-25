@@ -6,10 +6,10 @@
  * from WP-Cron specifics. A future implementation could delegate to the
  * WooCommerce ActionScheduler library instead.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Infrastructure;
+namespace Snopix\Infrastructure;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

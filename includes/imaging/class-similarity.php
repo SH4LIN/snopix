@@ -2,10 +2,10 @@
 /**
  * Similarity metrics — Hamming distance for pHash, cosine similarity for vectors.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
-namespace PixelScout\Imaging;
+namespace Snopix\Imaging;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

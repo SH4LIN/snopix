@@ -8,7 +8,7 @@
  * Images are saved to tests/fixtures/images/{001..100}.jpg
  * Already-downloaded images are skipped.
  *
- * @package Pixel_Scout
+ * @package Snopix
  */
 
 $dest_dir = dirname( __DIR__ ) . '/fixtures/images';
