@@ -76,10 +76,10 @@ function useInitProgress() {
 }
 
 const TABS = [
-	{ id: 'dashboard', path: '/dashboard', label: 'Dashboard' },
-	{ id: 'duplicates', path: '/duplicates', label: 'Duplicates' },
-	{ id: 'tools', path: '/tools', label: 'Tools' },
-	{ id: 'settings', path: '/settings', label: 'Settings' },
+	{ id: 'dashboard', path: '/dashboard', label: __( 'Dashboard', 'snopix' ) },
+	{ id: 'duplicates', path: '/duplicates', label: __( 'Duplicates', 'snopix' ) },
+	{ id: 'tools', path: '/tools', label: __( 'Tools', 'snopix' ) },
+	{ id: 'settings', path: '/settings', label: __( 'Settings', 'snopix' ) },
 ] as const;
 
 /**

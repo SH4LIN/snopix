@@ -46,6 +46,32 @@ class Admin_Page {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'admin_print_footer_scripts-plugins.php', array( $this, 'print_uninstall_guard' ) );
+		add_filter( 'plugin_action_links_' . $this->plugin_basename(), array( $this, 'add_dashboard_link' ) );
+	}
+
+	/**
+	 * Prepend a "Dashboard" link to the plugin's row on the Plugins screen.
+	 *
+	 * @param array<string, string> $links Existing action links.
+	 *
+	 * @return array<string, string>
+	 */
+	public function add_dashboard_link( $links ): array {
+		if ( ! is_array( $links ) ) {
+			$links = array();
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+
+		$dashboard_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'upload.php?page=snopix' ) ),
+			esc_html__( 'Dashboard', 'snopix' )
+		);
+
+		return array_merge( array( 'dashboard' => $dashboard_link ), $links );
 	}
 
 	/**
