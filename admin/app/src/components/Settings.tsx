@@ -217,9 +217,9 @@ export default function Settings() {
 
 				<SettingGroup
 					icon={<IconLayers size={16} />}
-					title={__('Duplicate threshold', 'snopix')}
+					title={__('Scan similarity', 'snopix')}
 					description={__(
-						'Minimum visual similarity for the duplicate scanner to cluster two attachments.',
+						'Similarity floor used during scanning. Images are clustered as duplicates only if their similarity is at or above this value.',
 						'snopix'
 					)}
 				>

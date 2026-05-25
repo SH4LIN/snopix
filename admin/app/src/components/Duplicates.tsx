@@ -256,11 +256,11 @@ export default function Duplicates() {
 				<div className="flex items-center gap-6">
 					<div className="shrink-0 w-[220px]">
 						<div className="text-[13px] font-medium text-snopix-text">
-							{__('Similarity threshold', 'snopix')}
+							{__('View threshold', 'snopix')}
 						</div>
 						<div className="text-[12px] text-snopix-muted mt-0.5">
 							{__(
-								'Groups below this score are hidden.',
+								'Hide groups below this score. Display-only filter - does not re-scan.',
 								'snopix'
 							)}
 						</div>
