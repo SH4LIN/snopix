@@ -18,6 +18,7 @@ BUILD_DIR="$ROOT_DIR/build"
 STAGING_DIR="$BUILD_DIR/$PLUGIN_SLUG"
 ADMIN_APP_DIR="$ROOT_DIR/admin/app"
 PUBLIC_APP_DIR="$ROOT_DIR/public/app"
+EDITOR_BUILD_DIR="$ROOT_DIR/admin/editor/build"
 DISTIGNORE="$ROOT_DIR/.distignore"
 PLUGIN_FILE="$ROOT_DIR/snopix.php"
 
@@ -101,15 +102,33 @@ if [ ! -d "$PUBLIC_APP_DIR/dist" ] || [ -z "$(ls -A "$PUBLIC_APP_DIR/dist" 2>/de
     exit 1
 fi
 
+# --- build block-editor bundle --------------------------------------------
+log "Building block-editor bundle (npm ci && npm run build:editor)"
+(
+    cd "$ROOT_DIR"
+    if [ -f package-lock.json ]; then
+        npm ci
+    else
+        npm install
+    fi
+    npm run build:editor
+)
+
+if [ ! -f "$EDITOR_BUILD_DIR/index.js" ] || [ ! -f "$EDITOR_BUILD_DIR/index.asset.php" ]; then
+    echo "admin/editor/build is missing index.js or index.asset.php — refusing to ship." >&2
+    exit 1
+fi
+
 # --- stage ----------------------------------------------------------------
 log "Staging into $STAGING_DIR"
 rm -rf "$BUILD_DIR"
 mkdir -p "$STAGING_DIR"
 
-# Always exclude the build dir itself so a re-run doesn't recurse.
+# Always exclude the top-level build dir so a re-run doesn't recurse. Anchor
+# with a leading slash so nested build dirs (e.g. admin/editor/build) survive.
 rsync -a \
     --exclude-from="$DISTIGNORE" \
-    --exclude="build" \
+    --exclude="/build" \
     "$ROOT_DIR"/ "$STAGING_DIR"/
 
 # --- safety checks --------------------------------------------------------
@@ -120,7 +139,7 @@ for forbidden in node_modules vendor tests .git .github composer.json package.js
     fi
 done
 
-for required in snopix.php uninstall.php readme.txt includes admin/app/dist public/app/dist; do
+for required in snopix.php uninstall.php readme.txt includes admin/app/dist public/app/dist admin/editor/build/index.js admin/editor/build/index.asset.php; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1

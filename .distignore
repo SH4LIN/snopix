@@ -87,6 +87,10 @@ public/app/postcss.config.js
 public/app/tailwind.config.js
 public/app/.gitignore
 
+# Block-editor bundle sources — only the built admin/editor/build/ ships
+admin/editor/src
+admin/editor/node_modules
+
 # Shared design tokens / tailwind preset — consumed at build time only
 shared
 

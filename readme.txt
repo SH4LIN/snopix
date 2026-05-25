@@ -10,8 +10,6 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Reverse image search and duplicate detection for the WordPress media library, powered by perceptual hashing.
 
-Source code and issue tracker: https://github.com/SH4LIN/snopix
-
 == Accuracy notice ==
 
 Snopix is functional, but search ranking, duplicate detection and the
