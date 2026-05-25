@@ -6,7 +6,9 @@ import { useStore } from './store/use-store';
 import { apiFetch } from './lib/api';
 import { useIndexStatus } from './hooks/use-index-status';
 import { useReindex } from './hooks/use-reindex';
+import { useViewport } from './hooks/use-viewport';
 import { BrandMark, IconUpload } from './components/icons';
+import MobileApp from './components/mobile/MobileApp';
 
 interface ProgressResponse {
 	status: 'idle' | 'running' | 'done' | 'stalled';
@@ -93,6 +95,7 @@ const TABS = [
  */
 export default function App() {
 	useInitProgress();
+	const viewport = useViewport();
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const { data: status } = useIndexStatus();
@@ -101,6 +104,10 @@ export default function App() {
 
 	const pending = status?.pending ?? 0;
 	const canReindex = pending > 0 && indexingState === 'idle';
+
+	if (viewport === 'mobile') {
+		return <MobileApp />;
+	}
 
 	return (
 		<div id="snopix-app" className="w-full">
