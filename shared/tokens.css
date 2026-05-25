@@ -1,0 +1,39 @@
+/**
+ * Snopix design tokens.
+ *
+ * Single source of truth for the colour palette, radii, shadows, motion, and
+ * font stacks shared by the admin app (#snopix-app) and the frontend search
+ * widget (.snopix-widget). Imported into each surface's globals.css.
+ *
+ * Tokens are intentionally CSS variables so they remain themable at runtime
+ * (e.g. host pages can override --snopix-accent without rebuilding).
+ */
+:root {
+	--snopix-bg: #ffffff;
+	--snopix-surface: #f5f5f7;
+	--snopix-text: #1d1d1f;
+	--snopix-muted: #6e6e73;
+	--snopix-accent: #0071e3;
+	--snopix-accent-deep: #0058b3;
+	--snopix-accent-soft: rgba(0, 113, 227, 0.1);
+	--snopix-danger: #ff3b30;
+	--snopix-success: #34c759;
+	--snopix-warning: #ff9500;
+	--snopix-border: #e5e5ea;
+	--snopix-border-strong: #d2d2d7;
+
+	--snopix-radius-card: 12px;
+	--snopix-radius-input: 8px;
+	--snopix-radius-pill: 20px;
+
+	--snopix-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+	--snopix-duration: 200ms;
+	--snopix-easing: ease-out;
+
+	--snopix-font:
+		-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI",
+		sans-serif;
+	--snopix-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+		monospace;
+}

@@ -5,6 +5,7 @@ vendor/
 # Build outputs
 admin/dist/
 admin/app/dist/
+public/app/dist/
 
 # Node package lock files
 package-lock.json

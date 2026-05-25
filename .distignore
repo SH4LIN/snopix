@@ -75,6 +75,21 @@ admin/app/index.html
 admin/app/.gitignore
 admin/app/README.md
 
+# Frontend search widget sources — only the built dist/ ships
+public/app/src
+public/app/node_modules
+public/app/package.json
+public/app/package-lock.json
+public/app/yarn.lock
+public/app/vite.config.ts
+public/app/tsconfig.json
+public/app/postcss.config.js
+public/app/tailwind.config.js
+public/app/.gitignore
+
+# Shared design tokens / tailwind preset — consumed at build time only
+shared
+
 # Documentation / scratch files that don't belong in the deployed plugin
 README.md
 CONTRIBUTING.md
