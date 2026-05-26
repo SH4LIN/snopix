@@ -4,12 +4,20 @@
 	"description": "Image similarity search for WordPress media library",
 	"private": true,
 	"scripts": {
-		"dev": "npm run build:admin -- --watch",
-		"build": "npm run build:admin && npm run build:editor && npm run build:search",
-		"build:admin": "cd admin/app && vite build",
+		"dev": "npm run watch",
+		"build": "run-p build:admin build:editor build:search",
+		"build:admin": "npm run build --prefix admin/app",
 		"build:editor": "wp-scripts build admin/editor/src/index.js --output-path=admin/editor/build",
-		"build:editor:watch": "wp-scripts start admin/editor/src/index.js --output-path=admin/editor/build",
-		"build:search": "echo 'Frontend search build - future'",
+		"build:search": "npm run build --prefix public/app",
+		"watch": "run-p watch:admin watch:editor watch:search",
+		"watch:admin": "npm run watch --prefix admin/app",
+		"watch:editor": "wp-scripts start admin/editor/src/index.js --output-path=admin/editor/build",
+		"watch:search": "npm run watch --prefix public/app",
+		"build:editor:watch": "npm run watch:editor",
+		"clean": "run-p clean:admin clean:editor clean:search",
+		"clean:admin": "rm -rf admin/app/dist",
+		"clean:editor": "rm -rf admin/editor/build",
+		"clean:search": "rm -rf public/app/dist",
 		"lint": "npm run lint:ts && npm run lint:styles",
 		"lint:ts": "eslint admin/app/src --ext .ts,.tsx",
 		"format": "prettier --write admin/app/src",
@@ -31,14 +39,9 @@
 		"eslint": "^9.39.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-react": "^7.37.5",
+		"npm-run-all2": "^8.0.4",
 		"prettier": "^3.8.3",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.12"
 	}
 }
-
-
-
-
-
-
