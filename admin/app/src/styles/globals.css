@@ -24,6 +24,25 @@
 		line-height: 1.5;
 		color: var(--snopix-text);
 		background: var(--snopix-surface);
+		min-height: calc(100vh - 32px);
+	}
+
+	@media screen and (max-width: 782px) {
+		:where(#snopix-app) {
+			min-height: calc(100vh - 46px);
+		}
+	}
+
+	/* Mobile top app bar sticks below the WP admin bar (32 px / 46 px under 782 px). */
+	.snopix-mobile-topbar {
+		position: sticky;
+		top: 32px;
+		z-index: 60;
+	}
+	@media screen and (max-width: 782px) {
+		.snopix-mobile-topbar {
+			top: 46px;
+		}
 	}
 
 	:where(#snopix-app) a {

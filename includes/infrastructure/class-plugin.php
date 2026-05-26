@@ -12,8 +12,9 @@ use Snopix\Imaging\{GD_Loader, PHash_Processor, Color_Processor, Edge_Processor,
 use Snopix\Search\{Fingerprint_Factory, Query_Image, Score_Calculator, Search_Pipeline};
 use Snopix\Indexing\{Mime_Validator, Index_Progress, Image_Indexer, Bulk_Indexer};
 use Snopix\Hooks\{Media_Hooks, Cron_Handler, Settings};
-use Snopix\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller};
+use Snopix\Api\{Rate_Limiter, REST_Controller, Duplicates_REST_Controller, Notifications_REST_Controller};
 use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, Duplicate_Cron_Handler};
+use Snopix\Notifications\Feature_Notification_Store;
 use Snopix\Admin\Admin_Page;
 use Snopix\Admin\Editor_Assets;
 use Snopix\Frontend\Shortcode;
@@ -147,6 +148,9 @@ class Plugin {
 		$dup_scanner    = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
 		$dup_controller = new Duplicates_REST_Controller( $dup_scanner, $dup_progress );
 		$dup_controller->register_routes();
+
+		$notifications_controller = new Notifications_REST_Controller( new Feature_Notification_Store() );
+		$notifications_controller->register_routes();
 	}
 
 	/**

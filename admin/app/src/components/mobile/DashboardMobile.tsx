@@ -1,10 +1,11 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { useIndexStatus } from '../../hooks/use-index-status';
-import { useIndexingProgress, useReindex } from '../../hooks/use-reindex';
+import { useIndexingProgress } from '../../hooks/use-reindex';
 import { useImages } from '../../hooks/use-images';
 import { useStore } from '../../store/use-store';
 import { formatBytes } from '../../lib/format';
-import { IconRefresh, IconUpload } from '../icons';
+import { IconRefresh } from '../icons';
+import SearchPreviewMobile from './SearchPreviewMobile';
 
 // The /images endpoint returns enriched fields the hook's interface omits
 // (title, filename, thumbnail_url, etc.). Mirror the wider shape locally so
@@ -25,11 +26,14 @@ interface IndexedImage {
 /**
  * Mobile dashboard screen.
  *
- * Single-column reflow of the desktop Dashboard: a hero "X indexed" stat at
- * the top, a 2×2 grid of secondary tiles, the same in-flight progress card
- * the desktop view shows, and a call-to-action that funnels users to the
- * reverse-image search (kept on the desktop view — on mobile we only nudge
- * users toward it rather than reproduce the full SearchPreview component).
+ * Single-column reflow tuned to match the mobile design:
+ *   1. Hero with "LIBRARY · X indexed" hierarchy.
+ *   2. Reverse-image search card (dashed border, accent icon, full-width CTA).
+ *   3. 2×2 grid of stat tiles (Indexed / Pending / Failed / Total).
+ *   4. In-flight progress card when an index job is running.
+ *   5. Recently-indexed list with a "See all" link pointing at the WP media
+ *      library — re-indexing lives in the header upload button and feature
+ *      notifications live in the header bell, so neither is duplicated here.
  *
  * @return {JSX.Element}
  */
@@ -37,7 +41,6 @@ export default function DashboardMobile() {
 	const { data: status } = useIndexStatus();
 	const { indexingState } = useStore();
 	const progress = useIndexingProgress();
-	const { mutate: startReindex, isPending } = useReindex();
 	const { data: rawImages, isLoading: imagesLoading } = useImages({
 		afterId: 0,
 		search: '',
@@ -64,11 +67,11 @@ export default function DashboardMobile() {
 
 	return (
 		<div>
-			<div className="px-4 pt-5 pb-3">
-				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
+			<div className="px-[18px] pt-5 pb-3.5">
+				<div className="text-[12px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
 					{__('Library', 'snopix')}
 				</div>
-				<div className="text-[26px] font-semibold tracking-[-0.015em] leading-tight">
+				<div className="text-[26px] font-semibold tracking-[-0.015em] leading-[1.1]">
 					{sprintf(
 						/* translators: %d: number of indexed images */
 						__('%d indexed', 'snopix'),
@@ -86,13 +89,17 @@ export default function DashboardMobile() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-2 gap-2.5 px-4">
+			<div className="px-[18px] pb-3.5">
+				<SearchPreviewMobile />
+			</div>
+
+			<div className="grid grid-cols-2 gap-2.5 px-[18px]">
 				{tiles.map((tile) => (
 					<div
 						key={tile.label}
-						className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border"
+						className="bg-snopix-bg rounded-[14px] p-3.5 border border-snopix-border"
 					>
-						<div className="text-[10px] font-medium text-snopix-muted uppercase tracking-wider">
+						<div className="text-[10px] font-medium text-snopix-muted uppercase tracking-[0.04em]">
 							{tile.label}
 						</div>
 						<div
@@ -105,8 +112,8 @@ export default function DashboardMobile() {
 			</div>
 
 			{isRunning && progress && (
-				<div className="px-4 pt-5">
-					<div className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border">
+				<div className="px-[18px] pt-4">
+					<div className="bg-snopix-bg rounded-[14px] p-3.5 border border-snopix-border">
 						<div className="flex items-center gap-3 mb-3">
 							<div className="w-9 h-9 rounded-input bg-snopix-accent-soft text-snopix-accent grid place-items-center">
 								<IconRefresh size={18} className="animate-snopix-spin" />
@@ -133,56 +140,25 @@ export default function DashboardMobile() {
 				</div>
 			)}
 
-			<div className="px-4 pt-5">
-				<div className="bg-snopix-bg rounded-card px-5 py-6 text-center border-[1.5px] border-dashed border-snopix-border-strong">
-					<div className="w-12 h-12 mx-auto mb-3 rounded-full bg-snopix-accent-soft text-snopix-accent grid place-items-center">
-						<IconUpload size={20} />
-					</div>
-					<div className="text-[15px] font-medium mb-1">
-						{pending > 0
-							? __('Index remaining attachments', 'snopix')
-							: __('Library fully indexed', 'snopix')}
-					</div>
-					<div className="text-[12px] text-snopix-muted mb-3.5">
-						{pending > 0
-							? sprintf(
-									/* translators: %d: pending attachment count */
-									__('%d attachments waiting', 'snopix'),
-									pending
-								)
-							: __('Nothing pending right now.', 'snopix')}
-					</div>
-					<button
-						type="button"
-						className="snopix-btn snopix-btn--sm w-full justify-center"
-						onClick={() => startReindex()}
-						disabled={!pending || isRunning || isPending}
-					>
-						<IconUpload size={14} /> {__('Index now', 'snopix')}
-					</button>
-				</div>
-			</div>
-
-			<div className="px-4 pt-6 flex items-baseline justify-between">
+			<div className="px-[18px] pt-[18px] pb-2 flex items-baseline justify-between">
 				<div className="text-[13px] font-semibold text-snopix-text">
 					{__('Recently indexed', 'snopix')}
 				</div>
-				<span className="text-[11px] text-snopix-muted">
-					{sprintf(
-						/* translators: %d: visible row count */
-						__('%d shown', 'snopix'),
-						Math.min(recentImages.length, 8)
-					)}
-				</span>
+				<a
+					href="/wp-admin/upload.php"
+					className="text-[12px] text-snopix-accent"
+				>
+					{__('See all', 'snopix')}
+				</a>
 			</div>
 
-			<div className="px-4 pt-2 pb-2 flex flex-col gap-2">
+			<div className="px-[18px] pb-3 flex flex-col gap-2">
 				{imagesLoading && (
 					<div className="text-[12px] text-snopix-muted text-center py-3">
 						{__('Loading…', 'snopix')}
 					</div>
 				)}
-				{!imagesLoading && recentImages.length === 0 && (
+				{!imagesLoading && recentImages.length === 0 && pending === 0 && failed === 0 && (
 					<div className="text-[12px] text-snopix-muted text-center py-3">
 						{__('No indexed images yet.', 'snopix')}
 					</div>
@@ -194,13 +170,13 @@ export default function DashboardMobile() {
 					const date = img.indexed_at
 						? new Date(img.indexed_at).toLocaleDateString()
 						: '';
-					const failed = !!img.error_code;
-					const pillClass = failed
+					const failedRow = !!img.error_code;
+					const pillClass = failedRow
 						? 'snopix-pill snopix-pill--failed'
 						: img.phash
 							? 'snopix-pill snopix-pill--indexed'
 							: 'snopix-pill snopix-pill--pending';
-					const pillLabel = failed
+					const pillLabel = failedRow
 						? __('failed', 'snopix')
 						: img.phash
 							? __('indexed', 'snopix')
@@ -213,7 +189,7 @@ export default function DashboardMobile() {
 							href={editUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="flex items-center gap-3 bg-snopix-bg rounded-card p-2.5 border border-snopix-border"
+							className="flex items-center gap-3 bg-snopix-bg rounded-[12px] p-2.5 border border-snopix-border"
 						>
 							<div className="w-11 h-11 rounded-[8px] overflow-hidden bg-snopix-surface shrink-0 grid place-items-center">
 								{previewUrl ? (

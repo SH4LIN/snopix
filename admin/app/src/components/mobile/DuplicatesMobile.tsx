@@ -19,10 +19,12 @@ function groupKey(group: DuplicateGroup): string {
 /**
  * Mobile duplicates screen.
  *
- * Lists each duplicate cluster as a stacked card with a 3-up thumbnail row.
- * Tapping a thumb selects it as the "keep" image; everything else in the
- * group gets a confirmation prompt before deletion. Matches the desktop
- * Duplicates flow without the table + bulk-action chrome.
+ * Hero hierarchy matches the mobile design ("CLEANUP · N duplicate groups"
+ * with a recoverable-bytes hint). Each cluster is a stacked card with a
+ * similarity pill, a 2- or 3-up thumbnail row, a "+N more" note for larger
+ * groups, and a Delete action. Tapping a thumbnail selects it as the "keep"
+ * image; the kept thumb gets full opacity + accent border + a checkmark,
+ * the others fade to make the choice unambiguous.
  *
  * @return {JSX.Element}
  */
@@ -73,8 +75,8 @@ export default function DuplicatesMobile() {
 
 	if (isIndexing) {
 		return (
-			<div className="px-4 pt-5">
-				<div className="bg-snopix-bg rounded-card p-5 border border-snopix-border text-center text-snopix-muted text-[13px]">
+			<div className="px-[18px] pt-5">
+				<div className="bg-snopix-bg rounded-[14px] p-5 border border-snopix-border text-center text-snopix-muted text-[13px]">
 					{__(
 						'Indexing is in progress. Duplicate scan is unavailable while indexing.',
 						'snopix'
@@ -86,11 +88,11 @@ export default function DuplicatesMobile() {
 
 	return (
 		<div>
-			<div className="px-4 pt-5 pb-3">
-				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
+			<div className="px-[18px] pt-5 pb-3.5">
+				<div className="text-[12px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
 					{__('Cleanup', 'snopix')}
 				</div>
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-tight">
+				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
 					{sprintf(
 						/* translators: %d: number of duplicate groups */
 						__('%d duplicate groups', 'snopix'),
@@ -101,14 +103,14 @@ export default function DuplicatesMobile() {
 					{totalWasteBytes > 0
 						? sprintf(
 								/* translators: %s: bytes formatted as human-readable */
-								__('%s recoverable. Tap a thumb to keep.', 'snopix'),
+								__('%s recoverable. Tap a card to keep.', 'snopix'),
 								formatBytes(totalWasteBytes)
 							)
-						: __('Tap a thumb to keep.', 'snopix')}
+						: __('Tap a card to keep.', 'snopix')}
 				</div>
 			</div>
 
-			<div className="px-4 pb-3 flex gap-2">
+			<div className="px-[18px] pb-3.5 flex gap-2">
 				<button
 					type="button"
 					className="snopix-btn snopix-btn--neutral snopix-btn--sm flex-1 justify-center"
@@ -131,8 +133,8 @@ export default function DuplicatesMobile() {
 			</div>
 
 			{isScanning && progress && (
-				<div className="px-4 pb-3">
-					<div className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border">
+				<div className="px-[18px] pb-3.5">
+					<div className="bg-snopix-bg rounded-[14px] p-3.5 border border-snopix-border">
 						<div className="text-[12px] text-snopix-muted font-mono mb-2">
 							{progress.done.toLocaleString()} /{' '}
 							{progress.total.toLocaleString()}
@@ -159,27 +161,32 @@ export default function DuplicatesMobile() {
 			)}
 
 			{!isLoading && groups.length === 0 ? (
-				<div className="px-4 pt-2">
-					<div className="bg-snopix-bg rounded-card p-6 border border-snopix-border text-center text-snopix-muted text-[13px]">
+				<div className="px-[18px] pt-2">
+					<div className="bg-snopix-bg rounded-[14px] p-6 border border-snopix-border text-center text-snopix-muted text-[13px]">
 						{__('No duplicate clusters found.', 'snopix')}
 					</div>
 				</div>
 			) : (
-				<div className="px-4 flex flex-col gap-3">
+				<div className="px-[18px] flex flex-col gap-3.5">
 					{groups.map((g) => {
 						const keepId = getKeepId(g);
 						const shown = g.images.slice(0, 3);
 						const remaining = g.images.length - shown.length;
 						const cols = shown.length === 2 ? 'grid-cols-2' : 'grid-cols-3';
+						const matchPercent = Math.round(g.similarity * 100);
 
 						return (
 							<div
 								key={groupKey(g)}
-								className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border"
+								className="bg-snopix-bg rounded-[14px] p-3.5 border border-snopix-border"
 							>
 								<div className="flex items-center justify-between mb-3 gap-2">
 									<span className="snopix-pill snopix-pill--accent">
-										{(g.similarity * 100).toFixed(1)}% match
+										{sprintf(
+											/* translators: %d: match percentage */
+											__('%d%% match', 'snopix'),
+											matchPercent
+										)}
 									</span>
 									<span className="text-[11px] text-snopix-muted">
 										{formatBytes(g.wasted_bytes)}
@@ -194,10 +201,10 @@ export default function DuplicatesMobile() {
 												key={img.id}
 												type="button"
 												onClick={() => setKeepId(g, img.id)}
-												className={`relative aspect-square rounded-input overflow-hidden bg-snopix-surface border p-0 cursor-pointer transition-all ${
+												className={`relative aspect-square rounded-[10px] overflow-hidden bg-snopix-surface p-0 cursor-pointer transition-all ${
 													kept
-														? 'border-snopix-accent border-2 shadow-[0_0_0_3px_rgba(0,113,227,0.15)]'
-														: 'border-snopix-border opacity-60'
+														? 'border-2 border-snopix-accent shadow-[0_0_0_3px_rgba(0,113,227,0.15)] opacity-100'
+														: 'border border-snopix-border opacity-[0.55]'
 												}`}
 												aria-pressed={kept}
 											>
@@ -208,8 +215,8 @@ export default function DuplicatesMobile() {
 													loading="lazy"
 												/>
 												{kept && (
-													<div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-snopix-accent text-white grid place-items-center shadow">
-														<IconCheck size={11} />
+													<div className="absolute top-1.5 right-1.5 w-[22px] h-[22px] rounded-full bg-snopix-accent text-white grid place-items-center shadow-[0_2px_6px_rgba(0,113,227,0.30)]">
+														<IconCheck size={12} />
 													</div>
 												)}
 											</button>

@@ -148,6 +148,12 @@ export const IconArrowRight = (p: IconProps) => (
 		<path d="M5 12h14M13 6l6 6-6 6" />
 	</I>
 );
+export const IconBell = (p: IconProps) => (
+	<I {...p}>
+		<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+		<path d="M10 21a2 2 0 0 0 4 0" />
+	</I>
+);
 
 interface BrandProps {
 	size?: number;

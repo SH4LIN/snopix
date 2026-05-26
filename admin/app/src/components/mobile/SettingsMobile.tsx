@@ -1,11 +1,13 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
 	PSSettings,
 	useSettings,
 	useUpdateSettings,
 } from '../../hooks/use-settings';
+import { ratioToPercent } from '../../lib/format';
 import Toast from '../Toast';
+import { IconChevron } from '../icons';
 
 const DEFAULTS: PSSettings = {
 	search_visibility: 'anyone',
@@ -18,12 +20,19 @@ const DEFAULTS: PSSettings = {
 	require_consent: false,
 };
 
+const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';
+
 /**
  * Mobile settings screen.
  *
- * Same fields as the desktop Settings tab, surfaced as iOS-style grouped
- * lists. Form state is local; a Save/Discard pair appears at the bottom
- * once the form is dirty (sticky above the bottom tab bar).
+ * Surfaces the public endpoint setting up top and keeps every developer-facing
+ * knob (rate limit, thresholds, indexer, uninstall) inside a collapsible
+ * "Advanced" section so the default view stays approachable. Form state is
+ * local; a Save/Discard pair appears at the bottom once the form is dirty
+ * (sticky above the bottom tab bar).
+ *
+ * Similarity thresholds round-trip as 0–1 floats but render as 50–100% to
+ * match the desktop view.
  *
  * @return {JSX.Element}
  */
@@ -42,6 +51,20 @@ export default function SettingsMobile() {
 		setForm(merged);
 		setServerState(merged);
 	}
+
+	const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => {
+		if (typeof window === 'undefined') {
+			return false;
+		}
+		return window.localStorage.getItem(ADVANCED_OPEN_KEY) === '1';
+	});
+
+	useEffect(() => {
+		if (typeof window === 'undefined') {
+			return;
+		}
+		window.localStorage.setItem(ADVANCED_OPEN_KEY, advancedOpen ? '1' : '0');
+	}, [advancedOpen]);
 
 	const set = <K extends keyof PSSettings>(k: K, v: PSSettings[K]) =>
 		setForm((p) => ({ ...p, [k]: v }));
@@ -62,7 +85,7 @@ export default function SettingsMobile() {
 
 	if (isLoading) {
 		return (
-			<div className="px-4 pt-5">
+			<div className="px-[18px] pt-5">
 				<div className="bg-snopix-bg rounded-card p-5 border border-snopix-border text-snopix-muted text-[13px]">
 					{__('Loading settings…', 'snopix')}
 				</div>
@@ -72,7 +95,7 @@ export default function SettingsMobile() {
 
 	if (isError) {
 		return (
-			<div className="px-4 pt-5">
+			<div className="px-[18px] pt-5">
 				<div className="bg-snopix-bg rounded-card p-5 border border-snopix-border text-snopix-danger text-[13px]">
 					{__('Could not load settings.', 'snopix')}
 				</div>
@@ -80,10 +103,13 @@ export default function SettingsMobile() {
 		);
 	}
 
+	const matchPercent = ratioToPercent(form.match_threshold);
+	const duplicatePercent = ratioToPercent(form.duplicate_threshold);
+
 	return (
 		<>
-			<div className="px-4 pt-5 pb-3">
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-tight">
+			<div className="px-[18px] pt-5 pb-3.5">
+				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
 					{__('Settings', 'snopix')}
 				</div>
 			</div>
@@ -104,71 +130,105 @@ export default function SettingsMobile() {
 				/>
 			</SectionGroup>
 
-			<SectionGroup label={__('Matching', 'snopix')}>
-				<SliderRow
-					title={__('Match threshold', 'snopix')}
-					value={form.match_threshold}
-					onChange={(v) => set('match_threshold', v)}
-					min={0.5}
-					max={1}
-					step={0.005}
-					leftLabel={__('loose', 'snopix')}
-					rightLabel={__('exact only', 'snopix')}
-				/>
-				<Divider />
-				<SliderRow
-					title={__('Scan similarity', 'snopix')}
-					value={form.duplicate_threshold}
-					onChange={(v) => set('duplicate_threshold', v)}
-					min={0.8}
-					max={1}
-					step={0.005}
-					leftLabel="0.800"
-					rightLabel="1.000"
-				/>
-			</SectionGroup>
+			<div className="px-[18px] pb-4">
+				<button
+					type="button"
+					className="snopix-disclosure w-full"
+					aria-expanded={advancedOpen}
+					onClick={() => setAdvancedOpen((o) => !o)}
+				>
+					<span>
+						<span className="block text-[14px] font-semibold text-snopix-text">
+							{__('Advanced', 'snopix')}
+						</span>
+						<span className="block text-[12px] text-snopix-muted mt-0.5">
+							{__('Thresholds, indexer, uninstall', 'snopix')}
+						</span>
+					</span>
+					<span className="snopix-disclosure__chevron" aria-hidden="true">
+						<IconChevron size={16} />
+					</span>
+				</button>
+			</div>
 
-			<SectionGroup label={__('Indexer', 'snopix')}>
-				<NumberRow
-					title={__('Batch size', 'snopix')}
-					value={form.batch_size}
-					onChange={(v) => set('batch_size', v)}
-					min={1}
-					max={500}
-				/>
-				<Divider />
-				<NumberRow
-					title={__('Downscale max', 'snopix')}
-					value={form.downscale_max}
-					onChange={(v) => set('downscale_max', v)}
-					min={64}
-					max={4096}
-				/>
-				<Divider />
-				<NumberRow
-					title={__('Rate limit', 'snopix')}
-					value={form.rate_limit}
-					onChange={(v) => set('rate_limit', v)}
-					min={1}
-					max={1000}
-				/>
-			</SectionGroup>
+			{advancedOpen && (
+				<>
+					<SectionGroup label={__('Matching', 'snopix')}>
+						<SliderRow
+							title={__('Match threshold', 'snopix')}
+							value={matchPercent}
+							onChange={(percent) =>
+								set('match_threshold', +(percent / 100).toFixed(3))
+							}
+							min={50}
+							max={100}
+							step={1}
+							leftLabel={__('loose', 'snopix')}
+							rightLabel={__('exact only', 'snopix')}
+							valueLabel={`${matchPercent}%`}
+						/>
+						<Divider />
+						<SliderRow
+							title={__('Scan similarity', 'snopix')}
+							value={duplicatePercent}
+							onChange={(percent) =>
+								set(
+									'duplicate_threshold',
+									+(percent / 100).toFixed(3)
+								)
+							}
+							min={80}
+							max={100}
+							step={1}
+							leftLabel="80%"
+							rightLabel="100%"
+							valueLabel={`${duplicatePercent}%`}
+						/>
+					</SectionGroup>
 
-			<SectionGroup label={__('Uninstall cleanup', 'snopix')}>
-				<SwitchRow
-					checked={form.drop_on_uninstall}
-					onChange={(v) => set('drop_on_uninstall', v)}
-					title={__('Drop wp_snopix_index', 'snopix')}
-					hint={__('Removes all fingerprints on uninstall.', 'snopix')}
-				/>
-				<Divider />
-				<SwitchRow
-					checked={form.require_consent}
-					onChange={(v) => set('require_consent', v)}
-					title={__('Require confirmation', 'snopix')}
-					hint={__('Show dialog before deleting plugin data.', 'snopix')}
-				/>
-			</SectionGroup>
+					<SectionGroup label={__('Indexer', 'snopix')}>
+						<NumberRow
+							title={__('Batch size', 'snopix')}
+							value={form.batch_size}
+							onChange={(v) => set('batch_size', v)}
+							min={1}
+							max={500}
+						/>
+						<Divider />
+						<NumberRow
+							title={__('Downscale max', 'snopix')}
+							value={form.downscale_max}
+							onChange={(v) => set('downscale_max', v)}
+							min={64}
+							max={4096}
+						/>
+						<Divider />
+						<NumberRow
+							title={__('Rate limit', 'snopix')}
+							value={form.rate_limit}
+							onChange={(v) => set('rate_limit', v)}
+							min={1}
+							max={1000}
+						/>
+					</SectionGroup>
+
+					<SectionGroup label={__('Uninstall cleanup', 'snopix')}>
+						<SwitchRow
+							checked={form.drop_on_uninstall}
+							onChange={(v) => set('drop_on_uninstall', v)}
+							title={__('Drop wp_snopix_index', 'snopix')}
+							hint={__('Removes all fingerprints on uninstall.', 'snopix')}
+						/>
+						<Divider />
+						<SwitchRow
+							checked={form.require_consent}
+							onChange={(v) => set('require_consent', v)}
+							title={__('Require confirmation', 'snopix')}
+							hint={__('Show dialog before deleting plugin data.', 'snopix')}
+						/>
+					</SectionGroup>
+				</>
+			)}
 
 			{dirty && (
 				<div className="sticky bottom-[88px] left-0 right-0 z-20 px-4 py-3 bg-snopix-bg/95 backdrop-blur border-t border-snopix-border flex gap-2">
@@ -204,7 +264,7 @@ function SectionGroup({
 	children: ReactNode;
 }) {
 	return (
-		<div className="px-4 pb-4">
+		<div className="px-[18px] pb-4">
 			<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] px-1 pb-1.5">
 				{label}
 			</div>
@@ -290,6 +350,7 @@ function SliderRow({
 	step,
 	leftLabel,
 	rightLabel,
+	valueLabel,
 }: {
 	title: string;
 	value: number;
@@ -299,13 +360,14 @@ function SliderRow({
 	step: number;
 	leftLabel: string;
 	rightLabel: string;
+	valueLabel: string;
 }) {
 	return (
 		<div className="px-3.5 py-3.5">
 			<div className="flex items-baseline justify-between mb-2.5">
 				<div className="text-[14px] font-medium text-snopix-text">{title}</div>
 				<div className="font-mono text-[13px] font-semibold text-snopix-text">
-					{value.toFixed(3)}
+					{valueLabel}
 				</div>
 			</div>
 			<input

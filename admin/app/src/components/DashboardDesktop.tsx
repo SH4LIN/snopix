@@ -8,9 +8,11 @@ import { useIndexStatus } from '../hooks/use-index-status';
 /**
  * Dashboard route — landing tab of the admin app.
  *
- * Stacks the page heading, stat tiles, an inline indexing-job progress card
- * (when applicable), the reverse-image search panel, and the recently-indexed
- * table into a single full-width column.
+ * Stacks the page heading, reverse-image search panel, stat tiles, an inline
+ * indexing-job progress card (when applicable), and the recently-indexed
+ * table into a single full-width column. Stat tiles sit below the search
+ * control so the primary action stays above the fold; feature notices are
+ * surfaced through the header bell rather than inline on the dashboard.
  *
  * @return {JSX.Element}
  */
@@ -29,9 +31,9 @@ export default function Dashboard() {
 				)}
 			</p>
 
+			<SearchPreview />
 			<StatsBar status={status} />
 			<ReindexButton />
-			<SearchPreview />
 			<ImageTable />
 		</div>
 	);

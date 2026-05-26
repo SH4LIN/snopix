@@ -116,17 +116,17 @@ export default function ToolsMobile() {
 
 	return (
 		<div>
-			<div className="px-4 pt-5 pb-3">
-				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
+			<div className="px-[18px] pt-5 pb-3.5">
+				<div className="text-[12px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
 					{__('Maintenance', 'snopix')}
 				</div>
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-tight">
+				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
 					{__('Tools', 'snopix')}
 				</div>
 			</div>
 
 			{isRunning && progress && (
-				<div className="px-4 pb-3">
+				<div className="px-[18px] pb-3">
 					<div className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border">
 						<div className="flex items-center gap-3 mb-3">
 							<div className="w-9 h-9 rounded-input bg-snopix-accent-soft text-snopix-accent grid place-items-center">
@@ -154,8 +154,8 @@ export default function ToolsMobile() {
 				</div>
 			)}
 
-			<div className="px-4">
-				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] px-1 pb-1.5">
+			<div className="px-[18px]">
+				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] px-1 pb-2">
 					{__('Actions', 'snopix')}
 				</div>
 				<div className="bg-snopix-bg rounded-card overflow-hidden border border-snopix-border">

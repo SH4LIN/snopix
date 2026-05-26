@@ -10,6 +10,7 @@ import {
 	IconTool,
 	IconUpload,
 } from '../icons';
+import NotificationBell from '../notifications/NotificationBell';
 
 type TabId = 'dashboard' | 'duplicates' | 'tools' | 'settings';
 
@@ -84,7 +85,7 @@ export default function AppShellMobile() {
 			id="snopix-app"
 			className="flex flex-col min-h-[calc(100vh-32px)] bg-snopix-surface"
 		>
-			<div className="sticky top-[32px] z-30 bg-snopix-bg border-b border-snopix-border">
+			<div className="snopix-mobile-topbar bg-snopix-bg border-b border-snopix-border">
 				<div className="px-4 py-2.5 flex items-center justify-between gap-3">
 					<div className="flex items-center gap-2.5 min-w-0">
 						<BrandMark size={26} />
@@ -97,20 +98,23 @@ export default function AppShellMobile() {
 							</div>
 						</div>
 					</div>
-					<button
-						type="button"
-						onClick={() => startReindex()}
-						disabled={!canReindex || isPending}
-						aria-label={__('Index remaining', 'snopix')}
-						title={
-							!canReindex
-								? __('No pending attachments.', 'snopix')
-								: __('Index remaining', 'snopix')
-						}
-						className="w-9 h-9 rounded-full bg-snopix-surface text-snopix-text grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
-					>
-						<IconUpload size={16} />
-					</button>
+					<div className="flex items-center gap-2">
+						<NotificationBell variant="mobile" />
+						<button
+							type="button"
+							onClick={() => startReindex()}
+							disabled={!canReindex || isPending}
+							aria-label={__('Index remaining', 'snopix')}
+							title={
+								!canReindex
+									? __('No pending attachments.', 'snopix')
+									: __('Index remaining', 'snopix')
+							}
+							className="w-9 h-9 rounded-full bg-snopix-surface text-snopix-text grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							<IconUpload size={16} />
+						</button>
+					</div>
 				</div>
 			</div>
 

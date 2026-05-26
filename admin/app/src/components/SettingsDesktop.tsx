@@ -1,12 +1,14 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
 	useSettings,
 	useUpdateSettings,
 	type PSSettings,
 } from '../hooks/use-settings';
+import { ratioToPercent } from '../lib/format';
 import Toast from './Toast';
 import {
+	IconChevron,
 	IconClock,
 	IconGlobe,
 	IconInfo,
@@ -14,6 +16,7 @@ import {
 	IconLock,
 	IconRefresh,
 	IconSearch,
+	IconSettings,
 } from './icons';
 
 /**
@@ -32,13 +35,19 @@ const DEFAULTS: PSSettings = {
 	require_consent: false,
 };
 
+const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';
+
 /**
- * Settings tab — endpoint visibility, rate limiting, similarity thresholds,
- * indexer batch behaviour, and uninstall cleanup.
+ * Settings tab — endpoint visibility plus an "Advanced" disclosure for
+ * developer-facing knobs (rate limiting, similarity thresholds, indexer
+ * behaviour, uninstall cleanup).
  *
  * Holds the form state locally and exposes a Save/Discard pair in the page
  * header once the form is dirty. Saves persist via
  * `POST /wp-json/snopix/v1/settings` and refresh the cached state on success.
+ *
+ * Similarity thresholds are stored on the backend as 0–1 floats but rendered
+ * here as 50–100% so the UI stays approachable for non-developer users.
  *
  * @return {JSX.Element}
  */
@@ -57,6 +66,20 @@ export default function Settings() {
 		setForm(merged);
 		setServerState(merged);
 	}
+
+	const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => {
+		if (typeof window === 'undefined') {
+			return false;
+		}
+		return window.localStorage.getItem(ADVANCED_OPEN_KEY) === '1';
+	});
+
+	useEffect(() => {
+		if (typeof window === 'undefined') {
+			return;
+		}
+		window.localStorage.setItem(ADVANCED_OPEN_KEY, advancedOpen ? '1' : '0');
+	}, [advancedOpen]);
 
 	const set = <K extends keyof PSSettings>(k: K, v: PSSettings[K]) =>
 		setForm((p) => ({ ...p, [k]: v }));
@@ -95,6 +118,9 @@ export default function Settings() {
 		);
 	}
 
+	const matchPercent = ratioToPercent(form.match_threshold);
+	const duplicatePercent = ratioToPercent(form.duplicate_threshold);
+
 	return (
 		<>
 			<div className="flex items-end justify-between mb-1.5">
@@ -124,7 +150,7 @@ export default function Settings() {
 			</div>
 			<p className="text-[14px] text-snopix-muted mb-7">
 				{__(
-					'Endpoint visibility, indexing behaviour, and uninstall cleanup.',
+					'Control who can search your media and tune advanced indexing behaviour.',
 					'snopix'
 				)}
 			</p>
@@ -159,185 +185,225 @@ export default function Settings() {
 					/>
 				</SettingGroup>
 
-				<SettingGroup
-					icon={<IconClock size={16} />}
-					title={__('Rate limit', 'snopix')}
-					description={__(
-						'Cap on POST /search per requester. Applies only when the endpoint is public.',
-						'snopix'
-					)}
+				<button
+					type="button"
+					className="snopix-disclosure"
+					aria-expanded={advancedOpen}
+					onClick={() => setAdvancedOpen((o) => !o)}
 				>
-					<SliderRow
-						min={1}
-						max={60}
-						step={1}
-						value={form.rate_limit}
-						onChange={(v) => set('rate_limit', v)}
-						valueLabel={`${form.rate_limit} req / 60 s`}
-						extremes={['1 / 60 s', '60 / 60 s']}
-						disabled={form.search_visibility !== 'anyone'}
-					/>
-				</SettingGroup>
-
-				<SettingGroup
-					icon={<IconSearch size={16} />}
-					title={__('Match threshold', 'snopix')}
-					description={__(
-						'Minimum composite score for an image to surface in search results.',
-						'snopix'
-					)}
-				>
-					<SliderRow
-						min={0.5}
-						max={1.0}
-						step={0.005}
-						value={form.match_threshold}
-						onChange={(v) =>
-							set('match_threshold', parseFloat(v.toFixed(3)))
-						}
-						valueLabel={form.match_threshold.toFixed(3)}
-						extremes={['0.500 · loose', '1.000 · exact only']}
-					/>
-					<div className="mt-2.5 px-3 py-2.5 bg-snopix-surface rounded-lg text-[12px] text-snopix-muted flex items-start gap-2">
-						<IconInfo size={14} />
-						<span>
-							{__(
-								'Format conversions and JPEG re-encodes recover above',
-								'snopix'
-							)}{' '}
-							<strong>0.95</strong>.{' '}
-							{__(
-								'Heavy blur and sub-128 px downscales sit closer to',
-								'snopix'
-							)}{' '}
-							<strong>0.85</strong>.
+					<span className="flex items-center gap-3">
+						<span className="text-snopix-muted" aria-hidden="true">
+							<IconSettings size={16} />
 						</span>
-					</div>
-				</SettingGroup>
+						<span>
+							<span className="block text-[15px] font-semibold text-snopix-text">
+								{__('Advanced settings', 'snopix')}
+							</span>
+							<span className="block text-[13px] text-snopix-muted mt-0.5">
+								{__(
+									'Rate limiting, similarity thresholds, indexer behaviour, and uninstall cleanup.',
+									'snopix'
+								)}
+							</span>
+						</span>
+					</span>
+					<span className="snopix-disclosure__chevron" aria-hidden="true">
+						<IconChevron size={16} />
+					</span>
+				</button>
 
-				<SettingGroup
-					icon={<IconLayers size={16} />}
-					title={__('Scan similarity', 'snopix')}
-					description={__(
-						'Similarity floor used during scanning. Images are clustered as duplicates only if their similarity is at or above this value.',
-						'snopix'
-					)}
-				>
-					<SliderRow
-						min={0.8}
-						max={1.0}
-						step={0.005}
-						value={form.duplicate_threshold}
-						onChange={(v) =>
-							set('duplicate_threshold', parseFloat(v.toFixed(3)))
-						}
-						valueLabel={form.duplicate_threshold.toFixed(3)}
-						extremes={['0.800 · loose', '1.000 · pixel-identical']}
-					/>
-				</SettingGroup>
+				{advancedOpen && (
+					<div className="flex flex-col gap-4">
+						<SettingGroup
+							icon={<IconClock size={16} />}
+							title={__('Rate limit', 'snopix')}
+							description={__(
+								'Cap on POST /search per requester. Applies only when the endpoint is public.',
+								'snopix'
+							)}
+						>
+							<SliderRow
+								min={1}
+								max={60}
+								step={1}
+								value={form.rate_limit}
+								onChange={(v) => set('rate_limit', v)}
+								valueLabel={`${form.rate_limit} req / 60 s`}
+								extremes={['1 / 60 s', '60 / 60 s']}
+								disabled={form.search_visibility !== 'anyone'}
+							/>
+						</SettingGroup>
 
-				<SettingGroup
-					icon={<IconRefresh size={16} />}
-					title={__('Indexer', 'snopix')}
-					description={__(
-						'How the background fingerprinter processes your library.',
-						'snopix'
-					)}
-				>
-					<RowField
-						label={__('Batch size', 'snopix')}
-						hint={__(
-							'Attachments fingerprinted per WP-Cron tick. Raise for speed; lower if PHP memory is tight.',
-							'snopix'
-						)}
-					>
-						<NumberStepper
-							value={form.batch_size}
-							min={5}
-							max={200}
-							step={5}
-							onChange={(v) => set('batch_size', v)}
-							suffix={__('rows', 'snopix')}
-						/>
-					</RowField>
-					<Divider />
-					<RowField
-						label={__('Pre-downscale max edge', 'snopix')}
-						hint={__(
-							'Probe images larger than this are downscaled before fingerprinting to keep search latency bounded.',
-							'snopix'
-						)}
-					>
-						<NumberStepper
-							value={form.downscale_max}
-							min={256}
-							max={4096}
-							step={128}
-							onChange={(v) => set('downscale_max', v)}
-							suffix={__('px', 'snopix')}
-						/>
-					</RowField>
-					<Divider />
-					<RowField
-						label={__('Supported MIME types', 'snopix')}
-						hint={__(
-							'Read-only. The indexer rejects anything not in this list at upload and at the search endpoint.',
-							'snopix'
-						)}
-					>
-						<div className="flex gap-1.5 flex-wrap justify-end">
-							{[
-								'image/jpeg',
-								'image/png',
-								'image/gif',
-								'image/webp',
-								'image/bmp',
-							].map((m) => (
-								<span
-									key={m}
-									className="snopix-pill snopix-pill--neutral snopix-mono"
-								>
-									{m}
+						<SettingGroup
+							icon={<IconSearch size={16} />}
+							title={__('Match threshold', 'snopix')}
+							description={__(
+								'Minimum similarity required for an image to surface in search results.',
+								'snopix'
+							)}
+						>
+							<SliderRow
+								min={50}
+								max={100}
+								step={1}
+								value={matchPercent}
+								onChange={(percent) =>
+									set('match_threshold', +(percent / 100).toFixed(3))
+								}
+								valueLabel={`${matchPercent}%`}
+								extremes={[
+									__('50% · loose', 'snopix'),
+									__('100% · exact only', 'snopix'),
+								]}
+							/>
+							<div className="mt-2.5 px-3 py-2.5 bg-snopix-surface rounded-lg text-[12px] text-snopix-muted flex items-start gap-2">
+								<IconInfo size={14} />
+								<span>
+									{__(
+										'Format conversions and JPEG re-encodes recover above',
+										'snopix'
+									)}{' '}
+									<strong>95%</strong>.{' '}
+									{__(
+										'Heavy blur and sub-128 px downscales sit closer to',
+										'snopix'
+									)}{' '}
+									<strong>85%</strong>.
 								</span>
-							))}
-						</div>
-					</RowField>
-				</SettingGroup>
+							</div>
+						</SettingGroup>
 
-				<SettingGroup
-					icon={<IconLock size={16} />}
-					title={__('Uninstall cleanup', 'snopix')}
-					description={__(
-						'What happens when the plugin is deleted from Plugins → Installed Plugins.',
-						'snopix'
-					)}
-				>
-					<ToggleRow
-						checked={form.drop_on_uninstall}
-						onChange={(v) => set('drop_on_uninstall', v)}
-						title={__(
-							'Drop the wp_snopix_index table on uninstall',
-							'snopix'
-						)}
-						hint={__(
-							'Recommended. Removes all fingerprints and every Snopix option / transient.',
-							'snopix'
-						)}
-					/>
-					<Divider />
-					<ToggleRow
-						checked={form.require_consent}
-						onChange={(v) => set('require_consent', v)}
-						title={__(
-							'Require admin confirmation before uninstall',
-							'snopix'
-						)}
-						hint={__(
-							'Adds a confirmation dialog on the Plugins screen before the table is dropped.',
-							'snopix'
-						)}
-					/>
-				</SettingGroup>
+						<SettingGroup
+							icon={<IconLayers size={16} />}
+							title={__('Scan similarity', 'snopix')}
+							description={__(
+								'Similarity floor used during duplicate scanning. Images cluster as duplicates only when their similarity meets this value.',
+								'snopix'
+							)}
+						>
+							<SliderRow
+								min={80}
+								max={100}
+								step={1}
+								value={duplicatePercent}
+								onChange={(percent) =>
+									set(
+										'duplicate_threshold',
+										+(percent / 100).toFixed(3)
+									)
+								}
+								valueLabel={`${duplicatePercent}%`}
+								extremes={[
+									__('80% · loose', 'snopix'),
+									__('100% · pixel-identical', 'snopix'),
+								]}
+							/>
+						</SettingGroup>
+
+						<SettingGroup
+							icon={<IconRefresh size={16} />}
+							title={__('Indexer', 'snopix')}
+							description={__(
+								'How the background fingerprinter processes your library.',
+								'snopix'
+							)}
+						>
+							<RowField
+								label={__('Batch size', 'snopix')}
+								hint={__(
+									'Attachments fingerprinted per WP-Cron tick. Raise for speed; lower if PHP memory is tight.',
+									'snopix'
+								)}
+							>
+								<NumberStepper
+									value={form.batch_size}
+									min={5}
+									max={200}
+									step={5}
+									onChange={(v) => set('batch_size', v)}
+									suffix={__('rows', 'snopix')}
+								/>
+							</RowField>
+							<Divider />
+							<RowField
+								label={__('Pre-downscale max edge', 'snopix')}
+								hint={__(
+									'Probe images larger than this are downscaled before fingerprinting to keep search latency bounded.',
+									'snopix'
+								)}
+							>
+								<NumberStepper
+									value={form.downscale_max}
+									min={256}
+									max={4096}
+									step={128}
+									onChange={(v) => set('downscale_max', v)}
+									suffix={__('px', 'snopix')}
+								/>
+							</RowField>
+							<Divider />
+							<RowField
+								label={__('Supported MIME types', 'snopix')}
+								hint={__(
+									'Read-only. The indexer rejects anything not in this list at upload and at the search endpoint.',
+									'snopix'
+								)}
+							>
+								<div className="flex gap-1.5 flex-wrap justify-end">
+									{[
+										'image/jpeg',
+										'image/png',
+										'image/gif',
+										'image/webp',
+										'image/bmp',
+									].map((m) => (
+										<span
+											key={m}
+											className="snopix-pill snopix-pill--neutral snopix-mono"
+										>
+											{m}
+										</span>
+									))}
+								</div>
+							</RowField>
+						</SettingGroup>
+
+						<SettingGroup
+							icon={<IconLock size={16} />}
+							title={__('Uninstall cleanup', 'snopix')}
+							description={__(
+								'What happens when the plugin is deleted from Plugins → Installed Plugins.',
+								'snopix'
+							)}
+						>
+							<ToggleRow
+								checked={form.drop_on_uninstall}
+								onChange={(v) => set('drop_on_uninstall', v)}
+								title={__(
+									'Drop the wp_snopix_index table on uninstall',
+									'snopix'
+								)}
+								hint={__(
+									'Recommended. Removes all fingerprints and every Snopix option / transient.',
+									'snopix'
+								)}
+							/>
+							<Divider />
+							<ToggleRow
+								checked={form.require_consent}
+								onChange={(v) => set('require_consent', v)}
+								title={__(
+									'Require admin confirmation before uninstall',
+									'snopix'
+								)}
+								hint={__(
+									'Adds a confirmation dialog on the Plugins screen before the table is dropped.',
+									'snopix'
+								)}
+							/>
+						</SettingGroup>
+					</div>
+				)}
 			</div>
 
 			{toast && <Toast message={toast} onDismiss={() => setToast(null)} />}

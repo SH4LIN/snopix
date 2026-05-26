@@ -4,6 +4,7 @@ import { useStore } from '../../store/use-store';
 import { useIndexStatus } from '../../hooks/use-index-status';
 import { useReindex } from '../../hooks/use-reindex';
 import { BrandMark, IconUpload } from '../icons';
+import NotificationBell from '../notifications/NotificationBell';
 
 const TABS = [
 	{ id: 'dashboard', path: '/dashboard', label: __('Dashboard', 'snopix') },
@@ -50,7 +51,8 @@ export default function AppShellDesktop() {
 								</div>
 							</div>
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-3">
+							<NotificationBell variant="desktop" />
 							<button
 								className="snopix-btn snopix-btn--sm"
 								onClick={() => startReindex()}

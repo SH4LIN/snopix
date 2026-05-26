@@ -57,7 +57,7 @@ export default function Duplicates() {
 		startError instanceof ConflictError ? startError.message : null;
 
 	const [keepIds, setKeepIds] = useState<Record<string, number>>({});
-	const [threshold, setThreshold] = useState(0.95);
+	const [thresholdPercent, setThresholdPercent] = useState(95);
 	const [confirm, setConfirm] = useState<ConfirmTarget | null>(null);
 	const [toast, setToast] = useState<string | null>(null);
 
@@ -67,9 +67,10 @@ export default function Duplicates() {
 	const groups = data?.groups ?? [];
 	const lastScanned = data?.last_scanned ?? '';
 
+	const thresholdRatio = thresholdPercent / 100;
 	const visibleGroups = useMemo(
-		() => groups.filter((g) => g.similarity >= threshold),
-		[groups, threshold]
+		() => groups.filter((g) => g.similarity >= thresholdRatio),
+		[groups, thresholdRatio]
 	);
 
 	const totalDupCount = visibleGroups.reduce(
@@ -268,14 +269,16 @@ export default function Duplicates() {
 					<input
 						className="snopix-range"
 						type="range"
-						min="0.80"
-						max="1.00"
-						step="0.005"
-						value={threshold}
-						onChange={(e) => setThreshold(parseFloat(e.target.value))}
+						min={80}
+						max={100}
+						step={1}
+						value={thresholdPercent}
+						onChange={(e) =>
+							setThresholdPercent(parseInt(e.target.value, 10))
+						}
 					/>
 					<div className="snopix-mono text-[14px] font-semibold w-16 text-right">
-						{threshold.toFixed(3)}
+						{thresholdPercent}%
 					</div>
 				</div>
 			</div>
@@ -289,12 +292,12 @@ export default function Duplicates() {
 						<div className="text-[15px] font-medium text-snopix-text mb-1">
 							{lastScanned
 								? sprintf(
-										/* translators: %s: threshold value */
+										/* translators: %s: threshold percentage (e.g. "95%") */
 										__(
 											'No duplicate clusters above %s',
 											'snopix'
 										),
-										threshold.toFixed(2)
+										`${thresholdPercent}%`
 									)
 								: __('No scan run yet.', 'snopix')}
 						</div>
