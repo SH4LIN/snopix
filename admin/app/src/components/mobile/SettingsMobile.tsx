@@ -1,35 +1,22 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
-	PSSettings,
-	useSettings,
-	useUpdateSettings,
-} from '../../hooks/use-settings';
+	useAdvancedOpen,
+	useSettingsForm,
+} from '../../hooks/use-settings-form';
 import { ratioToPercent } from '../../lib/format';
 import Toast from '../Toast';
 import { IconChevron } from '../icons';
-
-const DEFAULTS: PSSettings = {
-	search_visibility: 'anyone',
-	rate_limit: 10,
-	match_threshold: 0.85,
-	batch_size: 25,
-	downscale_max: 1024,
-	duplicate_threshold: 0.95,
-	drop_on_uninstall: true,
-	require_consent: false,
-};
-
-const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';
 
 /**
  * Mobile settings screen.
  *
  * Surfaces the public endpoint setting up top and keeps every developer-facing
  * knob (rate limit, thresholds, indexer, uninstall) inside a collapsible
- * "Advanced" section so the default view stays approachable. Form state is
- * local; a Save/Discard pair appears at the bottom once the form is dirty
- * (sticky above the bottom tab bar).
+ * "Advanced" section so the default view stays approachable. Form state and
+ * save semantics are shared with `SettingsDesktop` via {@link useSettingsForm};
+ * a Save/Discard pair appears at the bottom once the form is dirty (sticky
+ * above the bottom tab bar).
  *
  * Similarity thresholds round-trip as 0–1 floats but render as 50–100% to
  * match the desktop view.
@@ -37,51 +24,19 @@ const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';
  * @return {JSX.Element}
  */
 export default function SettingsMobile() {
-	const { data, isLoading, isError } = useSettings();
-	const { mutate: save, isPending } = useUpdateSettings();
-
-	const [form, setForm] = useState<PSSettings>(DEFAULTS);
-	const [serverState, setServerState] = useState<PSSettings>(DEFAULTS);
-	const [toast, setToast] = useState<string | null>(null);
-
-	const [syncedData, setSyncedData] = useState<typeof data>();
-	if (data && data !== syncedData) {
-		const merged = { ...DEFAULTS, ...data };
-		setSyncedData(data);
-		setForm(merged);
-		setServerState(merged);
-	}
-
-	const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => {
-		if (typeof window === 'undefined') {
-			return false;
-		}
-		return window.localStorage.getItem(ADVANCED_OPEN_KEY) === '1';
-	});
-
-	useEffect(() => {
-		if (typeof window === 'undefined') {
-			return;
-		}
-		window.localStorage.setItem(ADVANCED_OPEN_KEY, advancedOpen ? '1' : '0');
-	}, [advancedOpen]);
-
-	const set = <K extends keyof PSSettings>(k: K, v: PSSettings[K]) =>
-		setForm((p) => ({ ...p, [k]: v }));
-
-	const dirty = JSON.stringify(form) !== JSON.stringify(serverState);
-
-	function onSave() {
-		save(form, {
-			onSuccess: (next) => {
-				const merged = { ...DEFAULTS, ...next };
-				setServerState(merged);
-				setForm(merged);
-				setToast(__('Settings saved', 'snopix'));
-			},
-			onError: () => setToast(__('Could not save. Try again.', 'snopix')),
-		});
-	}
+	const {
+		form,
+		set,
+		dirty,
+		save,
+		revert,
+		isPending,
+		isLoading,
+		isError,
+		toast,
+		dismissToast,
+	} = useSettingsForm();
+	const [advancedOpen, setAdvancedOpen] = useAdvancedOpen();
 
 	if (isLoading) {
 		return (
@@ -135,7 +90,7 @@ export default function SettingsMobile() {
 					type="button"
 					className="snopix-disclosure w-full"
 					aria-expanded={advancedOpen}
-					onClick={() => setAdvancedOpen((o) => !o)}
+					onClick={() => setAdvancedOpen(!advancedOpen)}
 				>
 					<span>
 						<span className="block text-[14px] font-semibold text-snopix-text">
@@ -235,7 +190,7 @@ export default function SettingsMobile() {
 					<button
 						type="button"
 						className="snopix-btn snopix-btn--ghost snopix-btn--sm flex-1 justify-center"
-						onClick={() => setForm(serverState)}
+						onClick={revert}
 						disabled={isPending}
 					>
 						{__('Discard', 'snopix')}
@@ -243,7 +198,7 @@ export default function SettingsMobile() {
 					<button
 						type="button"
 						className="snopix-btn snopix-btn--sm flex-1 justify-center"
-						onClick={onSave}
+						onClick={save}
 						disabled={isPending}
 					>
 						{isPending ? __('Saving…', 'snopix') : __('Save', 'snopix')}
@@ -251,7 +206,7 @@ export default function SettingsMobile() {
 				</div>
 			)}
 
-			{toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+			{toast && <Toast message={toast} onDismiss={dismissToast} />}
 		</>
 	);
 }

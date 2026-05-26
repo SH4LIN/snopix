@@ -1,10 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import {
-	useSettings,
-	useUpdateSettings,
-	type PSSettings,
-} from '../hooks/use-settings';
+import { useAdvancedOpen, useSettingsForm } from '../hooks/use-settings-form';
 import { ratioToPercent } from '../lib/format';
 import Toast from './Toast';
 import {
@@ -20,87 +16,32 @@ import {
 } from './icons';
 
 /**
- * Default form payload used when the server-side query is still loading or
- * the option row is missing fields. Keep in sync with the PHP `Settings`
- * sanitizer defaults.
- */
-const DEFAULTS: PSSettings = {
-	search_visibility: 'anyone',
-	rate_limit: 10,
-	match_threshold: 0.85,
-	batch_size: 25,
-	downscale_max: 1024,
-	duplicate_threshold: 0.95,
-	drop_on_uninstall: true,
-	require_consent: false,
-};
-
-const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';
-
-/**
  * Settings tab — endpoint visibility plus an "Advanced" disclosure for
  * developer-facing knobs (rate limiting, similarity thresholds, indexer
  * behaviour, uninstall cleanup).
  *
- * Holds the form state locally and exposes a Save/Discard pair in the page
- * header once the form is dirty. Saves persist via
- * `POST /wp-json/snopix/v1/settings` and refresh the cached state on success.
- *
- * Similarity thresholds are stored on the backend as 0–1 floats but rendered
- * here as 50–100% so the UI stays approachable for non-developer users.
+ * Form state, dirty tracking, and the diff-only save flow are shared with
+ * `SettingsMobile` via {@link useSettingsForm}; this component is responsible
+ * only for the desktop layout. Similarity thresholds are stored on the
+ * backend as 0–1 floats but rendered here as 50–100% so the UI stays
+ * approachable for non-developer users.
  *
  * @return {JSX.Element}
  */
 export default function Settings() {
-	const { data, isLoading, isError } = useSettings();
-	const { mutate: save, isPending } = useUpdateSettings();
-
-	const [form, setForm] = useState<PSSettings>(DEFAULTS);
-	const [serverState, setServerState] = useState<PSSettings>(DEFAULTS);
-	const [toast, setToast] = useState<string | null>(null);
-
-	const [syncedData, setSyncedData] = useState<typeof data>();
-	if (data && data !== syncedData) {
-		const merged = { ...DEFAULTS, ...data };
-		setSyncedData(data);
-		setForm(merged);
-		setServerState(merged);
-	}
-
-	const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => {
-		if (typeof window === 'undefined') {
-			return false;
-		}
-		return window.localStorage.getItem(ADVANCED_OPEN_KEY) === '1';
-	});
-
-	useEffect(() => {
-		if (typeof window === 'undefined') {
-			return;
-		}
-		window.localStorage.setItem(ADVANCED_OPEN_KEY, advancedOpen ? '1' : '0');
-	}, [advancedOpen]);
-
-	const set = <K extends keyof PSSettings>(k: K, v: PSSettings[K]) =>
-		setForm((p) => ({ ...p, [k]: v }));
-
-	const dirty = JSON.stringify(form) !== JSON.stringify(serverState);
-
-	function onSave() {
-		save(form, {
-			onSuccess: (next) => {
-				const merged = { ...DEFAULTS, ...next };
-				setServerState(merged);
-				setForm(merged);
-				setToast(__('Settings saved', 'snopix'));
-			},
-			onError: () => setToast(__('Could not save. Try again.', 'snopix')),
-		});
-	}
-
-	function revert() {
-		setForm(serverState);
-	}
+	const {
+		form,
+		set,
+		dirty,
+		save,
+		revert,
+		isPending,
+		isLoading,
+		isError,
+		toast,
+		dismissToast,
+	} = useSettingsForm();
+	const [advancedOpen, setAdvancedOpen] = useAdvancedOpen();
 
 	if (isLoading) {
 		return (
@@ -130,6 +71,7 @@ export default function Settings() {
 				{dirty && (
 					<div className="flex gap-2">
 						<button
+							type="button"
 							className="snopix-btn snopix-btn--ghost snopix-btn--sm"
 							onClick={revert}
 							disabled={isPending}
@@ -137,8 +79,9 @@ export default function Settings() {
 							{__('Discard', 'snopix')}
 						</button>
 						<button
+							type="button"
 							className="snopix-btn snopix-btn--sm"
-							onClick={onSave}
+							onClick={save}
 							disabled={isPending}
 						>
 							{isPending
@@ -189,7 +132,7 @@ export default function Settings() {
 					type="button"
 					className="snopix-disclosure"
 					aria-expanded={advancedOpen}
-					onClick={() => setAdvancedOpen((o) => !o)}
+					onClick={() => setAdvancedOpen(!advancedOpen)}
 				>
 					<span className="flex items-center gap-3">
 						<span className="text-snopix-muted" aria-hidden="true">
@@ -406,7 +349,7 @@ export default function Settings() {
 				)}
 			</div>
 
-			{toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+			{toast && <Toast message={toast} onDismiss={dismissToast} />}
 		</>
 	);
 }
@@ -453,6 +396,7 @@ interface RadioRowProps {
 function RadioRow({ checked, onClick, title, hint }: RadioRowProps) {
 	return (
 		<button
+			type="button"
 			onClick={onClick}
 			className="flex items-start gap-3 py-4 w-full text-left bg-transparent"
 		>

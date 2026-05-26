@@ -24,7 +24,8 @@ export function useSettings() {
 	return useQuery<PSSettings>({
 		queryKey: ['settings'],
 		queryFn: () => apiFetch<PSSettings>('snopix/v1/settings'),
-		staleTime: 30_000,
+		staleTime: 60_000,
+		refetchOnWindowFocus: false,
 	});
 }
 
