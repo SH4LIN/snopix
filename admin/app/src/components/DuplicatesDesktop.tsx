@@ -1,31 +1,16 @@
 import { useMemo, useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
-import { useStore } from '../store/use-store';
 import {
-	DuplicateGroup,
-	useDuplicates,
-	useStartDuplicateScan,
-	useDuplicateScanProgress,
-	useDeleteAttachment,
-	useResetDuplicateScan,
-} from '../hooks/use-duplicates';
+	groupKey,
+	useDuplicatesBoard,
+} from '../hooks/use-duplicates-board';
+import { type DuplicateGroup } from '../hooks/use-duplicates';
 import { ConflictError } from '../lib/api';
 import { formatBytes } from '../lib/format';
 import DuplicateGroupCard from './DuplicateGroupCard';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import { IconCheck, IconRefresh, IconTrash, IconWarn } from './icons';
-
-/**
- * Stable React key for a duplicate group derived from the first image id.
- *
- * @param {DuplicateGroup} group Duplicate group from `/duplicates`.
- *
- * @return {string} Group identifier.
- */
-function groupKey(group: DuplicateGroup): string {
-	return String(group.images[0]?.id ?? '');
-}
 
 type ConfirmTarget = { kind: 'group'; group: DuplicateGroup } | { kind: 'all' };
 
@@ -37,35 +22,39 @@ type ConfirmTarget = { kind: 'group'; group: DuplicateGroup } | { kind: 'all' };
  * carousel. Bulk-delete and per-group delete both route through a single
  * confirm modal and emit a toast on completion.
  *
+ * View-model state (groups, scan flags, keep selection, raw delete mutation)
+ * is shared with `DuplicatesMobile` via {@link useDuplicatesBoard}; this
+ * component owns the desktop-only chrome (threshold filter, confirm modal,
+ * toast).
+ *
  * @return {JSX.Element}
  */
 export default function Duplicates() {
-	const { indexingState, duplicateScanState } = useStore();
-	const { data, isLoading } = useDuplicates();
 	const {
-		mutate: startScan,
-		isPending: isStarting,
-		error: startError,
-	} = useStartDuplicateScan();
-	const { mutate: resetScan, isPending: isResetting } =
-		useResetDuplicateScan();
-	const progress = useDuplicateScanProgress();
-	const { mutateAsync: deleteAttachment, isPending: isBulkDeleting } =
-		useDeleteAttachment();
+		groups,
+		lastScanned,
+		isLoading,
+		isScanning,
+		isIndexing,
+		progress,
+		duplicateScanState,
+		startScan,
+		isStarting,
+		resetScan,
+		isResetting,
+		startError,
+		getKeepId,
+		setKeepId,
+		deleteAttachmentAsync,
+		isDeleting: isBulkDeleting,
+	} = useDuplicatesBoard();
 
 	const conflictMessage =
 		startError instanceof ConflictError ? startError.message : null;
 
-	const [keepIds, setKeepIds] = useState<Record<string, number>>({});
 	const [thresholdPercent, setThresholdPercent] = useState(95);
 	const [confirm, setConfirm] = useState<ConfirmTarget | null>(null);
 	const [toast, setToast] = useState<string | null>(null);
-
-	const isIndexing = indexingState === 'running';
-	const isScanning =
-		duplicateScanState === 'running' || duplicateScanState === 'done';
-	const groups = data?.groups ?? [];
-	const lastScanned = data?.last_scanned ?? '';
 
 	const thresholdRatio = thresholdPercent / 100;
 	const visibleGroups = useMemo(
@@ -81,15 +70,6 @@ export default function Duplicates() {
 		(n, g) => n + g.wasted_bytes,
 		0
 	);
-
-	function getKeepId(group: DuplicateGroup): number {
-		const k = groupKey(group);
-		return keepIds[k] ?? group.images[0]?.id ?? 0;
-	}
-
-	function setKeepId(group: DuplicateGroup, id: number) {
-		setKeepIds((prev) => ({ ...prev, [groupKey(group)]: id }));
-	}
 
 	async function performDelete(target: ConfirmTarget) {
 		const targets =
@@ -107,7 +87,7 @@ export default function Duplicates() {
 
 		try {
 			for (const id of ids) {
-				await deleteAttachment(id);
+				await deleteAttachmentAsync(id);
 			}
 			setToast(
 				target.kind === 'group'

@@ -1,25 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
-import { apiFetch } from '../../lib/api';
 import { formatBytes } from '../../lib/format';
+import { useImageSearch } from '../../hooks/use-image-search';
 import { IconUpload, IconX } from '../icons';
-
-interface SearchResultItem {
-	id: number;
-	url: string;
-	thumbnail: string;
-	title: string;
-	score: number;
-	attachment_url: string;
-}
-
-type Phase = 'idle' | 'scanning' | 'results';
-
-interface ProbePreview {
-	url: string;
-	name: string;
-	size: number;
-}
 
 /**
  * Mobile reverse-image search card.
@@ -29,51 +12,14 @@ interface ProbePreview {
  * "Search by image" headline, a "Tap to choose a photo" hint, and a
  * full-width "Choose photo" button. On selection the card swaps to a probe
  * preview + result list without leaving the dashboard. Talks to the same
- * `POST /wp-json/snopix/v1/search` endpoint as the desktop variant.
+ * `POST /wp-json/snopix/v1/search` endpoint as the desktop variant via
+ * {@link useImageSearch}.
  *
  * @return {JSX.Element}
  */
 export default function SearchPreviewMobile(): JSX.Element {
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [phase, setPhase] = useState<Phase>('idle');
-	const [probe, setProbe] = useState<ProbePreview | null>(null);
-	const [results, setResults] = useState<SearchResultItem[]>([]);
-	const [error, setError] = useState<string | null>(null);
-
-	async function handleFile(file: File) {
-		const url = URL.createObjectURL(file);
-		setProbe({ url, name: file.name, size: file.size });
-		setPhase('scanning');
-		setError(null);
-		setResults([]);
-
-		const fd = new FormData();
-		fd.append('file', file);
-		try {
-			const res = await apiFetch<SearchResultItem[]>({
-				path: 'snopix/v1/search',
-				method: 'POST',
-				formData: fd,
-			});
-			setResults(res);
-			setPhase('results');
-		} catch {
-			setError(
-				__('Something went wrong. Try a different image.', 'snopix')
-			);
-			setPhase('results');
-		}
-	}
-
-	function reset() {
-		if (probe) {
-			URL.revokeObjectURL(probe.url);
-		}
-		setProbe(null);
-		setResults([]);
-		setError(null);
-		setPhase('idle');
-	}
+	const { phase, probe, results, error, handleFile, reset } = useImageSearch();
 
 	if (phase === 'idle') {
 		return (

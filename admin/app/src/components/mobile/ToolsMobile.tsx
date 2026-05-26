@@ -1,12 +1,6 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { useIndexingProgress } from '../../hooks/use-reindex';
-import {
-	useClearCache,
-	useClearIndex,
-	useDeleteOrphans,
-	useOrphanCount,
-	useReindexAll,
-} from '../../hooks/use-tools';
+import { useToolActions } from '../../hooks/use-tool-actions';
 import { useStore } from '../../store/use-store';
 import {
 	IconBroom,
@@ -14,6 +8,7 @@ import {
 	IconRefresh,
 	IconTrash,
 } from '../icons';
+import Toast from '../Toast';
 
 type ActionRow = {
 	key: string;
@@ -38,19 +33,13 @@ type ActionRow = {
 export default function ToolsMobile() {
 	const { indexingState } = useStore();
 	const progress = useIndexingProgress();
-	const { mutate: reindexAll, isPending: isReindexing } = useReindexAll();
-	const { mutate: deleteOrphans, isPending: isDeletingOrphans } =
-		useDeleteOrphans();
-	const { mutate: clearCache, isPending: isClearingCache } = useClearCache();
-	const { mutate: clearIndex, isPending: isClearingIndex } = useClearIndex();
-	const { data: orphans } = useOrphanCount();
+	const { run, pending, orphanCount, toast, dismissToast } = useToolActions();
 
 	const isRunning = indexingState === 'running' || indexingState === 'stalled';
 	const progressPct =
 		progress && progress.total > 0
 			? Math.min(100, Math.round((progress.done / progress.total) * 100))
 			: 0;
-	const orphanCount = orphans?.orphans ?? 0;
 
 	const actions: ActionRow[] = [
 		{
@@ -58,14 +47,14 @@ export default function ToolsMobile() {
 			Icon: IconRefresh,
 			title: __('Reindex everything', 'snopix'),
 			sub: __('Wipe and rebuild every fingerprint.', 'snopix'),
-			disabled: isRunning || isReindexing,
+			disabled: isRunning || pending.reindex,
 			onClick: () => {
 				if (
 					window.confirm(
 						__('Reindex every attachment? This may take a while.', 'snopix')
 					)
 				) {
-					reindexAll();
+					void run('reindex');
 				}
 			},
 		},
@@ -81,16 +70,16 @@ export default function ToolsMobile() {
 							orphanCount
 						)
 					: __('Nothing to clean up.', 'snopix'),
-			disabled: orphanCount === 0 || isDeletingOrphans,
-			onClick: () => deleteOrphans(),
+			disabled: orphanCount === 0 || pending.orphans,
+			onClick: () => void run('orphans'),
 		},
 		{
 			key: 'cache',
 			Icon: IconBroom,
 			title: __('Flush plugin caches', 'snopix'),
 			sub: __('Clears progress transients + query cache.', 'snopix'),
-			disabled: isClearingCache,
-			onClick: () => clearCache(),
+			disabled: pending.cache,
+			onClick: () => void run('cache'),
 		},
 		{
 			key: 'clear',
@@ -98,7 +87,7 @@ export default function ToolsMobile() {
 			title: __('Clear the index', 'snopix'),
 			sub: __('Destructive — drops every fingerprint row.', 'snopix'),
 			danger: true,
-			disabled: isClearingIndex,
+			disabled: pending.clear,
 			onClick: () => {
 				if (
 					window.confirm(
@@ -108,7 +97,7 @@ export default function ToolsMobile() {
 						)
 					)
 				) {
-					clearIndex();
+					void run('clear');
 				}
 			},
 		},
@@ -197,6 +186,7 @@ export default function ToolsMobile() {
 					))}
 				</div>
 			</div>
+			{toast && <Toast message={toast} onDismiss={dismissToast} />}
 		</div>
 	);
 }

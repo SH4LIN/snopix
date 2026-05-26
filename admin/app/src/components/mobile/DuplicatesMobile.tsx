@@ -1,20 +1,10 @@
-import { useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 import {
-	DuplicateGroup,
-	useDeleteAttachment,
-	useDuplicateScanProgress,
-	useDuplicates,
-	useResetDuplicateScan,
-	useStartDuplicateScan,
-} from '../../hooks/use-duplicates';
-import { useStore } from '../../store/use-store';
+	groupKey,
+	useDuplicatesBoard,
+} from '../../hooks/use-duplicates-board';
 import { formatBytes } from '../../lib/format';
 import { IconCheck, IconRefresh, IconTrash } from '../icons';
-
-function groupKey(group: DuplicateGroup): string {
-	return String(group.images[0]?.id ?? '');
-}
 
 /**
  * Mobile duplicates screen.
@@ -26,52 +16,29 @@ function groupKey(group: DuplicateGroup): string {
  * image; the kept thumb gets full opacity + accent border + a checkmark,
  * the others fade to make the choice unambiguous.
  *
+ * View-model state (groups, scan flags, keep selection, bulk delete) is
+ * shared with `DuplicatesDesktop` via {@link useDuplicatesBoard}.
+ *
  * @return {JSX.Element}
  */
 export default function DuplicatesMobile() {
-	const { data, isLoading } = useDuplicates();
-	const { indexingState, duplicateScanState } = useStore();
-	const { mutate: startScan, isPending: isStarting } = useStartDuplicateScan();
-	const { mutate: resetScan, isPending: isResetting } = useResetDuplicateScan();
-	const progress = useDuplicateScanProgress();
-	const { mutateAsync: deleteAttachment, isPending: isDeleting } =
-		useDeleteAttachment();
-
-	const [keepIds, setKeepIds] = useState<Record<string, number>>({});
-
-	const groups = data?.groups ?? [];
-	const totalWasteBytes = groups.reduce((sum, g) => sum + g.wasted_bytes, 0);
-	const isScanning =
-		duplicateScanState === 'running' || duplicateScanState === 'done';
-	const isIndexing = indexingState === 'running';
-
-	function getKeepId(group: DuplicateGroup): number {
-		return keepIds[groupKey(group)] ?? group.images[0]?.id ?? 0;
-	}
-
-	function setKeepId(group: DuplicateGroup, id: number) {
-		setKeepIds((prev) => ({ ...prev, [groupKey(group)]: id }));
-	}
-
-	async function deleteOthers(group: DuplicateGroup) {
-		const keep = getKeepId(group);
-		const targets = group.images.filter((img) => img.id !== keep);
-		const message = sprintf(
-			/* translators: %d: number of attachments that will be deleted */
-			__(
-				'Delete %d duplicate attachment(s)? The kept image stays in your library.',
-				'snopix'
-			),
-			targets.length
-		);
-		if (!window.confirm(message)) {
-			return;
-		}
-
-		for (const img of targets) {
-			await deleteAttachment(img.id);
-		}
-	}
+	const {
+		groups,
+		totalWasteBytes,
+		isLoading,
+		isScanning,
+		isIndexing,
+		progress,
+		duplicateScanState,
+		startScan,
+		isStarting,
+		resetScan,
+		isResetting,
+		getKeepId,
+		setKeepId,
+		deleteOthers,
+		isDeleting,
+	} = useDuplicatesBoard();
 
 	if (isIndexing) {
 		return (

@@ -6,13 +6,9 @@ import { useStore } from '../store/use-store';
 import { useIndexStatus } from '../hooks/use-index-status';
 import { useIndexingProgress, useResetProgress } from '../hooks/use-reindex';
 import {
-	useReindexAll,
-	useClearIndex,
-	useDeleteOrphans,
-	useClearCache,
-	useOrphanCount,
-} from '../hooks/use-tools';
-import { ConflictError } from '../lib/api';
+	useToolActions,
+	type ToolActionId,
+} from '../hooks/use-tool-actions';
 import {
 	IconBroom,
 	IconCheck,
@@ -22,10 +18,8 @@ import {
 	IconX,
 } from './icons';
 
-type ActionKey = 'reindex' | 'orphans' | 'cache' | 'clear';
-
 interface Action {
-	id: ActionKey;
+	id: ToolActionId;
 	Icon: ComponentType<{ size?: number }>;
 	title: string;
 	description: ReactNode;
@@ -48,33 +42,21 @@ export default function Tools() {
 	const { indexingState, duplicateScanState } = useStore();
 	const { data: status } = useIndexStatus();
 	const progress = useIndexingProgress();
-	const reindexAll = useReindexAll();
-	const clearIndex = useClearIndex();
-	const deleteOrphans = useDeleteOrphans();
-	const clearCache = useClearCache();
-	const orphans = useOrphanCount();
 	const { mutate: resetProgress, isPending: isResetting } = useResetProgress();
+	const { run, loading, orphanCount, toast, dismissToast } = useToolActions();
 
 	const [confirm, setConfirm] = useState<Action | null>(null);
-	const [toast, setToast] = useState<string | null>(null);
 
 	const isRunning = indexingState === 'running';
 	const isStalled = indexingState === 'stalled';
 	const isDone = indexingState === 'done';
 	const isJobActive = isRunning || isStalled;
 	const scanActive = duplicateScanState === 'running';
-	const orphanCount = orphans.data?.orphans ?? 0;
 
 	const total = progress?.total ?? status?.total ?? 0;
 	const done = progress?.done ?? 0;
 	const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 	const etaMin = Math.max(1, Math.round(((total - done) * 0.18) / 60));
-
-	const loading =
-		reindexAll.isPending ||
-		clearIndex.isPending ||
-		deleteOrphans.isPending ||
-		clearCache.isPending;
 
 	const blockingMessage = isJobActive
 		? __(
@@ -160,44 +142,12 @@ export default function Tools() {
 		},
 	];
 
-	async function run(action: Action) {
+	async function confirmRun(action: Action) {
 		setConfirm(null);
-		try {
-			if (action.id === 'reindex') {
-				await reindexAll.mutateAsync();
-				setToast(__('Reindex started · running in background', 'snopix'));
-			} else if (action.id === 'orphans') {
-				const res = await deleteOrphans.mutateAsync();
-				setToast(
-					sprintf(
-						/* translators: %d: deleted count */
-						__('%d orphan rows deleted', 'snopix'),
-						res.deleted
-					)
-				);
-			} else if (action.id === 'cache') {
-				await clearCache.mutateAsync();
-				setToast(__('Transients flushed', 'snopix'));
-			} else if (action.id === 'clear') {
-				const res = await clearIndex.mutateAsync();
-				setToast(
-					sprintf(
-						/* translators: %d: deleted count */
-						__('Index cleared · %d rows removed', 'snopix'),
-						res.deleted
-					)
-				);
-			}
-		} catch (err) {
-			if (err instanceof ConflictError) {
-				setToast(err.message);
-			} else {
-				setToast(__('Action failed. Check console for details.', 'snopix'));
-			}
-		}
+		await run(action.id);
 	}
 
-	const locked = (key: ActionKey) =>
+	const locked = (key: ToolActionId) =>
 		key !== 'orphans' && (isJobActive || scanActive);
 
 	return (
@@ -409,11 +359,11 @@ export default function Tools() {
 					icon={<confirm.Icon size={18} />}
 					message={confirm.confirmBody}
 					onCancel={() => setConfirm(null)}
-					onConfirm={() => run(confirm)}
+					onConfirm={() => confirmRun(confirm)}
 				/>
 			)}
 
-			{toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+			{toast && <Toast message={toast} onDismiss={dismissToast} />}
 		</>
 	);
 }

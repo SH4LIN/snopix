@@ -1,25 +1,8 @@
 import { useRef, useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
-import { apiFetch } from '../lib/api';
 import { formatBytes } from '../lib/format';
+import { useImageSearch } from '../hooks/use-image-search';
 import { IconUpload, IconX } from './icons';
-
-interface SearchResultItem {
-	id: number;
-	url: string;
-	thumbnail: string;
-	title: string;
-	score: number;
-	attachment_url: string;
-}
-
-type Phase = 'idle' | 'scanning' | 'results';
-
-interface ProbePreview {
-	url: string;
-	name: string;
-	size: number;
-}
 
 /**
  * Reverse-image search panel rendered in a full-width Dashboard card.
@@ -36,46 +19,8 @@ interface ProbePreview {
  */
 export default function SearchPreview() {
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [phase, setPhase] = useState<Phase>('idle');
 	const [over, setOver] = useState(false);
-	const [probe, setProbe] = useState<ProbePreview | null>(null);
-	const [results, setResults] = useState<SearchResultItem[]>([]);
-	const [error, setError] = useState<string | null>(null);
-
-	async function handleFile(file: File) {
-		const url = URL.createObjectURL(file);
-		setProbe({ url, name: file.name, size: file.size });
-		setPhase('scanning');
-		setError(null);
-		setResults([]);
-
-		const fd = new FormData();
-		fd.append('file', file);
-		try {
-			const res = await apiFetch<SearchResultItem[]>({
-				path: 'snopix/v1/search',
-				method: 'POST',
-				formData: fd,
-			});
-			setResults(res);
-			setPhase('results');
-		} catch {
-			setError(
-				__('Something went wrong. Try a different image.', 'snopix')
-			);
-			setPhase('results');
-		}
-	}
-
-	function reset() {
-		if (probe) {
-			URL.revokeObjectURL(probe.url);
-		}
-		setProbe(null);
-		setResults([]);
-		setError(null);
-		setPhase('idle');
-	}
+	const { phase, probe, results, error, handleFile, reset } = useImageSearch();
 
 	return (
 		<div className="snopix-card snopix-card--pad mb-7">
