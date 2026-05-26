@@ -1,5 +1,4 @@
 import { __, sprintf } from '@wordpress/i18n';
-import { useIndexingProgress } from '../../hooks/use-reindex';
 import { useToolActions } from '../../hooks/use-tool-actions';
 import { useStore } from '../../store/use-store';
 import {
@@ -8,6 +7,8 @@ import {
 	IconRefresh,
 	IconTrash,
 } from '../icons';
+import IndexingProgressCard from './IndexingProgressCard';
+import MobileHero from './MobileHero';
 import Toast from '../Toast';
 
 type ActionRow = {
@@ -32,14 +33,8 @@ type ActionRow = {
  */
 export default function ToolsMobile() {
 	const { indexingState } = useStore();
-	const progress = useIndexingProgress();
 	const { run, pending, orphanCount, toast, dismissToast } = useToolActions();
-
 	const isRunning = indexingState === 'running' || indexingState === 'stalled';
-	const progressPct =
-		progress && progress.total > 0
-			? Math.min(100, Math.round((progress.done / progress.total) * 100))
-			: 0;
 
 	const actions: ActionRow[] = [
 		{
@@ -105,43 +100,12 @@ export default function ToolsMobile() {
 
 	return (
 		<div>
-			<div className="px-[18px] pt-5 pb-3.5">
-				<div className="text-[12px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
-					{__('Maintenance', 'snopix')}
-				</div>
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
-					{__('Tools', 'snopix')}
-				</div>
-			</div>
+			<MobileHero
+				label={__('Maintenance', 'snopix')}
+				title={__('Tools', 'snopix')}
+			/>
 
-			{isRunning && progress && (
-				<div className="px-[18px] pb-3">
-					<div className="bg-snopix-bg rounded-card p-3.5 border border-snopix-border">
-						<div className="flex items-center gap-3 mb-3">
-							<div className="w-9 h-9 rounded-input bg-snopix-accent-soft text-snopix-accent grid place-items-center">
-								<IconRefresh size={18} className="animate-snopix-spin" />
-							</div>
-							<div className="flex-1 min-w-0">
-								<div className="text-[14px] font-semibold">
-									{indexingState === 'stalled'
-										? __('Indexing stalled', 'snopix')
-										: __('Indexing in progress', 'snopix')}
-								</div>
-								<div className="text-[11px] text-snopix-muted font-mono mt-0.5">
-									{progress.done.toLocaleString()} /{' '}
-									{progress.total.toLocaleString()}
-								</div>
-							</div>
-						</div>
-						<div className="h-1 bg-snopix-border rounded-full overflow-hidden">
-							<div
-								className="h-full bg-snopix-accent transition-[width] duration-500"
-								style={{ width: `${progressPct}%` }}
-							/>
-						</div>
-					</div>
-				</div>
-			)}
+			<IndexingProgressCard wrapperClassName="px-[18px] pb-3" />
 
 			<div className="px-[18px]">
 				<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.05em] px-1 pb-2">

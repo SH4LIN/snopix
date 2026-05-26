@@ -7,6 +7,7 @@ import {
 import { ratioToPercent } from '../../lib/format';
 import Toast from '../Toast';
 import { IconChevron } from '../icons';
+import MobileHero from './MobileHero';
 
 /**
  * Mobile settings screen.
@@ -63,11 +64,7 @@ export default function SettingsMobile() {
 
 	return (
 		<>
-			<div className="px-[18px] pt-5 pb-3.5">
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
-					{__('Settings', 'snopix')}
-				</div>
-			</div>
+			<MobileHero title={__('Settings', 'snopix')} />
 
 			<SectionGroup label={__('Public endpoint', 'snopix')}>
 				<RadioRow

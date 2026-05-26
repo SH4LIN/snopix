@@ -5,6 +5,7 @@ import {
 } from '../../hooks/use-duplicates-board';
 import { formatBytes } from '../../lib/format';
 import { IconCheck, IconRefresh, IconTrash } from '../icons';
+import MobileHero from './MobileHero';
 
 /**
  * Mobile duplicates screen.
@@ -55,27 +56,23 @@ export default function DuplicatesMobile() {
 
 	return (
 		<div>
-			<div className="px-[18px] pt-5 pb-3.5">
-				<div className="text-[12px] font-medium text-snopix-muted uppercase tracking-[0.05em] mb-1">
-					{__('Cleanup', 'snopix')}
-				</div>
-				<div className="text-[24px] font-semibold tracking-[-0.015em] leading-[1.2]">
-					{sprintf(
-						/* translators: %d: number of duplicate groups */
-						__('%d duplicate groups', 'snopix'),
-						groups.length
-					)}
-				</div>
-				<div className="text-[13px] text-snopix-muted mt-1">
-					{totalWasteBytes > 0
+			<MobileHero
+				label={__('Cleanup', 'snopix')}
+				title={sprintf(
+					/* translators: %d: number of duplicate groups */
+					__('%d duplicate groups', 'snopix'),
+					groups.length
+				)}
+				subtitle={
+					totalWasteBytes > 0
 						? sprintf(
 								/* translators: %s: bytes formatted as human-readable */
 								__('%s recoverable. Tap a card to keep.', 'snopix'),
 								formatBytes(totalWasteBytes)
 							)
-						: __('Tap a card to keep.', 'snopix')}
-				</div>
-			</div>
+						: __('Tap a card to keep.', 'snopix')
+				}
+			/>
 
 			<div className="px-[18px] pb-3.5 flex gap-2">
 				<button
