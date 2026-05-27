@@ -45,7 +45,7 @@ class Admin_Page {
 		);
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
-		add_action( 'admin_print_footer_scripts-plugins.php', array( $this, 'print_uninstall_guard' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_uninstall_guard' ) );
 		add_filter( 'plugin_action_links_' . $this->plugin_basename(), array( $this, 'add_dashboard_link' ) );
 	}
 
@@ -128,7 +128,7 @@ class Admin_Page {
 	}
 
 	/**
-	 * Print a small footer script on the Plugins screen that intercepts the
+	 * Enqueue a small script on the Plugins screen that intercepts the
 	 * Snopix "Delete" link when the admin has opted into uninstall consent.
 	 *
 	 * Implemented as a JS confirm() because WordPress does not expose a
@@ -137,9 +137,14 @@ class Admin_Page {
 	 * boundary — the real cleanup decision still lives in the server-side
 	 * `drop_on_uninstall` flag.
 	 *
+	 * @param string $hook Current admin page hook suffix.
+	 *
 	 * @return void
 	 */
-	public function print_uninstall_guard(): void {
+	public function enqueue_uninstall_guard( string $hook ): void {
+		if ( 'plugins.php' !== $hook ) {
+			return;
+		}
 		if ( ! Settings::should_require_consent() ) {
 			return;
 		}
@@ -147,32 +152,24 @@ class Admin_Page {
 			return;
 		}
 
-		$basename = $this->plugin_basename();
-		$message  = __(
-			"Are you sure you want to delete Snopix?\nThe fingerprint table and every plugin option will be removed.",
-			'snopix'
+		wp_enqueue_script(
+			'snopix-uninstall-guard',
+			SNOPIX_PLUGIN_URL . 'admin/assets/uninstall-guard.js',
+			array(),
+			SNOPIX_VERSION,
+			true
 		);
 
-		?>
-		<script>
-		(function () {
-			var basename = <?php echo wp_json_encode( $basename ); ?>;
-			var message  = <?php echo wp_json_encode( $message ); ?>;
-			document.addEventListener('click', function (e) {
-				var link = e.target.closest('a.delete[href*="action=delete-selected"], a.delete[href*="action=delete-plugin"]');
-				if (!link) {
-					return;
-				}
-				if (link.href.indexOf(encodeURIComponent(basename)) === -1 && link.href.indexOf(basename) === -1) {
-					return;
-				}
-				if (!window.confirm(message)) {
-					e.preventDefault();
-					e.stopImmediatePropagation();
-				}
-			}, true);
-		})();
-		</script>
-		<?php
+		wp_localize_script(
+			'snopix-uninstall-guard',
+			'snopixUninstallGuard',
+			array(
+				'basename' => $this->plugin_basename(),
+				'message'  => __(
+					"Are you sure you want to delete Snopix?\nThe fingerprint table and every plugin option will be removed.",
+					'snopix'
+				),
+			)
+		);
 	}
 }
