@@ -7,8 +7,6 @@
 
 namespace Snopix\Admin;
 
-use Snopix\Hooks\Settings;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -45,7 +43,6 @@ class Admin_Page {
 		);
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
-		add_action( 'admin_print_footer_scripts-plugins.php', array( $this, 'print_uninstall_guard' ) );
 		add_filter( 'plugin_action_links_' . $this->plugin_basename(), array( $this, 'add_dashboard_link' ) );
 	}
 
@@ -127,52 +124,4 @@ class Admin_Page {
 		require SNOPIX_PLUGIN_DIR . 'admin/app/views/admin-root.php';
 	}
 
-	/**
-	 * Print a small footer script on the Plugins screen that intercepts the
-	 * Snopix "Delete" link when the admin has opted into uninstall consent.
-	 *
-	 * Implemented as a JS confirm() because WordPress does not expose a
-	 * server-side hook that runs between the user clicking Delete and the
-	 * uninstaller firing. The confirm is best-effort UX, not a security
-	 * boundary — the real cleanup decision still lives in the server-side
-	 * `drop_on_uninstall` flag.
-	 *
-	 * @return void
-	 */
-	public function print_uninstall_guard(): void {
-		if ( ! Settings::should_require_consent() ) {
-			return;
-		}
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$basename = $this->plugin_basename();
-		$message  = __(
-			"Are you sure you want to delete Snopix?\nThe fingerprint table and every plugin option will be removed.",
-			'snopix'
-		);
-
-		?>
-		<script>
-		(function () {
-			var basename = <?php echo wp_json_encode( $basename ); ?>;
-			var message  = <?php echo wp_json_encode( $message ); ?>;
-			document.addEventListener('click', function (e) {
-				var link = e.target.closest('a.delete[href*="action=delete-selected"], a.delete[href*="action=delete-plugin"]');
-				if (!link) {
-					return;
-				}
-				if (link.href.indexOf(encodeURIComponent(basename)) === -1 && link.href.indexOf(basename) === -1) {
-					return;
-				}
-				if (!window.confirm(message)) {
-					e.preventDefault();
-					e.stopImmediatePropagation();
-				}
-			}, true);
-		})();
-		</script>
-		<?php
-	}
 }

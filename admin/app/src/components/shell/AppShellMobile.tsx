@@ -102,6 +102,7 @@ export default function AppShellMobile() {
 						<NotificationBell variant="mobile" />
 						<button
 							type="button"
+							data-tour="reindex-button"
 							onClick={() => startReindex()}
 							disabled={!canReindex || isPending}
 							aria-label={__('Index remaining', 'snopix')}
@@ -123,6 +124,7 @@ export default function AppShellMobile() {
 			</main>
 
 			<nav
+				data-tour="nav-tabs"
 				className="fixed left-0 right-0 bottom-0 z-30 bg-snopix-bg/90 backdrop-blur border-t border-snopix-border flex justify-around px-1 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+12px)]"
 				aria-label={__('Snopix sections', 'snopix')}
 			>
@@ -132,6 +134,7 @@ export default function AppShellMobile() {
 						<button
 							key={t.id}
 							type="button"
+							data-tour={t.id === 'settings' ? 'settings-nav' : undefined}
 							onClick={() => navigate({ to: t.path })}
 							className={`flex flex-col items-center gap-1 px-3 py-1.5 min-w-[64px] transition-colors ${
 								active ? 'text-snopix-accent' : 'text-snopix-muted'

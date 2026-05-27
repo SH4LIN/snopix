@@ -77,6 +77,7 @@ export default function DuplicatesMobile() {
 			<div className="px-[18px] pb-3.5 flex gap-2">
 				<button
 					type="button"
+					data-tour="duplicates-scan"
 					className="snopix-btn snopix-btn--neutral snopix-btn--sm flex-1 justify-center"
 					onClick={() => startScan()}
 					disabled={isStarting || isScanning}

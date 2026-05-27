@@ -248,6 +248,24 @@ class REST_Controller {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/tour/complete',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'handle_tour_complete' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+				'args'                => array(
+					'status' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_key',
+						'validate_callback' => static fn( $v ) => in_array( $v, array( 'completed', 'skipped' ), true ),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -538,7 +556,12 @@ class REST_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function handle_get_settings(): \WP_REST_Response {
-		return new \WP_REST_Response( Settings::all(), 200 );
+		$payload                   = Settings::all();
+		$user_id                   = get_current_user_id();
+		$stored                    = $user_id ? get_user_meta( $user_id, 'snopix_tour_completed', true ) : '';
+		$payload['tour_completed'] = ( 'completed' === $stored || 'skipped' === $stored ) ? $stored : null;
+
+		return new \WP_REST_Response( $payload, 200 );
 	}
 
 	/**
@@ -577,5 +600,28 @@ class REST_Controller {
 		update_option( Settings::OPTION_NAME, $current );
 
 		return new \WP_REST_Response( $current, 200 );
+	}
+
+	/**
+	 * Handle POST /tour/complete — record the current user's onboarding
+	 * walkthrough outcome in user_meta so the tour never re-opens.
+	 *
+	 * @param \WP_REST_Request $request REST request.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function handle_tour_complete( \WP_REST_Request $request ): \WP_REST_Response {
+		$status  = (string) $request->get_param( 'status' );
+		$user_id = get_current_user_id();
+
+		update_user_meta( $user_id, 'snopix_tour_completed', $status );
+
+		return new \WP_REST_Response(
+			array(
+				'status' => $status,
+				'saved'  => true,
+			),
+			200
+		);
 	}
 }

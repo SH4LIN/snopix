@@ -54,6 +54,7 @@ export default function AppShellDesktop() {
 						<div className="flex items-center gap-3">
 							<NotificationBell variant="desktop" />
 							<button
+								data-tour="reindex-button"
 								className="snopix-btn snopix-btn--sm"
 								onClick={() => startReindex()}
 								disabled={!canReindex || isPending}
@@ -70,12 +71,14 @@ export default function AppShellDesktop() {
 						</div>
 					</div>
 					<div
+						data-tour="nav-tabs"
 						className="flex gap-5 border-b border-transparent"
 						role="tablist"
 					>
 						{TABS.map((t) => (
 							<button
 								key={t.id}
+								data-tour={t.id === 'settings' ? 'settings-nav' : undefined}
 								className="snopix-tab"
 								role="tab"
 								aria-current={pathname === t.path}

@@ -52,7 +52,10 @@ export default function StatsBar({ status }: Props) {
 	];
 
 	return (
-		<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7">
+		<div
+			data-tour="dashboard-stats"
+			className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-7"
+		>
 			{cards.map(({ label, value, valueClass, delta }) => (
 				<div key={label} className="snopix-stat">
 					<div className="snopix-stat__label">{label}</div>

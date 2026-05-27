@@ -23,7 +23,7 @@ export default function SearchPreviewMobile(): JSX.Element {
 
 	if (phase === 'idle') {
 		return (
-			<div className="snopix-mobile-search">
+			<div data-tour="search" className="snopix-mobile-search">
 				<div className="snopix-mobile-search__icon" aria-hidden="true">
 					<IconUpload size={20} />
 				</div>

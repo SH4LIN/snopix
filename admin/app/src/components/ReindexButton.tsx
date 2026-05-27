@@ -34,7 +34,10 @@ export default function ReindexButton() {
 			: 0;
 
 	return (
-		<div className="snopix-card snopix-card--pad mb-7">
+		<div
+			data-tour="reindex-button"
+			className="snopix-card snopix-card--pad mb-7"
+		>
 			<div className="flex items-center justify-between gap-4 mb-3">
 				<div>
 					<div className="text-[15px] font-semibold">

@@ -169,6 +169,7 @@ export default function Duplicates() {
 				</div>
 				<div className="flex items-center gap-3">
 					<button
+						data-tour="duplicates-scan"
 						className="snopix-btn snopix-btn--neutral snopix-btn--sm"
 						onClick={() => startScan()}
 						disabled={isStarting || isScanning}

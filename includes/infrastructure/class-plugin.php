@@ -17,6 +17,7 @@ use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, 
 use Snopix\Notifications\Feature_Notification_Store;
 use Snopix\Admin\Admin_Page;
 use Snopix\Admin\Editor_Assets;
+use Snopix\Admin\Plugins_Screen_Assets;
 use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -71,8 +72,10 @@ class Plugin {
 		add_action( 'init', array( $this, 'register_hooks' ) );
 		add_action( 'init', array( $this, 'register_shortcode' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'maybe_redirect_after_activation' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
 		add_action( 'init', array( $this, 'register_editor_assets' ) );
+		add_action( 'init', array( $this, 'register_plugins_screen_assets' ) );
 	}
 
 	/**
@@ -92,6 +95,15 @@ class Plugin {
 	 */
 	public function register_admin_page(): void {
 		( new Admin_Page() )->register();
+	}
+
+	/**
+	 * Register the plugins.php uninstall-modal asset enqueue.
+	 *
+	 * @return void
+	 */
+	public function register_plugins_screen_assets(): void {
+		( new Plugins_Screen_Assets() )->register();
 	}
 
 	/**
@@ -210,6 +222,11 @@ class Plugin {
 			wp_schedule_event( time(), 'daily', Duplicate_Scanner::DAILY_HOOK );
 		}
 
+		$user_id = get_current_user_id();
+		if ( $user_id ) {
+			set_transient( 'snopix_activation_redirect_' . $user_id, 1, 30 );
+		}
+
 		Logger::debug( 'Plugin activation complete.' );
 	}
 
@@ -250,9 +267,54 @@ class Plugin {
 		$schema = new Schema();
 		$schema->uninstall();
 
+		// Wipe per-user state across every user — dismissed notifications and
+		// tour completion flags would otherwise survive a destructive uninstall
+		// and pollute a fresh reinstall's onboarding.
+		delete_metadata( 'user', 0, 'snopix_tour_completed', '', true );
+		delete_metadata( 'user', 0, 'snopix_dismissed_notifications', '', true );
+
 		delete_option( Settings::OPTION_NAME );
 		delete_option( SNOPIX_OPTION_DB_VERSION );
 		delete_option( 'snopix_duplicate_results' );
 		delete_option( 'snopix_duplicate_last_scanned' );
+	}
+
+	/**
+	 * Redirect newly-activating admins to the Snopix admin page with ?tour=1
+	 * so the first-run walkthrough auto-opens.
+	 *
+	 * Guards: not AJAX, not network admin, current user can manage_options,
+	 * not a bulk plugin activation, and the activation transient exists.
+	 *
+	 * @return void
+	 */
+	public function maybe_redirect_after_activation(): void {
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+		if ( is_network_admin() ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		if ( isset( $_GET['activate-multi'] ) ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return;
+		}
+
+		$transient_key = 'snopix_activation_redirect_' . $user_id;
+		if ( ! get_transient( $transient_key ) ) {
+			return;
+		}
+
+		delete_transient( $transient_key );
+
+		wp_safe_redirect( admin_url( 'upload.php?page=snopix&tour=1' ) );
+		exit;
 	}
 }

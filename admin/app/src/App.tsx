@@ -5,6 +5,7 @@ import { apiFetch } from './lib/api';
 import { withResponsive } from './lib/with-responsive';
 import AppShellDesktop from './components/shell/AppShellDesktop';
 import AppShellMobile from './components/shell/AppShellMobile';
+import TourProvider from './components/tour/TourProvider';
 
 interface ProgressResponse {
 	status: 'idle' | 'running' | 'done' | 'stalled';
@@ -87,5 +88,9 @@ const AppShell = withResponsive(AppShellDesktop, AppShellMobile, 'AppShell');
  */
 export default function App() {
 	useInitProgress();
-	return <AppShell />;
+	return (
+		<TourProvider>
+			<AppShell />
+		</TourProvider>
+	);
 }

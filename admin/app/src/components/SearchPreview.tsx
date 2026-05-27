@@ -55,6 +55,7 @@ export default function SearchPreview() {
 			>
 				{phase === 'idle' ? (
 					<div
+						data-tour="search"
 						className={`snopix-drop-zone ${over ? 'snopix-drop-zone--over' : ''}`}
 						onClick={() => inputRef.current?.click()}
 						onDragOver={(e) => {
