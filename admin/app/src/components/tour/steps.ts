@@ -79,5 +79,3 @@ export function buildSteps(): TourStep[] {
 		},
 	];
 }
-
-export const TOUR_STEP_COUNT = 7;

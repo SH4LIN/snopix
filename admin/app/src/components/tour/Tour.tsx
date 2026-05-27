@@ -35,9 +35,16 @@ const TOOLTIP_GAP = 14;
 const TOOLTIP_W = 360;
 const TOOLTIP_MARGIN = 16;
 
+const IS_DEV = (
+	import.meta as ImportMeta & { env?: { DEV?: boolean } }
+).env?.DEV;
+
 function readRect(selector: string): Rect | null {
 	const el = document.querySelector(selector);
 	if (!el) {
+		if (IS_DEV) {
+			console.warn(`[snopix tour] target not found: ${selector}`);
+		}
 		return null;
 	}
 	const r = (el as HTMLElement).getBoundingClientRect();
