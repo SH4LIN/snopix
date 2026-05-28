@@ -224,7 +224,13 @@ class Plugin {
 
 		$user_id = get_current_user_id();
 		if ( $user_id ) {
-			set_transient( 'snopix_activation_redirect_' . $user_id, 1, 30 );
+			// Only auto-open the onboarding tour for users who have not already
+			// finished or skipped it — otherwise a deactivate/reactivate cycle
+			// would re-trigger the walkthrough they have already seen.
+			$tour = get_user_meta( $user_id, 'snopix_tour_completed', true );
+			if ( 'completed' !== $tour && 'skipped' !== $tour ) {
+				set_transient( 'snopix_activation_redirect_' . $user_id, 1, 30 );
+			}
 		}
 
 		Logger::debug( 'Plugin activation complete.' );
