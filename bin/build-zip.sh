@@ -18,6 +18,7 @@ BUILD_DIR="$ROOT_DIR/build"
 STAGING_DIR="$BUILD_DIR/$PLUGIN_SLUG"
 ADMIN_APP_DIR="$ROOT_DIR/admin/app"
 PUBLIC_APP_DIR="$ROOT_DIR/public/app"
+PLUGINS_SCREEN_DIR="$ROOT_DIR/admin/plugins-screen"
 EDITOR_BUILD_DIR="$ROOT_DIR/admin/editor/build"
 DISTIGNORE="$ROOT_DIR/.distignore"
 PLUGIN_FILE="$ROOT_DIR/snopix.php"
@@ -34,8 +35,9 @@ done
 
 [ -f "$PLUGIN_FILE" ]    || { echo "Missing $PLUGIN_FILE" >&2; exit 1; }
 [ -f "$DISTIGNORE" ]     || { echo "Missing $DISTIGNORE" >&2; exit 1; }
-[ -d "$ADMIN_APP_DIR" ]  || { echo "Missing $ADMIN_APP_DIR" >&2; exit 1; }
-[ -d "$PUBLIC_APP_DIR" ] || { echo "Missing $PUBLIC_APP_DIR" >&2; exit 1; }
+[ -d "$ADMIN_APP_DIR" ]      || { echo "Missing $ADMIN_APP_DIR" >&2; exit 1; }
+[ -d "$PUBLIC_APP_DIR" ]     || { echo "Missing $PUBLIC_APP_DIR" >&2; exit 1; }
+[ -d "$PLUGINS_SCREEN_DIR" ] || { echo "Missing $PLUGINS_SCREEN_DIR" >&2; exit 1; }
 
 # --- resolve version ------------------------------------------------------
 override_version="${1:-}"
@@ -119,6 +121,23 @@ if [ ! -f "$EDITOR_BUILD_DIR/index.js" ] || [ ! -f "$EDITOR_BUILD_DIR/index.asse
     exit 1
 fi
 
+# --- build plugins-screen bundle ------------------------------------------
+log "Building plugins-screen bundle (npm ci && npm run build)"
+(
+    cd "$PLUGINS_SCREEN_DIR"
+    if [ -f package-lock.json ]; then
+        npm ci
+    else
+        npm install
+    fi
+    npm run build
+)
+
+if [ ! -f "$PLUGINS_SCREEN_DIR/build/snopix-plugins-screen.js" ] || [ ! -f "$PLUGINS_SCREEN_DIR/build/snopix-plugins-screen.css" ]; then
+    echo "admin/plugins-screen/build is missing snopix-plugins-screen.js or .css — refusing to ship." >&2
+    exit 1
+fi
+
 # --- stage ----------------------------------------------------------------
 log "Staging into $STAGING_DIR"
 rm -rf "$BUILD_DIR"
@@ -139,7 +158,7 @@ for forbidden in node_modules vendor tests .git .github composer.json package.js
     fi
 done
 
-for required in snopix.php uninstall.php readme.txt includes admin/app/dist public/app/dist admin/editor/build/index.js admin/editor/build/index.asset.php; do
+for required in snopix.php uninstall.php readme.txt includes admin/app/dist public/app/dist admin/editor/build/index.js admin/editor/build/index.asset.php admin/plugins-screen/build/snopix-plugins-screen.js admin/plugins-screen/build/snopix-plugins-screen.css; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1
