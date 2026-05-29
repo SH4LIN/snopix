@@ -61,7 +61,7 @@ class Fingerprint_Factory {
 
 		if ( $max > self::MAX_WORKING_DIM ) {
 			$scale   = self::MAX_WORKING_DIM / $max;
-			$resized = imagescale( $gd, (int) round( $w * $scale ), (int) round( $h * $scale ) );
+			$resized = imagescale( $gd, max( 1, (int) round( $w * $scale ) ), max( 1, (int) round( $h * $scale ) ) );
 
 			if ( false === $resized ) {
 				// A failed pre-downscale means we cannot uphold the 512 px
