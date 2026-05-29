@@ -35,11 +35,15 @@ near-identical attachments so you can keep one and bulk-delete the rest.
 
 * Reverse-image search via the admin dashboard or a `[snopix_search]` shortcode for
   the front end.
+* Block-editor panel on the core Shortcode block for inserting and editing the
+  `[snopix_search]` widget (variant, title, result cap).
 * Duplicate detection with per-group "keep" selection and bulk delete.
 * Background bulk indexing via WP-Cron — no PHP timeouts on large libraries.
 * REST API at `/wp-json/snopix/v1/` with rate limiting on the public search
   endpoint.
-* Settings panel to gate the public search endpoint to logged-in users only.
+* Settings panel: search visibility, rate limit, match and duplicate
+  thresholds, indexer batch size, and probe downscale ceiling.
+* Setting to keep or drop the index when the plugin is uninstalled.
 * Tools panel: reindex everything, clear the index, delete orphan rows,
   flush caches.
 * Pre-downscale of large probe images before fingerprinting to keep search
@@ -53,7 +57,8 @@ near-identical attachments so you can keep one and bulk-delete the rest.
 
 Snopix creates a single custom table, `{prefix}snopix_index`, that stores one
 row per indexed attachment with its three fingerprints. Uninstalling the
-plugin drops the table.
+plugin drops the table unless you disable **Drop data on uninstall** in
+settings.
 
 == Installation ==
 
@@ -72,8 +77,17 @@ Add the search widget to any post or page with:
 
 `[snopix_search]`
 
-By default the endpoint is open to anyone. Restrict it to logged-in users in
-**Settings → Connectors → Snopix**.
+Optional attributes: `variant` (`card`, `inline`, or `narrow`; default
+`card`), `title` (header label; default "Search by image"), and `max_results`
+(1-48; default 12). For example:
+
+`[snopix_search variant="inline" max_results="24"]`
+
+The block editor also exposes these options via a **Snopix Search** panel on
+the core **Shortcode** block.
+
+By default the endpoint is open to anyone. Restrict it to logged-in users
+from the **Settings** tab in **Media → Snopix**.
 
 == Frequently Asked Questions ==
 
@@ -114,9 +128,10 @@ members.
 
 = How do I uninstall cleanly? =
 
-Deactivate, then delete the plugin from the **Plugins** screen. The
-uninstall hook drops `{prefix}snopix_index` and removes all plugin options and
-transients.
+Deactivate, then delete the plugin from the **Plugins** screen. When the
+**Drop data on uninstall** setting is enabled (the default), the uninstall
+hook drops `{prefix}snopix_index` and removes all plugin options and
+transients; disable it first if you want the index to survive a reinstall.
 
 == Screenshots ==
 
@@ -132,8 +147,11 @@ transients.
 * Initial release.
 * Perceptual hash + colour histogram + edge histogram fingerprinting.
 * Reverse-image search via admin dropzone and `[snopix_search]` shortcode.
+* Block-editor panel for inserting and configuring the search shortcode.
 * Duplicate detection with per-group keep selection.
 * WP-Cron bulk indexing, rate-limited public search endpoint.
+* Configurable thresholds, rate limit, and batch size, plus a keep or
+  drop-on-uninstall choice.
 * WordPress.org compatibility: JPEG, PNG, GIF, WebP, BMP.
 
 == Upgrade Notice ==

@@ -240,10 +240,6 @@ class REST_Controller {
 							'type'     => 'boolean',
 							'required' => false,
 						),
-						'require_consent'     => array(
-							'type'     => 'boolean',
-							'required' => false,
-						),
 					),
 				),
 			)
@@ -584,7 +580,6 @@ class REST_Controller {
 			'downscale_max',
 			'duplicate_threshold',
 			'drop_on_uninstall',
-			'require_consent',
 		);
 
 		foreach ( $keys as $key ) {

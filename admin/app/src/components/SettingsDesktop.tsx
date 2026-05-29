@@ -331,19 +331,6 @@ export default function Settings() {
 									'snopix'
 								)}
 							/>
-							<Divider />
-							<ToggleRow
-								checked={form.require_consent}
-								onChange={(v) => set('require_consent', v)}
-								title={__(
-									'Require admin confirmation before uninstall',
-									'snopix'
-								)}
-								hint={__(
-									'Adds a confirmation dialog on the Plugins screen before the table is dropped.',
-									'snopix'
-								)}
-							/>
 						</SettingGroup>
 					</div>
 				)}

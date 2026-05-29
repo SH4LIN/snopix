@@ -17,7 +17,6 @@ use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, 
 use Snopix\Notifications\Feature_Notification_Store;
 use Snopix\Admin\Admin_Page;
 use Snopix\Admin\Editor_Assets;
-use Snopix\Admin\Plugins_Screen_Assets;
 use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -75,7 +74,6 @@ class Plugin {
 		add_action( 'admin_init', array( $this, 'maybe_redirect_after_activation' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
 		add_action( 'init', array( $this, 'register_editor_assets' ) );
-		add_action( 'init', array( $this, 'register_plugins_screen_assets' ) );
 	}
 
 	/**
@@ -95,15 +93,6 @@ class Plugin {
 	 */
 	public function register_admin_page(): void {
 		( new Admin_Page() )->register();
-	}
-
-	/**
-	 * Register the plugins.php uninstall-modal asset enqueue.
-	 *
-	 * @return void
-	 */
-	public function register_plugins_screen_assets(): void {
-		( new Plugins_Screen_Assets() )->register();
 	}
 
 	/**

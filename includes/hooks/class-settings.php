@@ -41,7 +41,6 @@ class Settings {
 			'downscale_max'       => 1024,
 			'duplicate_threshold' => 0.95,
 			'drop_on_uninstall'   => true,
-			'require_consent'     => false,
 		);
 	}
 
@@ -98,7 +97,6 @@ class Settings {
 		$match_thr   = isset( $input['match_threshold'] ) ? (float) $input['match_threshold'] : (float) $defaults['match_threshold'];
 		$dup_thr     = isset( $input['duplicate_threshold'] ) ? (float) $input['duplicate_threshold'] : (float) $defaults['duplicate_threshold'];
 		$drop_unins  = isset( $input['drop_on_uninstall'] ) ? (bool) $input['drop_on_uninstall'] : (bool) $defaults['drop_on_uninstall'];
-		$req_consent = isset( $input['require_consent'] ) ? (bool) $input['require_consent'] : (bool) $defaults['require_consent'];
 
 		return array(
 			'search_visibility'   => in_array( $visibility, $allowed_visibility, true ) ? $visibility : 'anyone',
@@ -108,7 +106,6 @@ class Settings {
 			'match_threshold'     => max( 0.5, min( 1.0, $match_thr ) ),
 			'duplicate_threshold' => max( 0.8, min( 1.0, $dup_thr ) ),
 			'drop_on_uninstall'   => $drop_unins,
-			'require_consent'     => $req_consent,
 		);
 	}
 
@@ -219,15 +216,5 @@ class Settings {
 	public static function should_drop_on_uninstall(): bool {
 		$all = self::all();
 		return (bool) $all['drop_on_uninstall'];
-	}
-
-	/**
-	 * Whether the admin should be asked to confirm before plugin deletion.
-	 *
-	 * @return bool
-	 */
-	public static function should_require_consent(): bool {
-		$all = self::all();
-		return (bool) $all['require_consent'];
 	}
 }

@@ -171,13 +171,6 @@ export default function SettingsMobile() {
 							title={__('Drop wp_snopix_index', 'snopix')}
 							hint={__('Removes all fingerprints on uninstall.', 'snopix')}
 						/>
-						<Divider />
-						<SwitchRow
-							checked={form.require_consent}
-							onChange={(v) => set('require_consent', v)}
-							title={__('Require confirmation', 'snopix')}
-							hint={__('Show dialog before deleting plugin data.', 'snopix')}
-						/>
 					</SectionGroup>
 				</>
 			)}

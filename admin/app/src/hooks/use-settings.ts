@@ -9,7 +9,6 @@ export interface PSSettings {
 	downscale_max: number;
 	duplicate_threshold: number;
 	drop_on_uninstall: boolean;
-	require_consent: boolean;
 }
 
 /**

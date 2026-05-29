@@ -19,7 +19,6 @@ export const SETTINGS_DEFAULTS: PSSettings = {
 	downscale_max: 1024,
 	duplicate_threshold: 0.95,
 	drop_on_uninstall: true,
-	require_consent: false,
 };
 
 const ADVANCED_OPEN_KEY = 'snopix:settings:advanced-open';

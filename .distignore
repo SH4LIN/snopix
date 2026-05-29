@@ -129,9 +129,3 @@ wp-tests-config.php
 
 # Build script — only needed during release, not at runtime
 bin
-admin/plugins-screen/node_modules
-admin/plugins-screen/src
-admin/plugins-screen/package.json
-admin/plugins-screen/package-lock.json
-admin/plugins-screen/tsconfig.json
-admin/plugins-screen/vite.config.ts
