@@ -143,13 +143,13 @@ transients; disable it first if you want the index to survive a reinstall.
 
 == Changelog ==
 
-= 0.1.1 =
+= 0.1.1 - 2026-05-30 =
 * Fixed: certain extreme aspect-ratio images could trigger a fatal error during indexing; working dimensions are now clamped.
 * Changed: index vector columns now use LONGTEXT instead of JSON for compatibility with older MySQL / MariaDB.
 * Fixed: capitalised indexed-image status labels and corrected spacing on the duplicate "Keep" badge.
 * Removed: the non-functional Plugins-screen delete-confirmation modal and its "require confirmation" setting. The keep / drop-on-uninstall setting is unchanged.
 
-= 0.1.0 =
+= 0.1.0 - 2026-05-30 =
 * Initial release.
 * Perceptual hash + colour histogram + edge histogram fingerprinting.
 * Reverse-image search via admin dropzone and `[snopix_search]` shortcode.
