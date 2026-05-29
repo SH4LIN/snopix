@@ -8,7 +8,6 @@ admin/app/dist/
 public/app/dist/
 
 # Node package lock files
-package-lock.json
 yarn.lock
 
 # Environment variables
