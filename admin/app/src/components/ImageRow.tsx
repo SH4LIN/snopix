@@ -64,8 +64,8 @@ export default function ImageRow({ image, onImageClick }: Props) {
 	const label = isFailed
 		? errorLabel(image.error_code)
 		: isIndexed
-			? __('indexed', 'snopix')
-			: __('pending', 'snopix');
+			? __('Indexed', 'snopix')
+			: __('Pending', 'snopix');
 	const date = image.indexed_at
 		? new Date(image.indexed_at).toLocaleDateString()
 		: '—';

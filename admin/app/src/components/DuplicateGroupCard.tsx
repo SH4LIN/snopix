@@ -126,7 +126,7 @@ function ImageCard({ image, isKeep, onKeep }: ImageCardProps) {
 			{isKeep && (
 				<div className="absolute top-2 left-2">
 					<span
-						className="snopix-pill text-white"
+						className="snopix-pill text-white before:hidden"
 						style={{
 							background: 'var(--snopix-accent)',
 							boxShadow: '0 2px 6px rgba(0,113,227,0.30)',

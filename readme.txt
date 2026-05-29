@@ -1,5 +1,5 @@
 === Snopix ===
-Contributors: SH4LIN
+Contributors: SH4LIN, akrocks, vishalkakadiya
 Tags: image-search, reverse-image-search, similarity-search, duplicates, media-library
 Requires at least: 6.0
 Tested up to: 7.0
