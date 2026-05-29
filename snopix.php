@@ -3,7 +3,7 @@
  * Plugin Name: Snopix
  * Plugin URI: https://github.com/SH4LIN/snopix
  * Description: Image similarity search for WordPress media library.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: SH4LIN
  * Text Domain: snopix
  * Requires at least: 6.0
@@ -21,11 +21,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'SNOPIX_VERSION' ) ) {
-	define( 'SNOPIX_VERSION', '0.1.0' );
+	define( 'SNOPIX_VERSION', '0.1.1' );
 }
 
 if ( ! defined( 'SNOPIX_DB_VERSION' ) ) {
-	define( 'SNOPIX_DB_VERSION', '0.1.0' );
+	define( 'SNOPIX_DB_VERSION', '0.1.1' );
 }
 
 if ( ! defined( 'SNOPIX_FILE' ) ) {

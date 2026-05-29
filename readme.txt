@@ -4,7 +4,7 @@ Tags: image-search, reverse-image-search, similarity-search, duplicates, media-l
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -143,6 +143,12 @@ transients; disable it first if you want the index to survive a reinstall.
 
 == Changelog ==
 
+= 0.1.1 =
+* Fixed: certain extreme aspect-ratio images could trigger a fatal error during indexing; working dimensions are now clamped.
+* Changed: index vector columns now use LONGTEXT instead of JSON for compatibility with older MySQL / MariaDB.
+* Fixed: capitalised indexed-image status labels and corrected spacing on the duplicate "Keep" badge.
+* Removed: the non-functional Plugins-screen delete-confirmation modal and its "require confirmation" setting. The keep / drop-on-uninstall setting is unchanged.
+
 = 0.1.0 =
 * Initial release.
 * Perceptual hash + colour histogram + edge histogram fingerprinting.
@@ -155,6 +161,9 @@ transients; disable it first if you want the index to survive a reinstall.
 * WordPress.org compatibility: JPEG, PNG, GIF, WebP, BMP.
 
 == Upgrade Notice ==
+
+= 0.1.1 =
+Stability and compatibility fixes. Removes the non-working uninstall-confirmation prompt; your keep / drop-on-uninstall setting is unaffected.
 
 = 0.1.0 =
 First public preview. Expect breaking changes between 0.x releases as
