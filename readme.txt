@@ -155,6 +155,7 @@ transients; disable it first if you want the index to survive a reinstall.
 * Fixed: bulk indexing no longer stalls when a run of unsupported image types (SVG/AVIF/TIFF/HEIC) is queued — they are skipped at enqueue time.
 * Fixed: the daily duplicate scan no longer restarts an in-progress scan, and a failed scan tick recovers instead of appearing to run forever.
 * Fixed: deleting a non-existent index row now returns 404; plus minor admin-UI memory and dead-code cleanups.
+* Changed: the dashboard "Indexed" count is now shown in green, with status colours centralised as reusable design tokens.
 
 = 0.1.1 - 2026-05-30 =
 * Fixed: certain extreme aspect-ratio images could trigger a fatal error during indexing; working dimensions are now clamped.
