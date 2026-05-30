@@ -19,6 +19,10 @@
 	--snopix-danger: #ff3b30;
 	--snopix-success: #34c759;
 	--snopix-warning: #ff9500;
+	/* Darker text-on-white variants for stat values, pills, and labels. */
+	--snopix-success-deep: #1a7a3c;
+	--snopix-warning-deep: #a05c00;
+	--snopix-danger-deep: #c0392b;
 	--snopix-border: #e5e5ea;
 	--snopix-border-strong: #d2d2d7;
 
