@@ -4,7 +4,7 @@ Tags: image-search, reverse-image-search, similarity-search, duplicates, media-l
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -149,6 +149,13 @@ transients; disable it first if you want the index to survive a reinstall.
 
 == Changelog ==
 
+= 0.1.2 - 2026-05-30 =
+* Fixed: removed `readonly` properties that broke activation on PHP 8.0 (the declared minimum version).
+* Changed: per-IP search rate limiting now uses an atomic counter when a persistent object cache is present, and fails closed when the client IP cannot be resolved.
+* Fixed: bulk indexing no longer stalls when a run of unsupported image types (SVG/AVIF/TIFF/HEIC) is queued — they are skipped at enqueue time.
+* Fixed: the daily duplicate scan no longer restarts an in-progress scan, and a failed scan tick recovers instead of appearing to run forever.
+* Fixed: deleting a non-existent index row now returns 404; plus minor admin-UI memory and dead-code cleanups.
+
 = 0.1.1 - 2026-05-30 =
 * Fixed: certain extreme aspect-ratio images could trigger a fatal error during indexing; working dimensions are now clamped.
 * Changed: index vector columns now use LONGTEXT instead of JSON for compatibility with older MySQL / MariaDB.
@@ -167,6 +174,9 @@ transients; disable it first if you want the index to survive a reinstall.
 * WordPress.org compatibility: JPEG, PNG, GIF, WebP, BMP.
 
 == Upgrade Notice ==
+
+= 0.1.2 =
+Restores PHP 8.0 compatibility and hardens background indexing, duplicate scanning, and search rate limiting.
 
 = 0.1.1 =
 Stability and compatibility fixes. Removes the non-working uninstall-confirmation prompt; your keep / drop-on-uninstall setting is unaffected.
