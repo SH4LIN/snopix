@@ -17,19 +17,19 @@
 	}
 
 	.snopix-pill--indexed {
-		@apply bg-[rgba(52,199,89,0.12)] text-[#1a7a3c];
+		@apply bg-snopix-success-soft text-snopix-success-deep;
 	}
 	.snopix-pill--indexed::before {
 		@apply bg-snopix-success;
 	}
 	.snopix-pill--pending {
-		@apply bg-[rgba(255,149,0,0.12)] text-[#a05c00];
+		@apply bg-snopix-warning-soft text-snopix-warning-deep;
 	}
 	.snopix-pill--pending::before {
 		@apply bg-snopix-warning;
 	}
 	.snopix-pill--failed {
-		@apply bg-[rgba(255,59,48,0.1)] text-[#c0392b];
+		@apply bg-snopix-danger-soft text-snopix-danger-deep;
 	}
 	.snopix-pill--failed::before {
 		@apply bg-snopix-danger;

@@ -23,6 +23,10 @@
 	--snopix-success-deep: #1a7a3c;
 	--snopix-warning-deep: #a05c00;
 	--snopix-danger-deep: #c0392b;
+	/* Soft tinted backgrounds for status pills. */
+	--snopix-success-soft: rgba(52, 199, 89, 0.12);
+	--snopix-warning-soft: rgba(255, 149, 0, 0.12);
+	--snopix-danger-soft: rgba(255, 59, 48, 0.1);
 	--snopix-border: #e5e5ea;
 	--snopix-border-strong: #d2d2d7;
 
