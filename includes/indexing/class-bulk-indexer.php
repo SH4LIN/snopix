@@ -44,6 +44,11 @@ class Bulk_Indexer {
 	public const PENDING_KEY = 'snopix_bulk_pending';
 
 	/**
+	 * Object-cache lock key guarding against overlapping batch ticks.
+	 */
+	private const LOCK_KEY = 'snopix_bulk_lock';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Index_Repository $repository Index repository.
@@ -72,7 +77,7 @@ class Bulk_Indexer {
 		if ( ! $this->reserve_running_slot() ) {
 			return false;
 		}
-		$ids = $this->repository->get_unindexed_ids();
+		$ids = $this->repository->get_unindexed_ids( ( new Mime_Validator() )->get_allowed() );
 		$this->schedule_ids( $ids );
 		return true;
 	}
@@ -87,7 +92,7 @@ class Bulk_Indexer {
 			return false;
 		}
 		$this->repository->clear_all();
-		$ids = $this->repository->get_unindexed_ids();
+		$ids = $this->repository->get_unindexed_ids( ( new Mime_Validator() )->get_allowed() );
 		$this->schedule_ids( $ids );
 		return true;
 	}
@@ -160,6 +165,14 @@ class Bulk_Indexer {
 	 * @return void
 	 */
 	public function process_batch(): void {
+		// Best-effort guard against overlapping cron ticks double-processing the
+		// same batch and corrupting the progress counter. The 30s TTL expires
+		// well before the next BATCH_DELAY tick, so no explicit release is
+		// needed. Only effective with a persistent object cache.
+		if ( false === wp_cache_add( self::LOCK_KEY, 1, '', 30 ) ) {
+			return;
+		}
+
 		$pending = get_transient( self::PENDING_KEY );
 
 		if ( ! is_array( $pending ) || empty( $pending ) ) {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { apiFetch } from '../lib/api';
 
@@ -52,9 +52,24 @@ export function useImageSearch(): ImageSearchState {
 	const [probe, setProbe] = useState<ImageSearchProbe | null>(null);
 	const [results, setResults] = useState<SearchResultItem[]>([]);
 	const [error, setError] = useState<string | null>(null);
+	const probeUrlRef = useRef<string | null>(null);
+
+	// Revoke the outstanding object URL when the hook unmounts (e.g. the user
+	// navigates away mid-search) so the underlying File isn't pinned in memory.
+	useEffect(() => {
+		return () => {
+			if (probeUrlRef.current) {
+				URL.revokeObjectURL(probeUrlRef.current);
+			}
+		};
+	}, []);
 
 	async function handleFile(file: File) {
+		if (probeUrlRef.current) {
+			URL.revokeObjectURL(probeUrlRef.current);
+		}
 		const url = URL.createObjectURL(file);
+		probeUrlRef.current = url;
 		setProbe({ url, name: file.name, size: file.size });
 		setPhase('scanning');
 		setError(null);
@@ -79,8 +94,9 @@ export function useImageSearch(): ImageSearchState {
 	}
 
 	function reset() {
-		if (probe) {
-			URL.revokeObjectURL(probe.url);
+		if (probeUrlRef.current) {
+			URL.revokeObjectURL(probeUrlRef.current);
+			probeUrlRef.current = null;
 		}
 		setProbe(null);
 		setResults([]);

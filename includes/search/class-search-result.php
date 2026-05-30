@@ -25,10 +25,10 @@ class Search_Result {
 	 * @param float  $score      Composite similarity score 0.0–1.0.
 	 */
 	public function __construct(
-		public readonly int $attachment_id,
-		public readonly string $url,
-		public readonly string $thumbnail,
-		public readonly string $title,
-		public readonly float $score
+		public int $attachment_id,
+		public string $url,
+		public string $thumbnail,
+		public string $title,
+		public float $score
 	) {}
 }

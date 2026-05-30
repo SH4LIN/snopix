@@ -183,7 +183,12 @@ class Plugin {
 		( new Duplicate_Cron_Handler( $dup_scanner ) )->register();
 		add_action(
 			Duplicate_Scanner::DAILY_HOOK,
-			static function () use ( $dup_scanner ) {
+			static function () use ( $dup_scanner, $dup_progress ) {
+				// Don't restart (and discard the progress of) a scan that is
+				// already running when the daily event fires.
+				if ( Job_Status::RUNNING === $dup_progress->get()['status'] ) {
+					return;
+				}
 				$dup_scanner->schedule();
 			}
 		);

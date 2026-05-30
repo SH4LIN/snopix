@@ -108,6 +108,18 @@ class Duplicate_Progress {
 	}
 
 	/**
+	 * Force the status to `stalled`. Called by the scanner when a tick throws,
+	 * so a failed scan surfaces as recoverable instead of running forever.
+	 *
+	 * @return void
+	 */
+	public function mark_stalled(): void {
+		$state           = $this->get();
+		$state['status'] = Job_Status::STALLED;
+		$this->write( $state );
+	}
+
+	/**
 	 * Persist a state envelope to the transient store.
 	 *
 	 * @param array{done: int, total: int, status: string} $state State payload.

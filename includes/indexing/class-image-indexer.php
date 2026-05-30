@@ -77,6 +77,6 @@ class Image_Indexer {
 	 * @return bool
 	 */
 	public function on_delete( int $attachment_id ): bool {
-		return $this->repository->delete( $attachment_id );
+		return $this->repository->delete( $attachment_id ) > 0;
 	}
 }

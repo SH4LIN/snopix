@@ -27,6 +27,11 @@ class Rate_Limiter {
 	private const WINDOW = 60;
 
 	/**
+	 * Object-cache group for the atomic counter path.
+	 */
+	private const CACHE_GROUP = 'snopix_ratelimit';
+
+	/**
 	 * Check whether the given IP is allowed to make a request.
 	 *
 	 * Uses a fixed-window strategy: the window expiry is set on the first request
@@ -37,9 +42,56 @@ class Rate_Limiter {
 	 * @return bool True if allowed, false if rate-limited.
 	 */
 	public function is_allowed( string $ip ): bool {
+		$cap = Settings::get_rate_limit();
+
+		// With a persistent object cache, use an atomic counter so concurrent
+		// requests can't each read the same count and overshoot the cap.
+		if ( wp_using_ext_object_cache() ) {
+			return $this->is_allowed_atomic( $ip, $cap );
+		}
+
+		return $this->is_allowed_transient( $ip, $cap );
+	}
+
+	/**
+	 * Atomic fixed-window counter backed by the object cache. wp_cache_add seeds
+	 * the window and its TTL; wp_cache_incr is atomic, so no increment is lost.
+	 *
+	 * @param string $ip  Client IP.
+	 * @param int    $cap Per-window request cap.
+	 *
+	 * @return bool
+	 */
+	private function is_allowed_atomic( string $ip, int $cap ): bool {
+		$key = self::transient_key( $ip );
+
+		if ( wp_cache_add( $key, 1, self::CACHE_GROUP, self::WINDOW ) ) {
+			return true;
+		}
+
+		$count = wp_cache_incr( $key, 1, self::CACHE_GROUP );
+		if ( false === $count ) {
+			// Key expired between the add and the incr — start a fresh window.
+			wp_cache_add( $key, 1, self::CACHE_GROUP, self::WINDOW );
+			return true;
+		}
+
+		return $count <= $cap;
+	}
+
+	/**
+	 * Transient fallback used when no persistent object cache is configured.
+	 * Best-effort read-modify-write: a burst can overshoot the cap slightly, but
+	 * the fixed-window expiry is set on the first request and never extended.
+	 *
+	 * @param string $ip  Client IP.
+	 * @param int    $cap Per-window request cap.
+	 *
+	 * @return bool
+	 */
+	private function is_allowed_transient( string $ip, int $cap ): bool {
 		$key  = self::transient_key( $ip );
 		$data = get_transient( $key );
-		$cap  = Settings::get_rate_limit();
 
 		if ( false === $data ) {
 			set_transient(

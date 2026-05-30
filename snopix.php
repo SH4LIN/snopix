@@ -56,6 +56,5 @@ require_once SNOPIX_PLUGIN_DIR . 'includes/infrastructure/functions.php';
 
 register_activation_hook( __FILE__, array( 'Snopix\Infrastructure\Plugin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'Snopix\Infrastructure\Plugin', 'deactivate' ) );
-register_uninstall_hook( __FILE__, array( 'Snopix\Infrastructure\Plugin', 'uninstall' ) );
 
 Plugin::instance()->register();

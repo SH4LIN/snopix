@@ -273,8 +273,13 @@ class REST_Controller {
 	 */
 	public function handle_search( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$ip = Rate_Limiter::resolve_client_ip();
+		// Fail closed: an unresolvable IP shares one bucket rather than skipping
+		// the limiter entirely.
+		if ( '' === $ip ) {
+			$ip = 'unknown';
+		}
 
-		if ( '' !== $ip && ! $this->rate_limiter->is_allowed( $ip ) ) {
+		if ( ! $this->rate_limiter->is_allowed( $ip ) ) {
 			return new \WP_Error(
 				'rate_limited',
 				__( 'Too many requests.', 'snopix' ),
@@ -459,7 +464,7 @@ class REST_Controller {
 		$id      = absint( $request->get_param( 'id' ) );
 		$deleted = $this->repository->delete( $id );
 
-		if ( ! $deleted ) {
+		if ( 0 === $deleted ) {
 			return new \WP_Error(
 				'not_found',
 				__( 'Not found.', 'snopix' ),

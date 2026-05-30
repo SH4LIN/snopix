@@ -56,7 +56,9 @@ export default function NoticeItem({ notice, onCta, dense }: Props): JSX.Element
 	const navigate = useNavigate();
 	const { mutate: dismiss, isPending: isDismissing } = useDismissNotice();
 	const Icon = ICON_REGISTRY[notice.icon] ?? IconInfo;
-	const hasCta = notice.cta_label !== '' && (notice.cta_route !== '' || notice.cta_url !== '');
+	const hasCta =
+		notice.cta_label !== '' &&
+		(ROUTE_MAP[notice.cta_route] !== undefined || notice.cta_url !== '');
 
 	function handleCta() {
 		const target = ROUTE_MAP[notice.cta_route];

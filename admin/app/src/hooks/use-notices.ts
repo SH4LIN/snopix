@@ -9,7 +9,6 @@ export interface FeatureNotice {
 	body: string;
 	icon: string;
 	severity: NoticeSeverity;
-	pages: string[];
 	since_version: string;
 	cta_label: string;
 	cta_route: string;

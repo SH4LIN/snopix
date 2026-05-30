@@ -126,6 +126,12 @@ arbitrary probe image; duplicate detection clusters indexed images among
 themselves and surfaces every group with two or more visually-identical
 members.
 
+= Does it work on WordPress multisite? =
+
+Snopix is built for single-site installs. It creates one
+`{prefix}snopix_index` table per site and is not network-activation aware, so
+activate it on each site individually rather than network-wide.
+
 = How do I uninstall cleanly? =
 
 Deactivate, then delete the plugin from the **Plugins** screen. When the

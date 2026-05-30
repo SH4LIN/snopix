@@ -111,7 +111,6 @@ final class Feature_Notification_Registry {
 				),
 				icon: 'layers',
 				severity: 'info',
-				pages: array( 'dashboard' ),
 				since_version: '1.1.0',
 				cta_label: __( 'Open Duplicates', 'snopix' ),
 				cta_route: 'duplicates'

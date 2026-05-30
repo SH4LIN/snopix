@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Carries everything the admin UI needs to render a dismissible product
  * announcement (title/body/CTA/icon/severity) along with the metadata the
- * registry needs to target it (page slugs, since_version). Instances are
+ * registry needs to target it (since_version). Instances are
  * created by {@see Feature_Notification_Registry} and consumed by
  * {@see \Snopix\Api\Notifications_REST_Controller}.
  */
@@ -38,8 +38,6 @@ final class Feature_Notification {
 	 * @param string             $body          Plain-text body. Rendered as text, not HTML.
 	 * @param string             $icon          Icon slug recognised by the React icon registry.
 	 * @param string             $severity      One of: info|success|warning.
-	 * @param array<int, string> $pages         Tab slugs the notification should appear on
-	 *                                          (e.g. ['dashboard']).
 	 * @param string             $since_version Plugin version that introduced this notification.
 	 *                                          Reserved for "what's new" analytics; not user-facing.
 	 * @param string             $cta_label     Optional CTA label. Empty string disables CTA.
@@ -47,16 +45,15 @@ final class Feature_Notification {
 	 * @param string             $cta_url       Optional absolute URL. Only honoured if route is empty.
 	 */
 	public function __construct(
-		public readonly string $id,
-		public readonly string $title,
-		public readonly string $body,
-		public readonly string $icon = 'info',
-		public readonly string $severity = 'info',
-		public readonly array $pages = array( 'dashboard' ),
-		public readonly string $since_version = '',
-		public readonly string $cta_label = '',
-		public readonly string $cta_route = '',
-		public readonly string $cta_url = ''
+		public string $id,
+		public string $title,
+		public string $body,
+		public string $icon = 'info',
+		public string $severity = 'info',
+		public string $since_version = '',
+		public string $cta_label = '',
+		public string $cta_route = '',
+		public string $cta_url = ''
 	) {}
 
 	/**
@@ -78,7 +75,6 @@ final class Feature_Notification {
 			'body'          => $this->body,
 			'icon'          => $this->icon,
 			'severity'      => $severity,
-			'pages'         => array_values( $this->pages ),
 			'since_version' => $this->since_version,
 			'cta_label'     => $this->cta_label,
 			'cta_route'     => $this->cta_route,

@@ -72,18 +72,20 @@ interface Index_Repository_Interface {
 	/**
 	 * Get unindexed attachment IDs.
 	 *
+	 * @param array<string> $allowed_mime Optional MIME allowlist to restrict results.
+	 *
 	 * @return array<int>
 	 */
-	public function get_unindexed_ids(): array;
+	public function get_unindexed_ids( array $allowed_mime = array() ): array;
 
 	/**
 	 * Delete one indexed row by attachment ID.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 *
-	 * @return bool
+	 * @return int Rows deleted (0 if the row did not exist or on failure).
 	 */
-	public function delete( int $attachment_id ): bool;
+	public function delete( int $attachment_id ): int;
 
 	/**
 	 * Delete every row in the index table.

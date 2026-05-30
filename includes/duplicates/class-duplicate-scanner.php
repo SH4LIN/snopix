@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Snopix\Repository\Index_Repository;
 use Snopix\Infrastructure\Action_Scheduler;
+use Snopix\Infrastructure\Logger;
 
 /**
  * Schedules and executes duplicate detection as a background WP-Cron job.
@@ -109,6 +110,25 @@ class Duplicate_Scanner {
 	 * @return void
 	 */
 	public function run(): void {
+		try {
+			$this->run_batch();
+		} catch ( \Throwable $e ) {
+			// A mid-tick failure must not leave the job stuck on "running" with
+			// no further ticks scheduled. Surface it as stalled so the UI and
+			// the daily hook can recover instead of showing a forever-running scan.
+			delete_transient( self::STATE_TRANSIENT );
+			$this->progress->mark_stalled();
+			Logger::exception( $e, 'duplicate scan run aborted' );
+		}
+	}
+
+	/**
+	 * Execute a single scan tick: process as many outer rows as the time budget
+	 * allows, then reschedule or finalise. Throwing propagates to {@see run()}.
+	 *
+	 * @return void
+	 */
+	private function run_batch(): void {
 		$state = $this->load_state();
 
 		$rows = $state['rows'];

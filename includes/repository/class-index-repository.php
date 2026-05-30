@@ -247,11 +247,24 @@ class Index_Repository implements Index_Repository_Interface {
 	/**
 	 * Get IDs that are not yet indexed.
 	 *
+	 * @param array<string> $allowed_mime Optional MIME allowlist; when given, only
+	 *                                    attachments of these exact types are
+	 *                                    returned (keeps unsupported types out of
+	 *                                    the bulk queue).
+	 *
 	 * @return array<int>
 	 */
-	public function get_unindexed_ids(): array {
+	public function get_unindexed_ids( array $allowed_mime = array() ): array {
 		$index_table = esc_sql( $this->wpdb->prefix . self::TABLE );
 		$posts_table = esc_sql( $this->wpdb->posts );
+
+		if ( empty( $allowed_mime ) ) {
+			$mime_clause = "AND p.post_mime_type LIKE 'image/%' ";
+		} else {
+			$quoted      = array_map( static fn( $m ) => "'" . esc_sql( $m ) . "'", $allowed_mime );
+			$mime_clause = 'AND p.post_mime_type IN (' . implode( ',', $quoted ) . ') ';
+		}
+
 		// Identifiers come from $wpdb; the query has no user-controlled
 		// parameters, so $wpdb->prepare() is not needed.
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
@@ -259,7 +272,7 @@ class Index_Repository implements Index_Repository_Interface {
 			"SELECT p.ID FROM $posts_table p "
 			. "LEFT JOIN $index_table i ON p.ID = i.attachment_id "
 			. "WHERE p.post_type = 'attachment' "
-			. "AND p.post_mime_type LIKE 'image/%' "
+			. $mime_clause
 			. 'AND i.attachment_id IS NULL '
 			. 'ORDER BY p.ID ASC'
 		);
@@ -288,20 +301,20 @@ class Index_Repository implements Index_Repository_Interface {
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 *
-	 * @return bool
+	 * @return int Rows deleted (0 if the row did not exist or on failure).
 	 */
-	public function delete( int $attachment_id ): bool {
+	public function delete( int $attachment_id ): int {
 		$result = Query::create()
 			->from( self::TABLE )
 			->where( 'attachment_id', $attachment_id, '=', '%d' )
 			->delete();
 
 		if ( false === $result ) {
-			return false;
+			return 0;
 		}
 
 		$this->flush_cache();
-		return true;
+		return $result;
 	}
 
 	/**
