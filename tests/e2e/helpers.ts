@@ -9,17 +9,9 @@
 import path from 'path';
 import { Page, expect } from '@playwright/test';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 export const ADMIN = { user: 'admin', pass: 'password' };
 
 export const SNOPIX_ADMIN_URL = '/wp-admin/upload.php?page=snopix';
-
-// ---------------------------------------------------------------------------
-// fixturePath
-// ---------------------------------------------------------------------------
 
 /**
  * Resolve an absolute path to a file under tests/fixtures/images.
@@ -30,10 +22,6 @@ export const SNOPIX_ADMIN_URL = '/wp-admin/upload.php?page=snopix';
 export function fixturePath(name: string): string {
 	return path.resolve(__dirname, '../fixtures/images', name);
 }
-
-// ---------------------------------------------------------------------------
-// login
-// ---------------------------------------------------------------------------
 
 /**
  * Log in to WordPress as the default admin.
@@ -56,10 +44,6 @@ export async function login(page: Page): Promise<void> {
 	await page.waitForURL(/\/wp-admin\//);
 }
 
-// ---------------------------------------------------------------------------
-// gotoSnopix
-// ---------------------------------------------------------------------------
-
 /**
  * Navigate to the Snopix admin page and wait for the React SPA to render.
  * Waits for a child element inside #snopix-root (not just the container itself)
@@ -73,10 +57,6 @@ export async function gotoSnopix(page: Page): Promise<void> {
 	// to appear, which confirms the router + components have rendered.
 	await expect(page.locator('#snopix-root > *').first()).toBeVisible({ timeout: 15_000 });
 }
-
-// ---------------------------------------------------------------------------
-// uploadMedia
-// ---------------------------------------------------------------------------
 
 /**
  * Upload an image into the WordPress Media Library via /wp-admin/media-new.php.
@@ -114,10 +94,6 @@ export async function uploadMedia(page: Page, fileAbsPath: string): Promise<void
 			.first()
 	).toBeVisible({ timeout: 30_000 });
 }
-
-// ---------------------------------------------------------------------------
-// createPostWithShortcode
-// ---------------------------------------------------------------------------
 
 /**
  * Create and publish a new WordPress post whose body is the given shortcode.
@@ -173,10 +149,6 @@ export async function createPostWithShortcode(page: Page, shortcode: string): Pr
 	// Extract the permalink from the post-editor page.
 	return await _extractPermalink(page);
 }
-
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
 
 /**
  * Publish a post in the block editor by clicking the Publish button twice

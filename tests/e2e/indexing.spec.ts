@@ -22,10 +22,6 @@
 import { test, expect } from '@playwright/test';
 import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const UPLOAD_COUNT = 2;
 const FIXTURE_NAMES = ['001.jpg', '002.jpg'] as const;
 
@@ -34,10 +30,6 @@ const INDEXING_TIMEOUT = 90_000;
 
 // How long to give the "Indexed" stat tile to update in the SPA.
 const SPA_UPDATE_TIMEOUT = 30_000;
-
-// ---------------------------------------------------------------------------
-// Helpers — REST via page.request (shares the authenticated browser session)
-// ---------------------------------------------------------------------------
 
 /** Read the WP REST nonce injected by WordPress into every admin page. */
 async function getNonce(page: import('@playwright/test').Page): Promise<string> {
@@ -60,10 +52,6 @@ async function tickCron(page: import('@playwright/test').Page): Promise<void> {
 		// Non-fatal — cron may simply have nothing to run.
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Test suite
-// ---------------------------------------------------------------------------
 
 test.describe('Snopix indexing', () => {
 	// Give the whole suite enough room for uploads + cron batches.

@@ -20,10 +20,6 @@
 import { test, expect } from '@playwright/test';
 import { login, gotoSnopix } from './helpers';
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
-
 test.beforeEach(async ({ page }) => {
 	await login(page);
 });

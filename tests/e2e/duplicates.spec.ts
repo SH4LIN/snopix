@@ -27,15 +27,9 @@
  * spinner or error page.
  */
 
-import path from 'path';
 import { test, expect, type Page } from '@playwright/test';
 import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-const SNOPIX_URL = '/wp-admin/upload.php?page=snopix';
 const DUPLICATES_TAB_LABEL = 'Duplicates';
 const SCAN_BUTTON_TEXT = 'Rescan';
 const SCANNING_TEXT = 'Scanning…';
@@ -66,10 +60,6 @@ async function waitForScanComplete(page: Page): Promise<void> {
 		page.getByRole('button', { name: SCAN_BUTTON_TEXT })
 	).toBeVisible({ timeout: 60_000 });
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 test.describe('Duplicates tab', () => {
 	test.beforeEach(async ({ page }) => {

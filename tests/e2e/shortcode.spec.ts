@@ -22,10 +22,6 @@ import {
 	fixturePath,
 } from './helpers';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const SHORTCODE = '[snopix_search]';
 
 // Selectors derived from SnopixWidget.tsx
@@ -40,10 +36,6 @@ const PROGRESS_BAR  = '.sx-progress';
 const RESULT_HEADING_PATTERN = /\d+ match(es)?|No matches|Search failed/i;
 // "No visually similar images" text for the empty state
 const EMPTY_TEXT    = 'No visually similar images';
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 test.describe('[snopix_search] shortcode — front-end widget', () => {
 	let postUrl: string;
