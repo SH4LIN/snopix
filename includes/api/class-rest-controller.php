@@ -139,7 +139,7 @@ class REST_Controller {
 				'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 				'args'                => array(
 					'id' => array(
-						'validate_callback' => 'is_numeric',
+						'validate_callback' => static fn( $value ) => is_numeric( $value ),
 						'sanitize_callback' => 'absint',
 					),
 				),
