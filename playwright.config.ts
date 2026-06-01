@@ -70,8 +70,9 @@ export default defineConfig({
 	/* Run your local dev server before starting the tests */
 	webServer: {
 		command: 'echo "Start your WordPress server manually"',
+		url: process.env.WORDPRESS_URL || 'http://localhost:8000',
 		timeout: 120 * 1000,
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: true,
 		ignoreHTTPSErrors: true,
 	},
 });
