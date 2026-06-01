@@ -63,7 +63,7 @@ class Shortcode {
 			'snopix_search'
 		);
 
-		$variant = in_array( $parsed['variant'], array( 'card', 'inline', 'narrow' ), true )
+		$variant     = in_array( $parsed['variant'], array( 'card', 'inline', 'narrow' ), true )
 			? $parsed['variant']
 			: 'card';
 		$title       = (string) $parsed['title'];
