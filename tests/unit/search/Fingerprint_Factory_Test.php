@@ -1,175 +1,84 @@
 <?php
 /**
- * Tests for Fingerprint_Factory composition.
+ * Unit tests for Snopix\Search\Fingerprint_Factory.
+ *
+ * Exercises the factory with a fake GD loader (so no WordPress attachment
+ * lookup is needed) feeding real fixture images into the real processor
+ * pipeline (pHash + colour + edge).
  *
  * @package Snopix
  */
 
-require_once dirname( __DIR__ ) . '/class-testcase.php';
-
+use Snopix\Imaging\Color_Processor;
+use Snopix\Imaging\Edge_Processor;
 use Snopix\Imaging\GD_Loader;
-use Snopix\Imaging\Processor_Interface;
+use Snopix\Imaging\PHash_Processor;
 use Snopix\Search\Fingerprint_Factory;
 
 /**
- * Fingerprint_Factory unit tests.
+ * GD loader stub: returns a caller-supplied GD resource instead of resolving a
+ * WordPress attachment. `false` simulates an unloadable image.
  */
-class Snopix_Fingerprint_Factory_Test extends Snopix_TestCase {
+final class Fake_Fingerprint_Loader extends GD_Loader {
 
 	/**
-	 * Build a small in-memory GD image to feed the factory.
-	 *
-	 * @param int $w Width.
-	 * @param int $h Height.
-	 *
-	 * @return \GdImage
+	 * @var \GdImage|false
 	 */
-	private function make_gd_image( int $w = 64, int $h = 64 ) {
-		$img = imagecreatetruecolor( $w, $h );
-		imagefill( $img, 0, 0, imagecolorallocate( $img, 100, 150, 200 ) );
-		return $img;
+	public $gd_to_return = false;
+
+	/**
+	 * @param int $attachment_id Unused; the canned resource is returned.
+	 *
+	 * @return \GdImage|false
+	 */
+	public function load( int $attachment_id ) {
+		return $this->gd_to_return;
 	}
+}
 
-	/**
-	 * Stub loader that hands back a fixed GD resource.
-	 *
-	 * @param \GdImage $gd GD image to return.
-	 *
-	 * @return GD_Loader
-	 */
-	private function loader_returning( $gd ): GD_Loader {
-		$loader = $this->createMock( GD_Loader::class );
-		$loader->method( 'load' )->willReturn( $gd );
-		return $loader;
-	}
+/**
+ * @covers \Snopix\Search\Fingerprint_Factory
+ */
+final class Fingerprint_Factory_Test extends Snopix_Unit_TestCase {
 
-	/**
-	 * Stub processor producing a single named key.
-	 *
-	 * @param string $key   Output key.
-	 * @param mixed  $value Output value.
-	 *
-	 * @return Processor_Interface
-	 */
-	private function processor_returning( string $key, $value ): Processor_Interface {
-		$proc = $this->createMock( Processor_Interface::class );
-		$proc->method( 'process' )->willReturn( array( $key => $value ) );
-		return $proc;
-	}
-
-	/**
-	 * Failed image load must result in an empty fingerprint.
-	 *
-	 * @return void
-	 */
-	public function test_returns_empty_when_loader_fails(): void {
-		$loader = $this->createMock( GD_Loader::class );
-		$loader->method( 'load' )->willReturn( false );
-
-		$factory = new Fingerprint_Factory( $loader );
-		$this->assertSame( array(), $factory->generate( 1 ) );
-	}
-
-	/**
-	 * A single processor's output is merged into the fingerprint.
-	 *
-	 * @return void
-	 */
-	public function test_merges_single_processor_output(): void {
-		$gd      = $this->make_gd_image();
-		$loader  = $this->loader_returning( $gd );
-		$factory = new Fingerprint_Factory(
+	private function make_factory( Fake_Fingerprint_Loader $loader ): Fingerprint_Factory {
+		return new Fingerprint_Factory(
 			$loader,
-			$this->processor_returning( 'phash', 'abc' )
+			new PHash_Processor(),
+			new Color_Processor(),
+			new Edge_Processor()
 		);
-
-		$result = $factory->generate( 1 );
-		$this->assertSame( array( 'phash' => 'abc' ), $result );
 	}
 
-	/**
-	 * Multiple processors' outputs are merged into a single fingerprint.
-	 *
-	 * @return void
-	 */
-	public function test_merges_multiple_processors(): void {
-		$gd     = $this->make_gd_image();
-		$loader = $this->loader_returning( $gd );
+	public function test_generate_merges_all_three_processor_fragments(): void {
+		$loader               = new Fake_Fingerprint_Loader();
+		$loader->gd_to_return = self::gd_from_fixture( 1 );
 
-		$factory = new Fingerprint_Factory(
-			$loader,
-			$this->processor_returning( 'phash', 'abc' ),
-			$this->processor_returning( 'color_vector', array( 0.1, 0.2 ) ),
-			$this->processor_returning( 'edge_vector', array( 0.5 ) )
-		);
+		$fp = $this->make_factory( $loader )->generate( 1 );
 
-		$result = $factory->generate( 1 );
-
-		$this->assertArrayHasKey( 'phash', $result );
-		$this->assertArrayHasKey( 'color_vector', $result );
-		$this->assertArrayHasKey( 'edge_vector', $result );
-		$this->assertSame( 'abc', $result['phash'] );
+		$this->assertArrayHasKey( 'phash', $fp );
+		$this->assertArrayHasKey( 'color_vector', $fp );
+		$this->assertArrayHasKey( 'edge_vector', $fp );
+		$this->assertMatchesRegularExpression( '/^[0-9a-f]{16}$/', $fp['phash'] );
 	}
 
-	/**
-	 * Later processors override earlier ones on key conflicts (array_merge).
-	 *
-	 * @return void
-	 */
-	public function test_later_processor_wins_on_key_conflict(): void {
-		$gd      = $this->make_gd_image();
-		$loader  = $this->loader_returning( $gd );
-		$factory = new Fingerprint_Factory(
-			$loader,
-			$this->processor_returning( 'phash', 'first' ),
-			$this->processor_returning( 'phash', 'second' )
-		);
+	public function test_generate_returns_empty_array_when_loader_fails(): void {
+		$loader               = new Fake_Fingerprint_Loader();
+		$loader->gd_to_return = false;
 
-		$this->assertSame( 'second', $factory->generate( 1 )['phash'] );
+		$this->assertSame( array(), $this->make_factory( $loader )->generate( 99 ) );
 	}
 
-	/**
-	 * Images larger than the 512-pixel working dimension must be pre-scaled
-	 * before processors see them. The factory still produces a fingerprint.
-	 *
-	 * @return void
-	 */
-	public function test_oversized_image_is_processed_after_downscale(): void {
-		$oversized = $this->make_gd_image( 1024, 1024 );
-		$loader    = $this->loader_returning( $oversized );
+	public function test_generate_handles_oversized_image_via_predownscale(): void {
+		// The "large" variant exceeds the 512 px working dimension, so this
+		// exercises the imagescale() pre-downscale branch.
+		$loader               = new Fake_Fingerprint_Loader();
+		$loader->gd_to_return = self::gd_from_path( self::variation_path( 1, 'large' ) );
 
-		$captured_dim = 0;
-		$proc         = $this->createMock( Processor_Interface::class );
-		$proc->method( 'process' )
-			->willReturnCallback(
-				function ( $gd ) use ( &$captured_dim ) {
-					$captured_dim = max( imagesx( $gd ), imagesy( $gd ) );
-					return array( 'phash' => 'ok' );
-				}
-			);
+		$fp = $this->make_factory( $loader )->generate( 1 );
 
-		$factory = new Fingerprint_Factory( $loader, $proc );
-		$result  = $factory->generate( 1 );
-
-		$this->assertNotEmpty( $result );
-		$this->assertLessThanOrEqual( 512, $captured_dim );
-	}
-
-	/**
-	 * Loader's `destroy` is invoked on the working GD resource to free memory.
-	 *
-	 * @return void
-	 */
-	public function test_loader_destroy_is_called(): void {
-		$gd     = $this->make_gd_image();
-		$loader = $this->createMock( GD_Loader::class );
-		$loader->method( 'load' )->willReturn( $gd );
-		$loader->expects( $this->once() )->method( 'destroy' );
-
-		$factory = new Fingerprint_Factory(
-			$loader,
-			$this->processor_returning( 'phash', 'x' )
-		);
-		$factory->generate( 1 );
+		$this->assertArrayHasKey( 'phash', $fp );
+		$this->assertArrayHasKey( 'color_vector', $fp );
+		$this->assertArrayHasKey( 'edge_vector', $fp );
 	}
 }

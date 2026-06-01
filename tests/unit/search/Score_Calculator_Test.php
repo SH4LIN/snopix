@@ -1,132 +1,141 @@
 <?php
 /**
- * Tests for Score_Calculator composite scoring.
+ * Unit tests for Snopix\Search\Score_Calculator.
  *
  * @package Snopix
  */
-
-require_once dirname( __DIR__ ) . '/class-testcase.php';
 
 use Snopix\Imaging\Similarity;
 use Snopix\Search\Score_Calculator;
 
 /**
- * Score_Calculator unit tests — pure math, no images needed.
+ * @covers \Snopix\Search\Score_Calculator
  */
-class Snopix_Score_Calculator_Test extends Snopix_TestCase {
+final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 
 	private Score_Calculator $calculator;
 
-	/**
-	 * Build a fresh Score_Calculator backed by a real Similarity instance.
-	 *
-	 * @return void
-	 */
-	public function setUp(): void {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->calculator = new Score_Calculator( new Similarity() );
 	}
 
 	/**
-	 * Build a fully populated fingerprint row in the same shape the repository
-	 * returns — JSON-encoded colour and edge vectors plus a literal pHash.
-	 *
-	 * @param string $phash 16-char lower-case hex hash. Defaults to a fixed value.
+	 * Build a self-consistent fingerprint that scores 1.0 against itself:
+	 * - phash hex (hamming distance 0),
+	 * - color_vector: 3 concatenated histograms each summing to 1.0
+	 *   (bhattacharyya with 3 channels → 1.0 for identical input),
+	 * - edge_vector: any non-zero vector (cosine → 1.0 for identical input).
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function make_fingerprint( string $phash = 'abcdef1234567890' ): array {
+	private function identical_fingerprint(): array {
 		return array(
-			'phash'        => $phash,
-			'color_vector' => wp_json_encode( array_fill( 0, 48, 1.0 / 16.0 ) ),
-			'edge_vector'  => wp_json_encode( array_fill( 0, 32, 0.5 ) ),
+			'phash'        => 'a1b2c3d4e5f60718',
+			// 3 channels × 2 bins, each channel sums to 1.0.
+			'color_vector' => array( 0.6, 0.4, 0.7, 0.3, 0.2, 0.8 ),
+			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
 		);
 	}
 
 	/**
-	 * Two identical fingerprints must produce the maximum composite score 1.0.
+	 * @dataProvider provide_missing_key_cases
 	 *
-	 * @return void
+	 * @param string $missing_key Required key to drop.
+	 * @param string $side        Which fingerprint to drop it from ('query' or 'stored').
 	 */
-	public function test_identical_fingerprints_return_one(): void {
-		$fp = $this->make_fingerprint();
-		$this->assertEqualsWithDelta( 1.0, $this->calculator->calculate( $fp, $fp ), 1e-6 );
-	}
+	public function test_calculate_returns_zero_when_required_key_missing( string $missing_key, string $side ): void {
+		$query  = $this->identical_fingerprint();
+		$stored = $this->identical_fingerprint();
 
-	/**
-	 * A row missing the `phash` field must score 0.0 (incomplete fingerprint).
-	 *
-	 * @return void
-	 */
-	public function test_missing_phash_returns_zero(): void {
-		$query  = $this->make_fingerprint();
-		$stored = $this->make_fingerprint();
-		unset( $stored['phash'] );
+		if ( 'query' === $side ) {
+			unset( $query[ $missing_key ] );
+		} else {
+			unset( $stored[ $missing_key ] );
+		}
+
 		$this->assertSame( 0.0, $this->calculator->calculate( $query, $stored ) );
 	}
 
 	/**
-	 * A row missing the `color_vector` field must score 0.0.
-	 *
-	 * @return void
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public function test_missing_color_vector_returns_zero(): void {
-		$query  = $this->make_fingerprint();
-		$stored = $this->make_fingerprint();
-		unset( $stored['color_vector'] );
-		$this->assertSame( 0.0, $this->calculator->calculate( $query, $stored ) );
-	}
-
-	/**
-	 * A row missing the `edge_vector` field must score 0.0.
-	 *
-	 * @return void
-	 */
-	public function test_missing_edge_vector_returns_zero(): void {
-		$query  = $this->make_fingerprint();
-		$stored = $this->make_fingerprint();
-		unset( $stored['edge_vector'] );
-		$this->assertSame( 0.0, $this->calculator->calculate( $query, $stored ) );
-	}
-
-	/**
-	 * Composite score must always sit within [0, 1] regardless of pHash diff.
-	 *
-	 * @return void
-	 */
-	public function test_score_is_in_range_0_to_1(): void {
-		$query  = $this->make_fingerprint( 'abcdef1234567890' );
-		$stored = $this->make_fingerprint( 'fedcba0987654321' );
-		$score  = $this->calculator->calculate( $query, $stored );
-		$this->assertGreaterThanOrEqual( 0.0, $score );
-		$this->assertLessThanOrEqual( 1.0, $score );
-	}
-
-	/**
-	 * Flipping every pHash bit must lower the composite score compared to an
-	 * identical-hash baseline — the pHash weight is non-zero.
-	 *
-	 * @return void
-	 */
-	public function test_completely_different_phash_lowers_score(): void {
-		$identical  = $this->calculator->calculate( $this->make_fingerprint( '0000000000000000' ), $this->make_fingerprint( '0000000000000000' ) );
-		$different  = $this->calculator->calculate( $this->make_fingerprint( '0000000000000000' ), $this->make_fingerprint( 'ffffffffffffffff' ) );
-		$this->assertGreaterThan( $different, $identical );
-	}
-
-	/**
-	 * Score_Calculator must accept already-decoded array vectors, not only
-	 * JSON-encoded strings — the pipeline pre-decodes in some code paths.
-	 *
-	 * @return void
-	 */
-	public function test_accepts_pre_decoded_vectors(): void {
-		$fp = array(
-			'phash'        => 'abcdef1234567890',
-			'color_vector' => array_fill( 0, 48, 1.0 / 16.0 ),
-			'edge_vector'  => array_fill( 0, 32, 0.5 ),
+	public function provide_missing_key_cases(): array {
+		return array(
+			'phash missing from query'         => array( 'phash', 'query' ),
+			'phash missing from stored'        => array( 'phash', 'stored' ),
+			'color_vector missing from query'  => array( 'color_vector', 'query' ),
+			'color_vector missing from stored' => array( 'color_vector', 'stored' ),
+			'edge_vector missing from query'   => array( 'edge_vector', 'query' ),
+			'edge_vector missing from stored'  => array( 'edge_vector', 'stored' ),
 		);
-		$score = $this->calculator->calculate( $fp, $fp );
-		$this->assertEqualsWithDelta( 1.0, $score, 1e-6 );
 	}
+
+	public function test_calculate_identical_fingerprints_scores_one(): void {
+		$fp = $this->identical_fingerprint();
+
+		// phash 1.0*0.40 + color 1.0*0.35 + edge 1.0*0.25 = 1.0.
+		$this->assertEqualsWithDelta( 1.0, $this->calculator->calculate( $fp, $fp ), 1e-9 );
+	}
+
+	public function test_calculate_json_string_vectors_match_array_vectors(): void {
+		$array_fp = $this->identical_fingerprint();
+
+		$json_fp                 = $array_fp;
+		$json_fp['color_vector'] = json_encode( $array_fp['color_vector'] );
+		$json_fp['edge_vector']  = json_encode( $array_fp['edge_vector'] );
+
+		$from_arrays = $this->calculator->calculate( $array_fp, $array_fp );
+		$from_json   = $this->calculator->calculate( $json_fp, $json_fp );
+		$mixed       = $this->calculator->calculate( $array_fp, $json_fp );
+
+		$this->assertSame( $from_arrays, $from_json );
+		$this->assertSame( $from_arrays, $mixed );
+	}
+
+	public function test_calculate_dissimilar_pair_scores_below_identical(): void {
+		$query = $this->identical_fingerprint();
+
+		$stored = array(
+			// Inverted bits → large hamming distance → low phash score.
+			'phash'        => '5e4d3c2b1a09f8e7',
+			// Histograms disjoint from the query's per-channel bins → low bhattacharyya.
+			'color_vector' => array( 0.0, 1.0, 0.0, 1.0, 1.0, 0.0 ),
+			// Opposite direction → cosine clamps toward 0.
+			'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
+		);
+
+		$identical_score   = $this->calculator->calculate( $query, $query );
+		$dissimilar_score  = $this->calculator->calculate( $query, $stored );
+
+		$this->assertLessThan( $identical_score, $dissimilar_score );
+		// Score must stay within the documented [0.0, 1.0] range.
+		$this->assertGreaterThanOrEqual( 0.0, $dissimilar_score );
+		$this->assertLessThanOrEqual( 1.0, $dissimilar_score );
+	}
+
+	public function test_calculate_is_deterministic(): void {
+		$query  = $this->identical_fingerprint();
+		$stored = array(
+			'phash'        => 'ffffffff00000000',
+			'color_vector' => array( 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ),
+			'edge_vector'  => array( 2.0, 1.0, 0.0, 4.0 ),
+		);
+
+		$first  = $this->calculator->calculate( $query, $stored );
+		$second = $this->calculator->calculate( $query, $stored );
+
+		$this->assertSame( $first, $second );
+	}
+}
+
+/**
+ * JSON-encode without depending on WordPress (no WP functions in unit tests).
+ *
+ * @param mixed $value Value to encode.
+ *
+ * @return string
+ */
+function wp_json_encode_local( $value ): string {
+	return json_encode( $value );
 }

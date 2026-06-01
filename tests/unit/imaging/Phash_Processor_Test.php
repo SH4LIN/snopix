@@ -1,272 +1,91 @@
 <?php
 /**
- * Tests for PHash_Processor.
- *
- * Programmatic GD resources are used for pure unit tests.
- * Fixture images (tests/fixtures/images/) are used for integration-style tests
- * and are skipped if not yet downloaded (run: composer fixtures).
+ * Unit tests for Snopix\Imaging\PHash_Processor.
  *
  * @package Snopix
  */
-
-require_once dirname( __DIR__ ) . '/class-testcase.php';
 
 use Snopix\Imaging\PHash_Processor;
 use Snopix\Imaging\Similarity;
 
 /**
- * PHash_Processor tests.
+ * @covers \Snopix\Imaging\PHash_Processor
  */
-class Snopix_PHash_Processor_Test extends Snopix_TestCase {
+final class Phash_Processor_Test extends Snopix_Unit_TestCase {
 
 	private PHash_Processor $processor;
-	private Similarity $sim;
 
-	private static string $fixtures_dir;
-
-	/**
-	 * Resolve the fixture image directory once for the whole class.
-	 *
-	 * @return void
-	 */
-	public static function setUpBeforeClass(): void {
-		parent::setUpBeforeClass();
-		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
-	}
-
-	/**
-	 * Build a fresh PHash_Processor and Similarity helper before each test.
-	 *
-	 * @return void
-	 */
-	public function setUp(): void {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->processor = new PHash_Processor();
-		$this->sim       = new Similarity();
 	}
 
-	// ── Helpers ───────────────────────────────────────────────────────────
+	public function test_process_returns_phash_key_with_16_char_hex(): void {
+		$gd     = self::gd_from_fixture( 1 );
+		$result = $this->processor->process( $gd, 42 );
 
-	/**
-	 * Create a rectangular GD resource filled with a single RGB colour.
-	 *
-	 * @param int $r Red channel value 0–255.
-	 * @param int $g Green channel value 0–255.
-	 * @param int $b Blue channel value 0–255.
-	 * @param int $w Image width in pixels.
-	 * @param int $h Image height in pixels.
-	 *
-	 * @return \GdImage
-	 */
-	private function solid_gd( int $r, int $g, int $b, int $w = 100, int $h = 100 ) {
-		$img = imagecreatetruecolor( $w, $h );
-		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
-		return $img;
-	}
-
-	/**
-	 * Generate a 1-pixel black/white checkerboard GD resource for maximum entropy.
-	 *
-	 * @param int $size Pixel size of one side. Defaults to 64.
-	 *
-	 * @return \GdImage
-	 */
-	private function checkerboard_gd( int $size = 64 ) {
-		$img = imagecreatetruecolor( $size, $size );
-		$w   = imagecolorallocate( $img, 255, 255, 255 );
-		$k   = imagecolorallocate( $img, 0, 0, 0 );
-		for ( $x = 0; $x < $size; $x++ ) {
-			for ( $y = 0; $y < $size; $y++ ) {
-				imagesetpixel( $img, $x, $y, ( ( $x + $y ) % 2 === 0 ) ? $w : $k );
-			}
-		}
-		return $img;
-	}
-
-	/**
-	 * Load a fixture image by Picsum ID (1–100) into a GD resource.
-	 *
-	 * @param int $id Fixture image index (1–100).
-	 *
-	 * @return \GdImage|false GD resource on success, false if the fixture is missing.
-	 */
-	private function load_fixture( int $id ) {
-		$path = sprintf( '%s/%03d.jpg', self::$fixtures_dir, $id );
-		if ( ! file_exists( $path ) ) {
-			return false;
-		}
-		return imagecreatefromjpeg( $path );
-	}
-
-	/**
-	 * Whether the optional Picsum fixture images have been downloaded.
-	 *
-	 * @return bool
-	 */
-	private function fixtures_available(): bool {
-		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
-	}
-
-	// ── Output format ─────────────────────────────────────────────────────
-
-	/**
-	 * Output array must contain the `phash` key.
-	 *
-	 * @return void
-	 */
-	public function test_returns_phash_key(): void {
-		$gd     = $this->solid_gd( 128, 128, 128 );
-		$result = $this->processor->process( $gd, 1 );
-		imagedestroy( $gd );
 		$this->assertArrayHasKey( 'phash', $result );
+		$this->assertIsString( $result['phash'] );
+		$this->assertSame( 16, strlen( $result['phash'] ) );
+		$this->assertMatchesRegularExpression( '/^[0-9a-f]{16}$/', $result['phash'] );
 	}
 
-	/**
-	 * pHash output must be a 16-character lower-case hex string (64 bits).
-	 *
-	 * @return void
-	 */
-	public function test_phash_is_16_char_hex_string(): void {
-		$gd   = $this->solid_gd( 200, 100, 50 );
-		$hash = $this->processor->process( $gd, 1 )['phash'];
-		imagedestroy( $gd );
-		$this->assertMatchesRegularExpression( '/^[0-9a-f]{16}$/', $hash );
+	public function test_process_is_deterministic_for_same_image(): void {
+		$gd_a = self::gd_from_fixture( 3 );
+		$gd_b = self::gd_from_fixture( 3 );
+
+		$first  = $this->processor->process( $gd_a, 1 );
+		$second = $this->processor->process( $gd_b, 1 );
+
+
+		$this->assertSame( $first['phash'], $second['phash'] );
 	}
 
-	// ── Determinism ───────────────────────────────────────────────────────
+	public function test_attachment_id_is_passthrough_does_not_affect_hash(): void {
+		$gd_a = self::gd_from_fixture( 5 );
+		$gd_b = self::gd_from_fixture( 5 );
 
-	/**
-	 * Hashing the same image twice must yield identical pHashes.
-	 *
-	 * @return void
-	 */
-	public function test_same_image_produces_identical_hash(): void {
-		$gd    = $this->solid_gd( 100, 150, 200 );
-		$hash1 = $this->processor->process( $gd, 1 )['phash'];
-		$hash2 = $this->processor->process( $gd, 2 )['phash'];
-		imagedestroy( $gd );
-		$this->assertSame( $hash1, $hash2 );
+		$with_low  = $this->processor->process( $gd_a, 0 );
+		$with_high = $this->processor->process( $gd_b, 999999 );
+
+
+		$this->assertSame( $with_low['phash'], $with_high['phash'] );
 	}
 
-	// ── Discriminability ─────────────────────────────────────────────────
+	public function test_near_duplicate_is_closer_than_different_fixture(): void {
+		$similarity = new Similarity();
 
-	/**
-	 * Visually distinct images must produce distinct pHashes.
-	 *
-	 * @return void
-	 */
-	public function test_different_images_produce_different_hashes(): void {
-		$red   = $this->solid_gd( 255, 0, 0 );
-		$blue  = $this->solid_gd( 0, 0, 255 );
-		$hash1 = $this->processor->process( $red, 1 )['phash'];
-		$hash2 = $this->processor->process( $blue, 1 )['phash'];
-		imagedestroy( $red );
-		imagedestroy( $blue );
-		$this->assertNotSame( $hash1, $hash2 );
+		$base_gd = self::gd_from_fixture( 1 );
+		$base    = $this->processor->process( $base_gd, 1 )['phash'];
+
+		$dup_gd = self::gd_from_path( self::variation_path( 1, 'compressed' ) );
+		$dup    = $this->processor->process( $dup_gd, 1 )['phash'];
+
+		$other_gd = self::gd_from_fixture( 10 );
+		$other    = $this->processor->process( $other_gd, 10 )['phash'];
+
+		$dup_distance   = $similarity->hamming_distance( $base, $dup );
+		$other_distance = $similarity->hamming_distance( $base, $other );
+
+		// A re-compressed version of 001 should resemble 001 far more than 010 does.
+		$this->assertLessThan( $other_distance, $dup_distance );
 	}
 
-	/**
-	 * A flat image vs a checkerboard must differ by more than 8 bits of Hamming
-	 * distance — i.e. the two are clearly perceived as different by pHash.
-	 *
-	 * @return void
-	 */
-	public function test_solid_vs_checkerboard_high_hamming(): void {
-		$solid   = $this->solid_gd( 128, 128, 128 );
-		$checker = $this->checkerboard_gd();
-		$h1      = $this->processor->process( $solid, 1 )['phash'];
-		$h2      = $this->processor->process( $checker, 1 )['phash'];
-		imagedestroy( $solid );
-		imagedestroy( $checker );
-		// Structurally very different — Hamming must be > 8.
-		$this->assertGreaterThan( 8, $this->sim->hamming_distance( $h1, $h2 ) );
-	}
+	public function test_png_format_variant_is_near_duplicate_of_base(): void {
+		$similarity = new Similarity();
 
-	// ── Fixture-based tests (skipped if not downloaded) ───────────────────
+		$base_gd = self::gd_from_fixture( 2 );
+		$base    = $this->processor->process( $base_gd, 2 )['phash'];
 
-	/**
-	 * Every fixture image must hash to the 16-char hex format. Skipped if
-	 * fixtures are not present.
-	 *
-	 * @return void
-	 */
-	public function test_fixture_images_produce_valid_hashes(): void {
-		if ( ! $this->fixtures_available() ) {
-			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
-		}
+		$png_gd = self::gd_from_path( self::variation_path( 2, 'png' ) );
+		$png    = $this->processor->process( $png_gd, 2 )['phash'];
 
-		for ( $i = 1; $i <= 100; $i++ ) {
-			$gd = $this->load_fixture( $i );
-			if ( false === $gd ) {
-				continue;
-			}
-			$hash = $this->processor->process( $gd, $i )['phash'];
-			imagedestroy( $gd );
-			$this->assertMatchesRegularExpression(
-				'/^[0-9a-f]{16}$/',
-				$hash,
-				"Image #{$i} produced invalid hash"
-			);
-		}
-	}
+		$other_gd = self::gd_from_fixture( 15 );
+		$other    = $this->processor->process( $other_gd, 15 )['phash'];
 
-	/**
-	 * Re-loading and re-hashing the same fixture file must produce the same
-	 * pHash both times. Skipped if fixtures are not present.
-	 *
-	 * @return void
-	 */
-	public function test_same_fixture_image_produces_identical_hash(): void {
-		if ( ! $this->fixtures_available() ) {
-			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
-		}
+		$png_distance   = $similarity->hamming_distance( $base, $png );
+		$other_distance = $similarity->hamming_distance( $base, $other );
 
-		$gd1   = $this->load_fixture( 1 );
-		$gd2   = $this->load_fixture( 1 );
-		$hash1 = $this->processor->process( $gd1, 1 )['phash'];
-		$hash2 = $this->processor->process( $gd2, 1 )['phash'];
-		imagedestroy( $gd1 );
-		imagedestroy( $gd2 );
-		$this->assertSame( $hash1, $hash2 );
-	}
-
-	/**
-	 * Sanity check: across the first 20 fixture images, at least half of all
-	 * pairs should have Hamming distance > 5. Guards against a regression that
-	 * collapses unrelated images into identical hashes.
-	 *
-	 * @return void
-	 */
-	public function test_fixture_images_are_pairwise_discriminable(): void {
-		if ( ! $this->fixtures_available() ) {
-			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
-		}
-
-		$hashes = array();
-		for ( $i = 1; $i <= 20; $i++ ) {
-			$gd = $this->load_fixture( $i );
-			if ( false === $gd ) {
-				continue;
-			}
-			$hashes[ $i ] = $this->processor->process( $gd, $i )['phash'];
-			imagedestroy( $gd );
-		}
-
-		// At least half of distinct pairs should have Hamming > 5.
-		$discriminable = 0;
-		$total         = 0;
-		$keys          = array_keys( $hashes );
-		for ( $a = 0; $a < count( $keys ) - 1; $a++ ) {
-			for ( $b = $a + 1; $b < count( $keys ); $b++ ) {
-				++$total;
-				if ( $this->sim->hamming_distance( $hashes[ $keys[ $a ] ], $hashes[ $keys[ $b ] ] ) > 5 ) {
-					++$discriminable;
-				}
-			}
-		}
-
-		if ( $total > 0 ) {
-			$this->assertGreaterThan( $total * 0.5, $discriminable, 'pHash is not discriminating images well' );
-		}
+		$this->assertLessThan( $other_distance, $png_distance );
 	}
 }

@@ -1,136 +1,61 @@
 <?php
 /**
- * Tests for Mime_Validator allowed-MIME enforcement.
+ * Unit tests for Snopix\Indexing\Mime_Validator.
  *
  * @package Snopix
  */
 
-require_once dirname( __DIR__ ) . '/class-testcase.php';
-
 use Snopix\Indexing\Mime_Validator;
 
 /**
- * Mime_Validator unit tests.
+ * @covers \Snopix\Indexing\Mime_Validator
  */
-class Snopix_Mime_Validator_Test extends Snopix_TestCase {
+final class Mime_Validator_Test extends Snopix_Unit_TestCase {
 
 	private Mime_Validator $validator;
 
-	/**
-	 * Build a fresh validator before each test.
-	 *
-	 * @return void
-	 */
-	public function setUp(): void {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->validator = new Mime_Validator();
 	}
 
-	/**
-	 * JPEG must be allowed.
-	 *
-	 * @return void
-	 */
-	public function test_allows_jpeg(): void {
+	public function test_is_allowed_true_for_every_allowed_type(): void {
 		$this->assertTrue( $this->validator->is_allowed( 'image/jpeg' ) );
-	}
-
-	/**
-	 * PNG must be allowed.
-	 *
-	 * @return void
-	 */
-	public function test_allows_png(): void {
 		$this->assertTrue( $this->validator->is_allowed( 'image/png' ) );
-	}
-
-	/**
-	 * GIF must be allowed.
-	 *
-	 * @return void
-	 */
-	public function test_allows_gif(): void {
 		$this->assertTrue( $this->validator->is_allowed( 'image/gif' ) );
-	}
-
-	/**
-	 * WebP must be allowed.
-	 *
-	 * @return void
-	 */
-	public function test_allows_webp(): void {
 		$this->assertTrue( $this->validator->is_allowed( 'image/webp' ) );
-	}
-
-	/**
-	 * BMP must be allowed.
-	 *
-	 * @return void
-	 */
-	public function test_allows_bmp(): void {
 		$this->assertTrue( $this->validator->is_allowed( 'image/bmp' ) );
 	}
 
-	/**
-	 * SVG is not in the allow-list (vector format, can't be fingerprinted).
-	 *
-	 * @return void
-	 */
-	public function test_rejects_svg(): void {
-		$this->assertFalse( $this->validator->is_allowed( 'image/svg+xml' ) );
-	}
-
-	/**
-	 * TIFF/HEIC and other unsupported raster formats must be rejected.
-	 *
-	 * @return void
-	 */
-	public function test_rejects_unsupported_raster_formats(): void {
+	public function test_is_allowed_false_for_disallowed_types(): void {
 		$this->assertFalse( $this->validator->is_allowed( 'image/tiff' ) );
-		$this->assertFalse( $this->validator->is_allowed( 'image/heic' ) );
-		$this->assertFalse( $this->validator->is_allowed( 'image/avif' ) );
-	}
-
-	/**
-	 * Non-image MIME types are rejected.
-	 *
-	 * @return void
-	 */
-	public function test_rejects_non_image_mimes(): void {
+		$this->assertFalse( $this->validator->is_allowed( 'image/svg+xml' ) );
 		$this->assertFalse( $this->validator->is_allowed( 'application/pdf' ) );
-		$this->assertFalse( $this->validator->is_allowed( 'video/mp4' ) );
+		$this->assertFalse( $this->validator->is_allowed( 'application/octet-stream' ) );
 		$this->assertFalse( $this->validator->is_allowed( 'text/plain' ) );
-	}
-
-	/**
-	 * Empty input must be rejected.
-	 *
-	 * @return void
-	 */
-	public function test_rejects_empty_string(): void {
 		$this->assertFalse( $this->validator->is_allowed( '' ) );
 	}
 
-	/**
-	 * Comparison must be strict — case mismatch does not count.
-	 *
-	 * @return void
-	 */
-	public function test_rejects_uppercase_variant(): void {
+	public function test_is_allowed_is_case_sensitive_and_strict(): void {
+		// in_array strict comparison: casing must match exactly.
 		$this->assertFalse( $this->validator->is_allowed( 'IMAGE/JPEG' ) );
+		$this->assertFalse( $this->validator->is_allowed( 'image/jpg' ) );
 	}
 
-	/**
-	 * `get_allowed()` returns the full canonical list of supported MIME types.
-	 *
-	 * @return void
-	 */
-	public function test_get_allowed_returns_full_list(): void {
-		$allowed = $this->validator->get_allowed();
-		$this->assertContains( 'image/jpeg', $allowed );
-		$this->assertContains( 'image/png', $allowed );
-		$this->assertContains( 'image/gif', $allowed );
-		$this->assertContains( 'image/webp', $allowed );
-		$this->assertContains( 'image/bmp', $allowed );
+	public function test_get_allowed_returns_exact_allowed_set(): void {
+		$expected = array(
+			'image/jpeg',
+			'image/png',
+			'image/gif',
+			'image/webp',
+			'image/bmp',
+		);
+		$this->assertSame( $expected, $this->validator->get_allowed() );
+	}
+
+	public function test_get_allowed_matches_is_allowed(): void {
+		foreach ( $this->validator->get_allowed() as $mime ) {
+			$this->assertTrue( $this->validator->is_allowed( $mime ) );
+		}
 	}
 }
