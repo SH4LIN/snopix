@@ -17,7 +17,7 @@
  *   Dashboard | Duplicates | Tools | Settings
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { login, gotoSnopix } from './helpers';
 
 test.beforeEach(async ({ page }) => {

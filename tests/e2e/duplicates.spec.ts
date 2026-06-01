@@ -11,8 +11,8 @@
  * "Group · N attachments".
  *
  * Flow:
- *  1. Upload the same fixture image twice so WordPress has two identical
- *     attachments and at least one duplicate group is expected.
+ *  1. Upload the same fixture image twice via the REST API so WordPress has
+ *     two identical attachments and at least one duplicate group is expected.
  *  2. Navigate to the Duplicates tab.
  *  3. Click "Rescan" and wait for the scan to complete (progress bar → gone,
  *     results or empty state visible). Generous 60 s timeout: the scan runs
@@ -27,8 +27,9 @@
  * spinner or error page.
  */
 
-import { test, expect, type Page } from '@playwright/test';
-import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
+import { type Page } from '@playwright/test';
+import { test, expect } from './fixtures';
+import { login, gotoSnopix, fixturePath } from './helpers';
 
 const DUPLICATES_TAB_LABEL = 'Duplicates';
 const SCAN_BUTTON_TEXT = 'Rescan';
@@ -74,13 +75,12 @@ test.describe('Duplicates tab', () => {
 		await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible();
 	});
 
-	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page }) => {
-		// ── Seed: upload the same fixture twice ──────────────────────────────
-		// Both calls use the WP media uploader so WordPress creates two separate
-		// attachment records from the same file bytes.
+	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page, requestUtils }) => {
+		// ── Seed: upload the same fixture twice via REST API ─────────────────
+		// Both calls create two separate attachment records from the same file.
 		const fixture = fixturePath('001.jpg');
-		await uploadMedia(page, fixture);
-		await uploadMedia(page, fixture);
+		await requestUtils.uploadMedia(fixture);
+		await requestUtils.uploadMedia(fixture);
 
 		// ── Navigate to Duplicates ───────────────────────────────────────────
 		await gotoDuplicates(page);

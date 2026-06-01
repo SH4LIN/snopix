@@ -1,6 +1,10 @@
 /**
  * Snopix shortcode e2e spec — [snopix_search] widget on a front-end post.
  *
+ * The post containing the shortcode is created once per worker via
+ * `requestUtils.createPost()` (WP REST API) — no browser-side block editor
+ * interaction required.
+ *
  * Selectors are best-effort from the React source (SnopixWidget.tsx / main.tsx).
  * Whether the search returns real matches depends on whether the media library
  * has indexed images; the spec therefore accepts any post-search state:
@@ -15,12 +19,8 @@
  * Error state        : .snopix-widget div.py-10 (error paragraph inside results panel)
  */
 
-import { test, expect } from '@playwright/test';
-import {
-	login,
-	createPostWithShortcode,
-	fixturePath,
-} from './helpers';
+import { test, expect } from './fixtures';
+import { login, fixturePath } from './helpers';
 
 const SHORTCODE = '[snopix_search]';
 
@@ -40,14 +40,16 @@ const EMPTY_TEXT    = 'No visually similar images';
 test.describe('[snopix_search] shortcode — front-end widget', () => {
 	let postUrl: string;
 
-	// Create + publish a post containing the shortcode once for the whole suite.
-	// login() is re-called inside createPostWithShortcode, but we also call it
-	// here explicitly to satisfy the beforeEach contract stated in the spec brief.
-	test.beforeAll(async ({ browser }) => {
-		const page = await browser.newPage();
-		await login(page);
-		postUrl = await createPostWithShortcode(page, SHORTCODE);
-		await page.close();
+	// Create + publish a post containing the shortcode once for the whole
+	// worker via the REST API — no block editor interaction needed.
+	test.beforeAll(async ({ requestUtils }) => {
+		const post = await requestUtils.createPost({
+			title: 'Snopix Search Test',
+			content: SHORTCODE,
+			status: 'publish',
+			date_gmt: new Date().toISOString().replace( /\.\d{3}Z$/, '' ),
+		});
+		postUrl = post.link;
 	});
 
 	test.beforeEach(async ({ page }) => {
@@ -132,11 +134,6 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 
 		// In all cases, the drop-zone must have been replaced (no longer visible).
 		await expect(page.getByText(DROP_ZONE_CUE)).toBeHidden();
-
-		// Verify no uncaught JS exceptions occurred (Playwright surfaces these
-		// via page errors; if this assertion fails, check the browser console).
-		// Nothing to assert here beyond the above — Playwright fails tests on
-		// uncaught exceptions automatically when using the default test runner.
 	});
 
 	// -------------------------------------------------------------------------
