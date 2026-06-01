@@ -19,7 +19,7 @@
 		"clean:editor": "rm -rf admin/editor/build",
 		"clean:search": "rm -rf public/app/dist",
 		"lint": "npm run lint:ts && npm run lint:styles",
-		"lint:ts": "eslint admin/app/src --ext .ts,.tsx",
+		"lint:ts": "npm run lint --prefix admin/app",
 		"format": "prettier --write admin/app/src",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",

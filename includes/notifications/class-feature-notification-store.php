@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Feature_Notification_Store {
 
 	/**
-	 * user_meta key holding the dismissal list for a given user.
+	 * User_meta key holding the dismissal list for a given user.
 	 */
 	public const META_KEY = 'snopix_dismissed_notifications';
 
