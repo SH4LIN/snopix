@@ -31,8 +31,6 @@ const SHORTCODE = '[snopix_search]';
 // Selectors derived from SnopixWidget.tsx
 const MOUNT_POINT   = '[data-snopix-search]';
 const WIDGET_ROOT   = '.snopix-widget';
-// The dropzone div that wraps the "Choose file" button and hidden input
-const DROP_ZONE     = '.snopix-widget div[data-over]';
 const FILE_INPUT    = 'input[type="file"][accept="image/jpeg,image/png,image/gif,image/webp"]';
 // Text inside the drop-zone that confirms the widget rendered in idle state
 const DROP_ZONE_CUE = 'Drop an image to search';
