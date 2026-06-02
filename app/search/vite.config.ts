@@ -19,6 +19,8 @@ export default defineConfig({
 		rollupOptions: {
 			input: 'src/main.tsx',
 			output: {
+				format: 'iife',
+				name: 'SnopixSearch',
 				entryFileNames: 'snopix-search.js',
 				assetFileNames: 'snopix-search.[ext]',
 			},

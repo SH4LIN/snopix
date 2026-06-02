@@ -113,11 +113,10 @@ class Admin_Page {
 		wp_enqueue_script(
 			'snopix-admin',
 			SNOPIX_PLUGIN_URL . 'assets/admin/snopix-admin.js',
-			// wp-api-fetch is core's REST helper; declaring it here guarantees
-			// the `wp.apiFetch` global is loaded before our bundle boots so the
-			// shared `@wordpress/api-fetch` import resolves to the same
-			// already-initialised instance instead of a duplicate.
-			array( 'wp-api-fetch' ),
+			// wp-api-fetch: ensures wp.apiFetch global is available (shared instance).
+			// wp-i18n: @wordpress/i18n is externalized in the bundle; wp.i18n must
+			// be loaded first.
+			array( 'wp-api-fetch', 'wp-i18n' ),
 			SNOPIX_VERSION,
 			true
 		);

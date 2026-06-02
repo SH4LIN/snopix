@@ -17,7 +17,13 @@ export default defineConfig({
 		cssCodeSplit: false,
 		rollupOptions: {
 			input: 'src/main.tsx',
+			external: ['@wordpress/i18n'],
 			output: {
+				format: 'iife',
+				name: 'SnopixAdmin',
+				globals: {
+					'@wordpress/i18n': 'wp.i18n',
+				},
 				entryFileNames: 'snopix-admin.js',
 				assetFileNames: 'snopix-admin.[ext]',
 			},
