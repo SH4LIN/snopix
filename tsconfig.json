@@ -21,17 +21,10 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
-		"forceConsistentCasingInFileNames": true,
-
-		/* Path aliases */
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["app/admin/src/*"]
-		}
+		"forceConsistentCasingInFileNames": true
 	},
 	"include": [
 		"env.d.ts",
-		"app/admin/src",
 		"tests/e2e",
 		"playwright.config.ts"
 	],

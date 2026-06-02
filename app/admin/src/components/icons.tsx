@@ -43,13 +43,6 @@ export const IconUpload = (p: IconProps) => (
 		<path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
 	</I>
 );
-export const IconImage = (p: IconProps) => (
-	<I {...p}>
-		<rect x="3" y="4" width="18" height="16" rx="2" />
-		<circle cx="9" cy="10" r="1.6" />
-		<path d="M21 16l-5-5-9 9" />
-	</I>
-);
 export const IconLayers = (p: IconProps) => (
 	<I {...p}>
 		<path d="M12 3l9 5-9 5-9-5 9-5z" />
@@ -130,17 +123,6 @@ export const IconClock = (p: IconProps) => (
 export const IconChevron = (p: IconProps) => (
 	<I {...p}>
 		<path d="M9 6l6 6-6 6" />
-	</I>
-);
-export const IconFile = (p: IconProps) => (
-	<I {...p}>
-		<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z" />
-		<path d="M14 3v6h6" />
-	</I>
-);
-export const IconDot = (p: IconProps) => (
-	<I {...p}>
-		<circle cx="12" cy="12" r="3" />
 	</I>
 );
 export const IconArrowRight = (p: IconProps) => (
