@@ -30,8 +30,12 @@ class Bulk_Indexer {
 
 	/**
 	 * Seconds between consecutive chained batches.
+	 *
+	 * Kept comfortably below the admin app's frontend stall timeout
+	 * (`STALL_MS` in `use-reindex.ts`) so the progress UI never mistakes the
+	 * normal inter-batch gap for a stalled chain.
 	 */
-	private const BATCH_DELAY = 60;
+	private const BATCH_DELAY = 15;
 
 	/**
 	 * Cron hook name.
@@ -195,6 +199,11 @@ class Bulk_Indexer {
 			_prime_post_caches( $batch_ids, true, true );
 		}
 
+		// Snapshot the completed count before this batch so we can tell a
+		// first-batch wipeout (likely a broken environment) from a later batch
+		// of unreadable files (which we just skip and keep going).
+		$done_before = $this->progress->get()['done'];
+
 		$succeeded = 0;
 		try {
 			foreach ( $batch_ids as $id ) {
@@ -217,9 +226,13 @@ class Bulk_Indexer {
 			return;
 		}
 
-		// Halt the chain if every image in the batch failed — protects against a
-		// fundamentally broken environment burning through the entire queue.
-		if ( 0 === $succeeded ) {
+		// Only halt when the very FIRST batch produced zero successes — that
+		// points at a fundamentally broken environment (missing GD/Imagick,
+		// unreadable uploads dir) rather than a cluster of bad files. A later
+		// all-failed batch must NOT abort the rest of the queue: skip it and
+		// keep chaining so a few unreadable images don't strand every
+		// remaining attachment.
+		if ( 0 === $succeeded && 0 === $done_before ) {
 			delete_transient( self::PENDING_KEY );
 			$this->progress->mark_stalled();
 			return;
