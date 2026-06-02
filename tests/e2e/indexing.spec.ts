@@ -203,7 +203,10 @@ test.describe('Snopix indexing', () => {
 		// visible (job just finished), assert it shows "Indexing complete".
 		// This is a soft check — the card auto-hides after 3 s.
 		// ----------------------------------------------------------------
-		const progressCard = page.locator('[data-tour="reindex-button"]').first();
+		// NOTE: the header CTA <button> and this progress <div> share
+		// data-tour="reindex-button"; scope to the div so we don't match the
+		// always-present header button (which reads "Index remaining").
+		const progressCard = page.locator('div[data-tour="reindex-button"]').first();
 		if (await progressCard.isVisible()) {
 			await expect(progressCard).toContainText('Indexing complete', {
 				timeout: 5_000,

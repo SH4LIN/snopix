@@ -133,8 +133,10 @@ test.describe('Duplicates tab', () => {
 	test('scan button is disabled while a scan is running', async ({ page }) => {
 		await gotoDuplicates(page);
 
+		// Generous timeout: a parallel test may have left a global scan running,
+		// in which case the button reads "Scanning…" until it settles to "Rescan".
 		const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
-		await expect(scanBtn).toBeVisible({ timeout: 10_000 });
+		await expect(scanBtn).toBeVisible({ timeout: 60_000 });
 		await scanBtn.click();
 
 		// Immediately after clicking the button should be disabled (either
