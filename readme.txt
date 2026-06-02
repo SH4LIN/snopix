@@ -146,6 +146,8 @@ transients; disable it first if you want the index to survive a reinstall.
 2. Duplicate groups with per-group keep selection and bulk delete.
 3. Tools panel for reindexing, clearing the index, deleting orphan rows, and
    flushing caches.
+4. Settings for match thresholds, search rate limiting, batch size, and the
+   keep / drop-on-uninstall choice.
 
 == Changelog ==
 
