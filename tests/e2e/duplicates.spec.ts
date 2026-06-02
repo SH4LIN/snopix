@@ -157,8 +157,9 @@ test.describe('Duplicates tab', () => {
 	test('progress bar is visible during an active scan', async ({ page }) => {
 		await gotoDuplicates(page);
 
+		// Use a generous timeout — a parallel test may have left a scan running.
 		const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
-		await expect(scanBtn).toBeVisible({ timeout: 10_000 });
+		await expect(scanBtn).toBeVisible({ timeout: 60_000 });
 		await scanBtn.click();
 
 		// The progress container has class "snopix-progress" and appears while
