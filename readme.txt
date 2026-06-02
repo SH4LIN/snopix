@@ -149,7 +149,7 @@ transients; disable it first if you want the index to survive a reinstall.
 
 == Changelog ==
 
-= 0.1.2 - 2026-05-30 =
+= 0.1.2 - 2026-06-02 =
 * Fixed: removed `readonly` properties that broke activation on PHP 8.0 (the declared minimum version).
 * Changed: per-IP search rate limiting now uses an atomic counter when a persistent object cache is present, and fails closed when the client IP cannot be resolved.
 * Fixed: bulk indexing no longer stalls when a run of unsupported image types (SVG/AVIF/TIFF/HEIC) is queued — they are skipped at enqueue time.

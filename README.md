@@ -106,7 +106,7 @@ index row is cleaned up by the attachment-deletion hook.
 
 ```bash
 bash bin/build-zip.sh             # uses version from snopix.php
-bash bin/build-zip.sh 0.1.1       # override
+bash bin/build-zip.sh 0.1.2       # override
 ```
 
 The script runs `npm ci && npm run build` for the admin app, front-end search
