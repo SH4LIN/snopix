@@ -68,7 +68,14 @@ test.describe('Snopix indexing', () => {
 		}
 
 		// ----------------------------------------------------------------
-		// Step 2: Navigate to the Snopix admin SPA.
+		// Step 2: Capture REST nonce while still on /wp-admin/ (uploadMedia
+		// leaves the page there). wpApiSettings is NOT injected on the Snopix
+		// admin page, so we must read it before gotoSnopix navigates away.
+		// ----------------------------------------------------------------
+		const nonce = await getNonce(page);
+
+		// ----------------------------------------------------------------
+		// Step 3: Navigate to the Snopix admin SPA.
 		// ----------------------------------------------------------------
 		await gotoSnopix(page);
 
@@ -76,11 +83,6 @@ test.describe('Snopix indexing', () => {
 		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 15_000,
 		});
-
-		// ----------------------------------------------------------------
-		// Step 3: Read the nonce for REST calls — we're on an admin page.
-		// ----------------------------------------------------------------
-		const nonce = await getNonce(page);
 
 		// ----------------------------------------------------------------
 		// Step 4: Record the Indexed count before triggering indexing so we

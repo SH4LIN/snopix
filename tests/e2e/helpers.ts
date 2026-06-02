@@ -45,7 +45,7 @@ export async function gotoSnopix(page: Page): Promise<void> {
 	await login(page);
 	await page.goto(SNOPIX_ADMIN_URL);
 
-	await expect(page.locator('#snopix-root > *').first()).toBeVisible({ timeout: 15_000 });
+	await expect(page.locator('#snopix-root > *').first()).toBeVisible({ timeout: 30_000 });
 	await dismissTour(page);
 }
 

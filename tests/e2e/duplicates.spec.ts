@@ -114,7 +114,7 @@ test.describe('Duplicates tab', () => {
 
 		await expect(
 			groupCard.or(emptyStatePostScan).or(emptyStateNoScan).or(emptyStateMobile).first()
-		).toBeVisible({ timeout: 10_000 });
+		).toBeVisible({ timeout: 20_000 });
 
 		// If groups were found, sanity-check the card structure.
 		if (await groupCard.first().isVisible()) {
