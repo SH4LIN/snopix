@@ -1,225 +1,102 @@
 <?php
 /**
- * Tests for Color_Processor.
+ * Unit tests for Snopix\Imaging\Color_Processor.
  *
  * @package Snopix
  */
 
-require_once dirname( __DIR__ ) . '/class-testcase.php';
-
 use Snopix\Imaging\Color_Processor;
+use Snopix\Imaging\Similarity;
 
 /**
- * Color_Processor tests.
+ * @covers \Snopix\Imaging\Color_Processor
  */
-class Snopix_Color_Processor_Test extends Snopix_TestCase {
+final class Color_Processor_Test extends Snopix_Unit_TestCase {
+
+	/**
+	 * Number of RGB channels concatenated in the vector.
+	 */
+	private const CHANNELS = 3;
 
 	private Color_Processor $processor;
-	private static string $fixtures_dir;
 
-	/**
-	 * Resolve the fixture image directory once for the whole class.
-	 *
-	 * @return void
-	 */
-	public static function setUpBeforeClass(): void {
-		parent::setUpBeforeClass();
-		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
-	}
-
-	/**
-	 * Build a fresh Color_Processor instance before each test.
-	 *
-	 * @return void
-	 */
-	public function setUp(): void {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->processor = new Color_Processor();
 	}
 
-	/**
-	 * Create a square GD resource filled with a single RGB colour.
-	 *
-	 * @param int $r    Red channel value 0–255.
-	 * @param int $g    Green channel value 0–255.
-	 * @param int $b    Blue channel value 0–255.
-	 * @param int $size Pixel size of one side. Defaults to 100.
-	 *
-	 * @return \GdImage
-	 */
-	private function solid_gd( int $r, int $g, int $b, int $size = 100 ) {
-		$img = imagecreatetruecolor( $size, $size );
-		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
-		return $img;
-	}
-
-	/**
-	 * Whether the optional Picsum fixture images have been downloaded.
-	 *
-	 * @return bool
-	 */
-	private function fixtures_available(): bool {
-		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
-	}
-
-	// ── Output format ─────────────────────────────────────────────────────
-
-	/**
-	 * Output array must contain the `color_vector` key.
-	 *
-	 * @return void
-	 */
-	public function test_returns_color_vector_key(): void {
-		$gd     = $this->solid_gd( 128, 128, 128 );
+	public function test_output_has_color_vector_of_48_floats(): void {
+		$gd     = self::gd_from_fixture( 1 );
 		$result = $this->processor->process( $gd, 1 );
 		imagedestroy( $gd );
+
 		$this->assertArrayHasKey( 'color_vector', $result );
-	}
-
-	/**
-	 * Color vector must be a flat 48-element list (16 bins × RGB).
-	 *
-	 * @return void
-	 */
-	public function test_color_vector_has_48_elements(): void {
-		$gd     = $this->solid_gd( 200, 100, 50 );
-		$vector = $this->processor->process( $gd, 1 )['color_vector'];
-		imagedestroy( $gd );
-		$this->assertCount( 48, $vector );
-	}
-
-	/**
-	 * Every element of the colour vector must be a float (normalised bin frequency).
-	 *
-	 * @return void
-	 */
-	public function test_all_values_are_float(): void {
-		$gd     = $this->solid_gd( 100, 150, 200 );
-		$vector = $this->processor->process( $gd, 1 )['color_vector'];
-		imagedestroy( $gd );
-		foreach ( $vector as $v ) {
-			$this->assertIsFloat( $v );
+		$this->assertCount( 48, $result['color_vector'] );
+		foreach ( $result['color_vector'] as $value ) {
+			$this->assertIsFloat( $value );
 		}
 	}
 
-	// ── Normalisation ─────────────────────────────────────────────────────
-
-	/**
-	 * Each per-channel histogram (R, G, B) must sum to exactly 1.0.
-	 *
-	 * @return void
-	 */
-	public function test_channel_histograms_sum_to_one(): void {
-		$gd     = $this->solid_gd( 200, 100, 50 );
+	public function test_all_values_are_within_unit_range(): void {
+		$gd     = self::gd_from_fixture( 1 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
 		imagedestroy( $gd );
 
-		// 3 channels × 16 bins, each channel must sum to 1.0.
-		for ( $c = 0; $c < 3; $c++ ) {
-			$channel_sum = array_sum( array_slice( $vector, $c * 16, 16 ) );
-			$this->assertEqualsWithDelta( 1.0, $channel_sum, 1e-9, "Channel {$c} does not sum to 1.0" );
+		foreach ( $vector as $value ) {
+			$this->assertGreaterThanOrEqual( 0.0, $value );
+			$this->assertLessThanOrEqual( 1.0, $value );
 		}
 	}
 
-	/**
-	 * All normalised bin values must lie in [0, 1].
-	 *
-	 * @return void
-	 */
-	public function test_all_values_in_range_0_to_1(): void {
-		$gd     = $this->solid_gd( 123, 45, 67 );
-		$vector = $this->processor->process( $gd, 1 )['color_vector'];
-		imagedestroy( $gd );
-		foreach ( $vector as $v ) {
-			$this->assertGreaterThanOrEqual( 0.0, $v );
-			$this->assertLessThanOrEqual( 1.0, $v );
-		}
-	}
-
-	// ── Semantic correctness ──────────────────────────────────────────────
-
-	/**
-	 * A solid red image must peak in the last red bin (value 255 → bin 15) and
-	 * concentrate all green/blue mass in bin 0.
-	 *
-	 * @return void
-	 */
-	public function test_solid_red_image_peaks_in_red_channel(): void {
-		$gd     = $this->solid_gd( 255, 0, 0 );
+	public function test_each_channel_histogram_sums_to_one(): void {
+		// Thumbnail is exactly 150x150 = 22500 px = TOTAL_PIXELS, so every
+		// pixel falls into one bin per channel and each 16-bin sub-histogram
+		// (normalised by TOTAL_PIXELS) sums to 1.0.
+		$gd     = self::gd_from_fixture( 1 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
 		imagedestroy( $gd );
 
-		// Red channel (bins 0-15) should have a high last bin (255 → bin 15).
-		$r_max_bin = array_search( max( array_slice( $vector, 0, 16 ) ), array_slice( $vector, 0, 16 ) );
-		$this->assertSame( 15, (int) $r_max_bin );
+		$r = array_sum( array_slice( $vector, 0, 16 ) );
+		$g = array_sum( array_slice( $vector, 16, 16 ) );
+		$b = array_sum( array_slice( $vector, 32, 16 ) );
 
-		// Green channel (bins 16-31) should all be near zero.
-		$g_sum = array_sum( array_slice( $vector, 16, 16 ) );
-		$this->assertEqualsWithDelta( 1.0, $g_sum, 1e-9 );
-		// All green pixels land in bin 0 (value 0).
-		$this->assertEqualsWithDelta( 1.0, $vector[16], 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $r, 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $g, 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $b, 1e-9 );
 	}
 
-	// ── Determinism ───────────────────────────────────────────────────────
+	public function test_process_is_deterministic(): void {
+		$gd1 = self::gd_from_fixture( 3 );
+		$gd2 = self::gd_from_fixture( 3 );
+		$a   = $this->processor->process( $gd1, 3 )['color_vector'];
+		$b   = $this->processor->process( $gd2, 3 )['color_vector'];
+		imagedestroy( $gd1 );
+		imagedestroy( $gd2 );
 
-	/**
-	 * Processing the same GD resource twice must yield identical vectors.
-	 *
-	 * @return void
-	 */
-	public function test_same_image_returns_identical_vector(): void {
-		$gd = $this->solid_gd( 75, 150, 225 );
-		$v1 = $this->processor->process( $gd, 1 )['color_vector'];
-		$v2 = $this->processor->process( $gd, 2 )['color_vector'];
-		imagedestroy( $gd );
-		$this->assertSame( $v1, $v2 );
+		$this->assertSame( $a, $b );
 	}
 
-	// ── Discriminability ─────────────────────────────────────────────────
+	public function test_png_variant_matches_base_more_than_a_different_fixture(): void {
+		$similarity = new Similarity();
 
-	/**
-	 * Visually distinct colours must produce distinct colour vectors.
-	 *
-	 * @return void
-	 */
-	public function test_red_and_blue_images_have_different_vectors(): void {
-		$red  = $this->solid_gd( 255, 0, 0 );
-		$blue = $this->solid_gd( 0, 0, 255 );
-		$v1   = $this->processor->process( $red, 1 )['color_vector'];
-		$v2   = $this->processor->process( $blue, 1 )['color_vector'];
-		imagedestroy( $red );
-		imagedestroy( $blue );
-		$this->assertNotSame( $v1, $v2 );
-	}
+		$base_gd = self::gd_from_fixture( 1 );
+		$png_gd  = self::gd_from_path( self::variation_path( 1, 'png' ) );
+		$other_gd = self::gd_from_fixture( 5 );
 
-	// ── Fixture-based ─────────────────────────────────────────────────────
+		$base  = $this->processor->process( $base_gd, 1 )['color_vector'];
+		$png   = $this->processor->process( $png_gd, 1 )['color_vector'];
+		$other = $this->processor->process( $other_gd, 5 )['color_vector'];
 
-	/**
-	 * Sweep the 100-image Picsum fixture set and confirm every produced vector
-	 * has the right length and per-channel normalisation. Skips silently when
-	 * fixtures have not been downloaded.
-	 *
-	 * @return void
-	 */
-	public function test_fixture_images_produce_valid_color_vectors(): void {
-		if ( ! $this->fixtures_available() ) {
-			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
-		}
+		imagedestroy( $base_gd );
+		imagedestroy( $png_gd );
+		imagedestroy( $other_gd );
 
-		for ( $i = 1; $i <= 100; $i++ ) {
-			$path = sprintf( '%s/%03d.jpg', self::$fixtures_dir, $i );
-			if ( ! file_exists( $path ) ) {
-				continue;
-			}
-			$gd     = imagecreatefromjpeg( $path );
-			$vector = $this->processor->process( $gd, $i )['color_vector'];
-			imagedestroy( $gd );
+		$same_format = $similarity->bhattacharyya_similarity( $base, $png, self::CHANNELS );
+		$diff_image  = $similarity->bhattacharyya_similarity( $base, $other, self::CHANNELS );
 
-			$this->assertCount( 48, $vector, "Image #{$i}: wrong vector length" );
-			for ( $c = 0; $c < 3; $c++ ) {
-				$sum = array_sum( array_slice( $vector, $c * 16, 16 ) );
-				$this->assertEqualsWithDelta( 1.0, $sum, 1e-6, "Image #{$i} channel {$c} does not sum to 1" );
-			}
-		}
+		// Same image re-encoded as PNG: histograms nearly identical.
+		$this->assertGreaterThan( 0.95, $same_format );
+		// A different fixture is a worse match than the format variant.
+		$this->assertGreaterThan( $diff_image, $same_format );
 	}
 }

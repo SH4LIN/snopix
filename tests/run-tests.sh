@@ -1,64 +1,43 @@
 #!/usr/bin/env bash
-# Snopix test runner commands — copy/paste as needed.
+#
+# Snopix test runner.
+#
+#   ./tests/run-tests.sh unit          pure unit suite on the host (no WP/DB)
+#   ./tests/run-tests.sh integration   integration suite inside wp-env tests-cli
+#   ./tests/run-tests.sh e2e           Playwright chromium against the dev site
+#   ./tests/run-tests.sh all           all three in order
+#
+# Integration/e2e require `npx wp-env start` to have been run first.
 
-CONTAINER=$(docker ps --format "{{.Names}}" | grep "tests-cli" | head -1)
-PLUGIN_PATH="/var/www/html/wp-content/plugins/snopix"
-PHPUNIT="WP_TESTS_DIR=/wordpress-phpunit php $PLUGIN_PATH/vendor/bin/phpunit --configuration $PLUGIN_PATH/phpunit.xml.dist"
+set -euo pipefail
 
-# ---------------------------------------------------------------------------
-# UNIT TESTS (requires: npx wp-env start)
-# ---------------------------------------------------------------------------
+cd "$(dirname "$0")/.."
 
-# Run all unit tests
-docker exec $CONTAINER bash -c "$PHPUNIT"
+run_unit() {
+	vendor/bin/phpunit -c phpunit-unit.xml.dist
+}
 
-# Run a specific test class (replace filter value as needed)
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Repository"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Schema"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Plugin"
-docker exec $CONTAINER bash -c "$PHPUNIT --filter Snopix_Query"
+run_integration() {
+	npx wp-env run tests-cli \
+		--env-cwd=wp-content/plugins/snopix \
+		vendor/bin/phpunit -c phpunit-integration.xml.dist
+}
 
-# Run a specific test method
-docker exec $CONTAINER bash -c "$PHPUNIT --filter test_upsert_inserts_new_row"
+run_e2e() {
+	npx playwright test --project=chromium
+}
 
-# Confirm container name (run this if the above fails)
-docker ps --format "{{.Names}}" | grep tests-cli
-
-# ---------------------------------------------------------------------------
-# E2E TESTS (requires: npx wp-env start, npm install)
-# ---------------------------------------------------------------------------
-
-# First-time setup — install Playwright browsers (run once)
-npx playwright install chromium
-
-# Download fixture images for indexing test (run once, skips already-downloaded)
-php tests/bin/download-fixtures.php
-
-# Run all e2e tests (headless, Chromium only — fastest)
-npx playwright test --project=chromium
-
-# Run all e2e tests across all browsers
-npm run test:e2e
-
-# Run a specific spec file
-npx playwright test tests/e2e/admin.spec.ts --project=chromium
-npx playwright test tests/e2e/indexing.spec.ts --project=chromium
-npx playwright test tests/e2e/shortcode.spec.ts --project=chromium
-
-# Run with browser visible
-npm run test:e2e:headed
-
-# Run with interactive Playwright UI
-npm run test:e2e:ui
-
-# Debug mode (step through)
-npm run test:e2e:debug
-
-# View HTML report from last run
-npm run test:e2e:report
-
-# Override base URL (default: http://localhost:8000)
-# WORDPRESS_URL=http://localhost:8888 npx playwright test --project=chromium
-
-# Override WP admin credentials (default: admin / password)
-# WP_ADMIN_USER=admin WP_ADMIN_PASSWORD=password npx playwright test --project=chromium
+case "${1:-all}" in
+	unit) run_unit ;;
+	integration) run_integration ;;
+	e2e) run_e2e ;;
+	all)
+		run_unit
+		run_integration
+		run_e2e
+		;;
+	*)
+		echo "usage: $0 {unit|integration|e2e|all}" >&2
+		exit 1
+		;;
+esac

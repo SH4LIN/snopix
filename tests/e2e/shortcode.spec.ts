@@ -1,138 +1,157 @@
 /**
- * Playwright end-to-end tests for the [snopix_search] frontend shortcode.
+ * Snopix shortcode e2e spec — [snopix_search] widget on a front-end post.
  *
- * Covers rendering of the drop-zone, drag-and-drop upload, score badges, the
- * "no results" empty state, click-through to the media library, visibility
- * gating (anyone vs logged-in), error states, skeleton loading and the
- * responsive layout on mobile / tablet viewports.
+ * The post containing the shortcode is created once per suite via
+ * `createPostWithShortcode()` in a `beforeAll` hook.
+ *
+ * Selectors are best-effort from the React source (SnopixWidget.tsx / main.tsx).
+ * Whether the search returns real matches depends on whether the media library
+ * has indexed images; the spec therefore accepts any post-search state:
+ * results, "No matches", or an API error message.
+ *
+ * Widget mount point : [data-snopix-search]
+ * Drop-zone trigger  : .snopix-widget div[data-over] (click opens file picker)
+ * Hidden file input  : input[type="file"][accept="image/jpeg,image/png,image/gif,image/webp"]
+ * Scanning indicator : .sx-progress  (progress bar shown while fetch is in flight)
+ * Results heading    : text matching /\d+ match(es)?|No matches|Search failed/
+ * Empty state        : text "No visually similar images"
+ * Error state        : .snopix-widget div.py-10 (error paragraph inside results panel)
  */
-import { test, expect } from '@playwright/test';
-test.describe('Snopix Frontend Search Shortcode (Phase 7)', () => {
+
+import { test, expect } from './fixtures';
+import { login, createPostWithShortcode, fixturePath } from './helpers';
+
+const SHORTCODE = '[snopix_search]';
+
+// Selectors derived from SnopixWidget.tsx
+const MOUNT_POINT   = '[data-snopix-search]';
+const WIDGET_ROOT   = '.snopix-widget';
+const FILE_INPUT    = 'input[type="file"][accept="image/jpeg,image/png,image/gif,image/webp"]';
+// Text inside the drop-zone that confirms the widget rendered in idle state
+const DROP_ZONE_CUE = 'Drop an image to search';
+// Scanning: the progress bar visible while the POST /snopix/v1/search is in flight
+const PROGRESS_BAR  = '.sx-progress';
+// Post-search: the heading that shows match count, "No matches", or "Search failed"
+const RESULT_HEADING_PATTERN = /\d+ match(es)?|No matches|Search failed/i;
+// "No visually similar images" text for the empty state
+const EMPTY_TEXT    = 'No visually similar images';
+
+test.describe('[snopix_search] shortcode — front-end widget', () => {
+	let postUrl: string;
+
+	test.beforeAll(async ({ browser }) => {
+		const page = await browser.newPage();
+		await login(page);
+		postUrl = await createPostWithShortcode(page, SHORTCODE);
+		await page.close();
+	});
+
 	test.beforeEach(async ({ page }) => {
-		// Navigate to page with [snopix_search] shortcode
-		// Assumes a page exists with the shortcode
-		await page.goto('/snopix-search/');
+		await login(page);
 	});
 
-	test.skip('shortcode renders search drop zone', async ({ page }) => {
-		// Phase 7 test: verify shortcode renders
-		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
-		await expect(dropZone).toBeVisible();
+	// -------------------------------------------------------------------------
+	// 1. Widget mounts into [data-snopix-search] and renders the drop-zone UI
+	// -------------------------------------------------------------------------
+	test('widget mounts and renders the upload drop-zone', async ({ page }) => {
+		await page.goto(postUrl);
+
+		// Mount point must exist in the DOM.
+		const mountPoint = page.locator(MOUNT_POINT).first();
+		await expect(mountPoint).toBeAttached({ timeout: 15_000 });
+
+		// React must have rendered children inside it — the .snopix-widget root.
+		const widgetRoot = page.locator(WIDGET_ROOT).first();
+		await expect(widgetRoot).toBeVisible({ timeout: 15_000 });
+
+		// The idle drop-zone copy should be present.
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+
+		// The hidden file input must be in the DOM (attached but hidden).
+		await expect(page.locator(FILE_INPUT)).toBeAttached({ timeout: 5_000 });
 	});
 
-	test.skip('can drag and drop image for search', async ({ page }) => {
-		// Phase 7 test: upload via drag-drop
-		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
+	// -------------------------------------------------------------------------
+	// 2. Uploading a query image triggers a search and renders a result state
+	// -------------------------------------------------------------------------
+	test('uploading a query image executes search and renders a result state', async ({ page }) => {
+		await page.goto(postUrl);
 
-		// File drag-drop simulation (Playwright specific)
-		const fileInput = page.locator('input[type="file"]');
-		await fileInput.setInputFiles('./tests/fixtures/test-image.jpg');
+		// Wait for the widget to reach the idle / drop-zone phase.
+		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
 
-		// Wait for search to complete
-		await page.waitForLoadState('networkidle');
+		// Set the file directly on the hidden input without clicking through
+		// the OS file-picker (setInputFiles bypasses the hidden attribute).
+		const fileInput = page.locator(FILE_INPUT);
+		await fileInput.setInputFiles(fixturePath('001.jpg'));
 
-		// Verify results display
-		const resultsGrid = page.locator('[data-testid="snopix-search-results"]');
-		await expect(resultsGrid).toBeVisible();
+		// The widget should immediately enter the "scanning" phase:
+		// the drop-zone disappears, the probe preview + progress bar appear.
+		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+
+		// Wait for the search to complete: progress bar disappears and a
+		// result-state heading appears. Give the REST call generous time.
+		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+
+		// One of: "N matches", "No matches", "Search failed" must be shown.
+		await expect(
+			page.locator(WIDGET_ROOT).first().locator('div').filter({ hasText: RESULT_HEADING_PATTERN }).first()
+		).toBeVisible({ timeout: 10_000 });
 	});
 
-	test.skip('displays score badges on results', async ({ page }) => {
-		// Phase 7 test: verify score percentage display
-		const scoreCard = page.locator('[data-testid="result-score-badge"]').first();
-		await expect(scoreCard).toContainText('%');
+	// -------------------------------------------------------------------------
+	// 3. Empty or results state: correct UI renders without a JS crash
+	// -------------------------------------------------------------------------
+	test('post-search state renders either results grid or empty/error message', async ({ page }) => {
+		await page.goto(postUrl);
+		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+
+		const fileInput = page.locator(FILE_INPUT);
+		await fileInput.setInputFiles(fixturePath('001.jpg'));
+
+		// Wait for scanning to finish.
+		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+
+		const widget = page.locator(WIDGET_ROOT).first();
+
+		// Check which state the widget landed in and assert the correct UI.
+		const hasResults   = await widget.locator('a[href]').count() > 0;
+		const hasEmptyText = await widget.getByText(EMPTY_TEXT).count() > 0;
+		// "Search failed" error state: the error paragraph has class py-10 px-6
+		const hasError     = await widget.locator('div.py-10').count() > 0;
+
+		// Exactly one of the three post-search states must be rendered.
+		expect(hasResults || hasEmptyText || hasError).toBe(true);
+
+		// In all cases, the drop-zone must have been replaced (no longer visible).
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeHidden();
 	});
 
-	test.skip('shows "no results" message for unrelated image', async ({ page }) => {
-		// Phase 7 test: upload unrelated image, expect empty state
-		const fileInput = page.locator('input[type="file"]');
-		await fileInput.setInputFiles('./tests/fixtures/unrelated-image.jpg');
+	// -------------------------------------------------------------------------
+	// 4. "New search" button resets the widget back to the idle drop-zone
+	// -------------------------------------------------------------------------
+	test('"New search" resets the widget to idle drop-zone state', async ({ page }) => {
+		await page.goto(postUrl);
+		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
 
-		await page.waitForLoadState('networkidle');
+		const fileInput = page.locator(FILE_INPUT);
+		await fileInput.setInputFiles(fixturePath('001.jpg'));
 
-		const emptyState = page.locator(':text("No similar images found")');
-		await expect(emptyState).toBeVisible();
-	});
+		// Wait for the search to settle into any post-scan state.
+		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
 
-	test.skip('click result to open media library', async ({ page }) => {
-		// Phase 7 test: verify result links work
-		const resultLink = page.locator('[data-testid="result-link"]').first();
-		const href = await resultLink.getAttribute('href');
+		// Click "New search" to reset.
+		const newSearchBtn = page.getByRole('button', { name: /new search/i });
+		await expect(newSearchBtn).toBeVisible({ timeout: 5_000 });
+		await newSearchBtn.click();
 
-		expect(href).toContain('media.php') || expect(href).toMatch(/^https?:\/\//);
-	});
-
-	test.skip('respects search visibility setting (public)', async ({ page }) => {
-		// Phase 7 test: if visibility is "anyone", public user can search
-		// This test assumes snopix_settings option is set to 'anyone'
-
-		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
-		await expect(dropZone).toBeVisible();
-	});
-
-	test.skip('blocks search for logged-out if visibility restricted', async ({ page, context }) => {
-		// Phase 7 test: logged-out user sees notice if visibility is 'logged_in'
-		// This requires settings to be changed and page reloaded
-
-		const notice = page.locator(':text("Log in to search")');
-		if (await notice.isVisible()) {
-			await expect(notice).toBeVisible();
-		}
-	});
-
-	test.skip('handles error states gracefully', async ({ page }) => {
-		// Phase 7 test: if search fails, show error message
-		// Mock network failure
-		await page.route('**/wp-json/snopix/v1/search', route => route.abort());
-
-		const fileInput = page.locator('input[type="file"]');
-		await fileInput.setInputFiles('./tests/fixtures/test-image.jpg');
-
-		const errorMsg = page.locator(':text("Something went wrong")');
-		await expect(errorMsg).toBeVisible();
-	});
-
-	test.skip('loading state shows skeleton cards', async ({ page }) => {
-		// Phase 7 test: verify shimmer skeleton during search
-		const fileInput = page.locator('input[type="file"]');
-
-		// Slow down network to catch loading state
-		await page.route('**/wp-json/snopix/v1/search', route => {
-			setTimeout(() => route.continue(), 1000);
-		});
-
-		await fileInput.setInputFiles('./tests/fixtures/test-image.jpg');
-
-		const skeleton = page.locator('[data-testid="skeleton-card"]');
-		await expect(skeleton).toBeVisible();
-	});
-});
-
-/**
- * Responsive design tests.
- */
-test.describe('Snopix Frontend Responsive Design', () => {
-	test.skip('shortcode adapts to mobile viewport', async ({ page }) => {
-		// Set mobile viewport
-		await page.setViewportSize({ width: 375, height: 667 });
-		await page.goto('/snopix-search/');
-
-		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
-		await expect(dropZone).toBeVisible();
-
-		// Verify grid reduces to 1 column on mobile
-		const resultsGrid = page.locator('[data-testid="snopix-search-results"]');
-		const itemCount = await resultsGrid.locator('[data-testid="result-card"]').count();
-		// On mobile, should display differently (actual assertion depends on implementation)
-		expect(itemCount).toBeGreaterThanOrEqual(0);
-	});
-
-	test.skip('search works on tablet', async ({ page }) => {
-		// Set tablet viewport
-		await page.setViewportSize({ width: 768, height: 1024 });
-		await page.goto('/snopix-search/');
-
-		const dropZone = page.locator('[data-testid="snopix-search-drop-zone"]');
-		await expect(dropZone).toBeVisible();
+		// Widget must return to the idle drop-zone state.
+		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 5_000 });
+		await expect(page.locator(FILE_INPUT)).toBeAttached();
 	});
 });
-

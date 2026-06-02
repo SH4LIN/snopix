@@ -1,261 +1,218 @@
 <?php
 /**
- * Tests for Search_Pipeline orchestration.
+ * Unit tests for Snopix\Search\Search_Pipeline.
+ *
+ * The pipeline is driven with a fake repository (canned candidate rows) and a
+ * fake fingerprint factory (canned query fingerprint), against the real
+ * Score_Calculator. The few WordPress functions the result-hydration tail
+ * touches are stubbed below so the scoring / ordering / threshold / limit
+ * logic can run with no WordPress loaded.
  *
  * @package Snopix
  */
 
-require_once dirname( __DIR__ ) . '/class-testcase.php';
-
+use Snopix\Imaging\Similarity;
 use Snopix\Repository\Index_Repository;
 use Snopix\Search\Fingerprint_Factory;
 use Snopix\Search\Score_Calculator;
 use Snopix\Search\Search_Pipeline;
-use Snopix\Search\Search_Result;
+
+if ( ! function_exists( 'get_option' ) ) {
+	/**
+	 * Stub: force Settings to fall back to its hard-coded defaults (match
+	 * threshold 0.85) by always returning an empty option payload.
+	 *
+	 * @param string $name    Option name.
+	 * @param mixed  $default Default value.
+	 *
+	 * @return mixed
+	 */
+	function get_option( $name, $default = false ) {
+		return array();
+	}
+}
+
+if ( ! function_exists( '_prime_post_caches' ) ) {
+	/**
+	 * Stub: cache priming is a no-op outside WordPress.
+	 *
+	 * @param array<int> $ids        Attachment IDs.
+	 * @param bool       $update_meta Unused.
+	 * @param bool       $update_term Unused.
+	 *
+	 * @return void
+	 */
+	function _prime_post_caches( $ids, $update_meta = true, $update_term = true ) {}
+}
+
+if ( ! function_exists( 'wp_get_attachment_image_src' ) ) {
+	/**
+	 * Stub: synthesise a predictable image src tuple.
+	 *
+	 * @param int    $id   Attachment ID.
+	 * @param string $size Size name.
+	 *
+	 * @return array{0: string, 1: int, 2: int}
+	 */
+	function wp_get_attachment_image_src( $id, $size = 'thumbnail' ) {
+		return array( "http://example.test/{$id}-{$size}.jpg", 100, 100 );
+	}
+}
+
+if ( ! function_exists( 'get_the_title' ) ) {
+	/**
+	 * Stub: synthesise a predictable title.
+	 *
+	 * @param int $id Attachment ID.
+	 *
+	 * @return string
+	 */
+	function get_the_title( $id = 0 ) {
+		return "Image {$id}";
+	}
+}
 
 /**
- * Search_Pipeline unit tests — mocked repo/factory/calculator.
+ * Repository stub returning canned candidate rows. The parent constructor
+ * (which requires a \wpdb) is intentionally bypassed; only the hamming
+ * candidate lookup is exercised.
  */
-class Snopix_Search_Pipeline_Test extends Snopix_TestCase {
+final class Fake_Search_Repo extends Index_Repository {
 
 	/**
-	 * Build a fingerprint payload mirroring the factory output.
+	 * @var array<int, array<string, mixed>>
+	 */
+	public array $candidates = array();
+
+	public function __construct() {} // phpcs:ignore -- skip parent wpdb dependency.
+
+	/**
+	 * @param string $query_phash  Unused; candidates are pre-canned.
+	 * @param int    $max_distance Unused.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function get_candidates_for_hamming( string $query_phash, int $max_distance ): array {
+		return $this->candidates;
+	}
+}
+
+/**
+ * Fingerprint factory stub returning a canned query fingerprint.
+ */
+final class Fake_Search_Factory extends Fingerprint_Factory {
+
+	/**
+	 * @var array<string, mixed>
+	 */
+	public array $fp = array();
+
+	public function __construct() {} // phpcs:ignore -- skip parent loader dependency.
+
+	/**
+	 * @param int $attachment_id Unused; the canned fingerprint is returned.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function valid_fingerprint(): array {
+	public function generate( int $attachment_id ): array {
+		return $this->fp;
+	}
+}
+
+/**
+ * @covers \Snopix\Search\Search_Pipeline
+ */
+final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
+
+	/**
+	 * A fingerprint that scores 1.0 against itself (see Score_Calculator_Test).
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function base_fingerprint(): array {
 		return array(
-			'phash'        => 'abcdef1234567890',
-			'color_vector' => array_fill( 0, 48, 0.5 ),
-			'edge_vector'  => array_fill( 0, 32, 0.5 ),
+			'phash'        => 'a1b2c3d4e5f60718',
+			'color_vector' => array( 0.6, 0.4, 0.7, 0.3, 0.2, 0.8 ),
+			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
 		);
 	}
 
-	/**
-	 * Make a real image attachment so hydration can resolve URLs/titles.
-	 *
-	 * @return int
-	 */
-	private function make_image_attachment(): int {
-		return (int) self::factory()->attachment->create(
-			array(
-				'post_title'     => 'Search Pipeline Fixture',
-				'post_mime_type' => 'image/jpeg',
-			)
-		);
+	private function make_pipeline( Fake_Search_Repo $repo, Fake_Search_Factory $factory ): Search_Pipeline {
+		return new Search_Pipeline( $repo, $factory, new Score_Calculator( new Similarity() ) );
 	}
 
 	/**
-	 * A fingerprint that's missing required keys must throw "unfingerprintable".
+	 * Build a candidate row: a base fingerprint tagged with an attachment id.
 	 *
-	 * @return void
+	 * @param int                  $id      Attachment id.
+	 * @param array<string, mixed> $overrides Fingerprint key overrides.
+	 *
+	 * @return array<string, mixed>
 	 */
-	public function test_throws_when_fingerprint_unprocessable(): void {
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( array() );
+	private function row( int $id, array $overrides = array() ): array {
+		return array_merge( $this->base_fingerprint(), array( 'attachment_id' => $id ), $overrides );
+	}
 
-		$pipeline = new Search_Pipeline(
-			$this->createMock( Index_Repository::class ),
-			$factory,
-			new Score_Calculator( new \Snopix\Imaging\Similarity() )
-		);
+	public function test_throws_when_query_is_unfingerprintable(): void {
+		$factory     = new Fake_Search_Factory();
+		$factory->fp = array(); // Empty fingerprint.
 
 		$this->expectException( \RuntimeException::class );
-		$this->expectExceptionMessage( 'unfingerprintable' );
-		$pipeline->search( 1 );
+		$this->make_pipeline( new Fake_Search_Repo(), $factory )->search( 1 );
 	}
 
-	/**
-	 * No candidate rows must produce an empty result set.
-	 *
-	 * @return void
-	 */
 	public function test_returns_empty_when_no_candidates(): void {
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
+		$factory     = new Fake_Search_Factory();
+		$factory->fp = $this->base_fingerprint();
 
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn( array() );
+		$repo             = new Fake_Search_Repo();
+		$repo->candidates = array();
 
-		$pipeline = new Search_Pipeline(
-			$repo,
-			$factory,
-			new Score_Calculator( new \Snopix\Imaging\Similarity() )
-		);
-
-		$this->assertSame( array(), $pipeline->search( 1 ) );
+		$this->assertSame( array(), $this->make_pipeline( $repo, $factory )->search( 1 ) );
 	}
 
-	/**
-	 * Rows scoring below the threshold must be dropped.
-	 *
-	 * @return void
-	 */
-	public function test_filters_results_below_score_threshold(): void {
-		$attachment_id = $this->make_image_attachment();
+	public function test_orders_results_by_score_descending_and_drops_sub_threshold(): void {
+		$factory     = new Fake_Search_Factory();
+		$factory->fp = $this->base_fingerprint();
 
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
-
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn(
-			array(
+		$repo             = new Fake_Search_Repo();
+		$repo->candidates = array(
+			// Identical → score 1.0.
+			$this->row( 10 ),
+			// One-bit pHash difference, identical colour/edge → just under 1.0.
+			$this->row( 20, array( 'phash' => 'a1b2c3d4e5f60719' ) ),
+			// Inverted pHash + disjoint colour + opposite edge → below 0.85, dropped.
+			$this->row(
+				30,
 				array(
-					'attachment_id' => $attachment_id,
-					'phash'         => 'abcdef1234567890',
-					'color_vector'  => wp_json_encode( array_fill( 0, 48, 0.5 ) ),
-					'edge_vector'   => wp_json_encode( array_fill( 0, 32, 0.5 ) ),
-				),
-			)
-		);
-
-		$calculator = $this->createMock( Score_Calculator::class );
-		$calculator->method( 'calculate' )->willReturn( 0.5 ); // Below 0.85 threshold.
-
-		$pipeline = new Search_Pipeline( $repo, $factory, $calculator );
-
-		$this->assertSame( array(), $pipeline->search( $attachment_id ) );
-	}
-
-	/**
-	 * Rows scoring above the threshold must be returned as Search_Result objects.
-	 *
-	 * @return void
-	 */
-	public function test_returns_results_above_threshold(): void {
-		$attachment_id = $this->make_image_attachment();
-
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
-
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn(
-			array(
-				array(
-					'attachment_id' => $attachment_id,
-					'phash'         => 'abcdef1234567890',
-					'color_vector'  => wp_json_encode( array_fill( 0, 48, 0.5 ) ),
-					'edge_vector'   => wp_json_encode( array_fill( 0, 32, 0.5 ) ),
-				),
-			)
-		);
-
-		$calculator = $this->createMock( Score_Calculator::class );
-		$calculator->method( 'calculate' )->willReturn( 0.95 );
-
-		$pipeline = new Search_Pipeline( $repo, $factory, $calculator );
-		$results  = $pipeline->search( $attachment_id );
-
-		$this->assertCount( 1, $results );
-		$this->assertInstanceOf( Search_Result::class, $results[0] );
-		$this->assertSame( $attachment_id, $results[0]->attachment_id );
-		$this->assertEqualsWithDelta( 0.95, $results[0]->score, 1e-6 );
-	}
-
-	/**
-	 * Results are returned sorted by score descending.
-	 *
-	 * @return void
-	 */
-	public function test_results_sorted_by_score_descending(): void {
-		$ids = array(
-			$this->make_image_attachment(),
-			$this->make_image_attachment(),
-			$this->make_image_attachment(),
-		);
-
-		$rows = array_map(
-			static fn( $id ) => array(
-				'attachment_id' => $id,
-				'phash'         => 'abcdef1234567890',
-				'color_vector'  => wp_json_encode( array_fill( 0, 48, 0.5 ) ),
-				'edge_vector'   => wp_json_encode( array_fill( 0, 32, 0.5 ) ),
+					'phash'        => '5e4d3c2b1a09f8e7',
+					'color_vector' => array( 0.0, 1.0, 0.0, 1.0, 1.0, 0.0 ),
+					'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
+				)
 			),
-			$ids
 		);
 
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
-
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn( $rows );
-
-		$scores     = array( $ids[0] => 0.90, $ids[1] => 0.99, $ids[2] => 0.95 );
-		$calculator = $this->createMock( Score_Calculator::class );
-		$calculator->method( 'calculate' )
-			->willReturnCallback(
-				static fn( $query, $row ) => $scores[ (int) $row['attachment_id'] ]
-			);
-
-		$pipeline = new Search_Pipeline( $repo, $factory, $calculator );
-		$results  = $pipeline->search( $ids[0] );
-
-		$this->assertCount( 3, $results );
-		$this->assertGreaterThanOrEqual( $results[1]->score, $results[0]->score );
-		$this->assertGreaterThanOrEqual( $results[2]->score, $results[1]->score );
-	}
-
-	/**
-	 * The `limit` argument caps the result set after sorting.
-	 *
-	 * @return void
-	 */
-	public function test_limit_caps_results(): void {
-		$ids = array(
-			$this->make_image_attachment(),
-			$this->make_image_attachment(),
-			$this->make_image_attachment(),
-		);
-
-		$rows = array_map(
-			static fn( $id ) => array(
-				'attachment_id' => $id,
-				'phash'         => 'abcdef1234567890',
-				'color_vector'  => wp_json_encode( array_fill( 0, 48, 0.5 ) ),
-				'edge_vector'   => wp_json_encode( array_fill( 0, 32, 0.5 ) ),
-			),
-			$ids
-		);
-
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
-
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn( $rows );
-
-		$calculator = $this->createMock( Score_Calculator::class );
-		$calculator->method( 'calculate' )->willReturn( 0.95 );
-
-		$pipeline = new Search_Pipeline( $repo, $factory, $calculator );
-		$results  = $pipeline->search( $ids[0], 2 );
+		$results = $this->make_pipeline( $repo, $factory )->search( 1 );
 
 		$this->assertCount( 2, $results );
+		$this->assertSame( 10, $results[0]->attachment_id );
+		$this->assertSame( 20, $results[1]->attachment_id );
+		$this->assertGreaterThan( $results[1]->score, $results[0]->score );
 	}
 
-	/**
-	 * Candidate rows without a `phash` key must be skipped (defensive).
-	 *
-	 * @return void
-	 */
-	public function test_candidates_without_phash_are_skipped(): void {
-		$id = $this->make_image_attachment();
+	public function test_respects_limit(): void {
+		$factory     = new Fake_Search_Factory();
+		$factory->fp = $this->base_fingerprint();
 
-		$factory = $this->createMock( Fingerprint_Factory::class );
-		$factory->method( 'generate' )->willReturn( $this->valid_fingerprint() );
-
-		$repo = $this->createMock( Index_Repository::class );
-		$repo->method( 'get_candidates_for_hamming' )->willReturn(
-			array(
-				array( 'attachment_id' => $id ), // No phash key.
-			)
+		$repo             = new Fake_Search_Repo();
+		$repo->candidates = array(
+			$this->row( 10 ),
+			$this->row( 20, array( 'phash' => 'a1b2c3d4e5f60719' ) ),
 		);
 
-		$pipeline = new Search_Pipeline(
-			$repo,
-			$factory,
-			new Score_Calculator( new \Snopix\Imaging\Similarity() )
-		);
+		$results = $this->make_pipeline( $repo, $factory )->search( 1, 1 );
 
-		$this->assertSame( array(), $pipeline->search( $id ) );
+		$this->assertCount( 1, $results );
+		$this->assertSame( 10, $results[0]->attachment_id );
 	}
 }

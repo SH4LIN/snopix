@@ -91,12 +91,12 @@ class Settings {
 			? sanitize_key( (string) $input['search_visibility'] )
 			: $defaults['search_visibility'];
 
-		$rate_limit  = isset( $input['rate_limit'] ) ? (int) $input['rate_limit'] : (int) $defaults['rate_limit'];
-		$batch_size  = isset( $input['batch_size'] ) ? (int) $input['batch_size'] : (int) $defaults['batch_size'];
-		$downscale   = isset( $input['downscale_max'] ) ? (int) $input['downscale_max'] : (int) $defaults['downscale_max'];
-		$match_thr   = isset( $input['match_threshold'] ) ? (float) $input['match_threshold'] : (float) $defaults['match_threshold'];
-		$dup_thr     = isset( $input['duplicate_threshold'] ) ? (float) $input['duplicate_threshold'] : (float) $defaults['duplicate_threshold'];
-		$drop_unins  = isset( $input['drop_on_uninstall'] ) ? (bool) $input['drop_on_uninstall'] : (bool) $defaults['drop_on_uninstall'];
+		$rate_limit = isset( $input['rate_limit'] ) ? (int) $input['rate_limit'] : (int) $defaults['rate_limit'];
+		$batch_size = isset( $input['batch_size'] ) ? (int) $input['batch_size'] : (int) $defaults['batch_size'];
+		$downscale  = isset( $input['downscale_max'] ) ? (int) $input['downscale_max'] : (int) $defaults['downscale_max'];
+		$match_thr  = isset( $input['match_threshold'] ) ? (float) $input['match_threshold'] : (float) $defaults['match_threshold'];
+		$dup_thr    = isset( $input['duplicate_threshold'] ) ? (float) $input['duplicate_threshold'] : (float) $defaults['duplicate_threshold'];
+		$drop_unins = isset( $input['drop_on_uninstall'] ) ? (bool) $input['drop_on_uninstall'] : (bool) $defaults['drop_on_uninstall'];
 
 		return array(
 			'search_visibility'   => in_array( $visibility, $allowed_visibility, true ) ? $visibility : 'anyone',

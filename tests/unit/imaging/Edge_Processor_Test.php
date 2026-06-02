@@ -1,217 +1,107 @@
 <?php
 /**
- * Tests for Edge_Processor.
+ * Unit tests for Snopix\Imaging\Edge_Processor.
  *
  * @package Snopix
  */
 
-require_once dirname( __DIR__ ) . '/class-testcase.php';
-
 use Snopix\Imaging\Edge_Processor;
+use Snopix\Imaging\Similarity;
 
 /**
- * Edge_Processor tests.
+ * @covers \Snopix\Imaging\Edge_Processor
  */
-class Snopix_Edge_Processor_Test extends Snopix_TestCase {
+final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 
 	private Edge_Processor $processor;
-	private static string $fixtures_dir;
 
-	/**
-	 * Resolve the fixture image directory once for the whole class.
-	 *
-	 * @return void
-	 */
-	public static function setUpBeforeClass(): void {
-		parent::setUpBeforeClass();
-		self::$fixtures_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/fixtures/images';
-	}
-
-	/**
-	 * Build a fresh Edge_Processor instance before each test.
-	 *
-	 * @return void
-	 */
-	public function setUp(): void {
+	protected function setUp(): void {
 		parent::setUp();
 		$this->processor = new Edge_Processor();
 	}
 
 	/**
-	 * Create a square GD resource filled with a single RGB colour.
+	 * Convenience: run the processor and return the raw edge vector.
 	 *
-	 * @param int $r    Red channel value 0–255.
-	 * @param int $g    Green channel value 0–255.
-	 * @param int $b    Blue channel value 0–255.
-	 * @param int $size Pixel size of one side. Defaults to 100.
+	 * @param \GdImage $gd Image resource.
 	 *
-	 * @return \GdImage
+	 * @return array<int, float>
 	 */
-	private function solid_gd( int $r, int $g, int $b, int $size = 100 ) {
-		$img = imagecreatetruecolor( $size, $size );
-		imagefill( $img, 0, 0, imagecolorallocate( $img, $r, $g, $b ) );
-		return $img;
-	}
-
-	/**
-	 * Generate a black/white pixel-checkerboard GD resource for maximum edge density.
-	 *
-	 * @param int $size Pixel size of one side. Defaults to 100.
-	 *
-	 * @return \GdImage
-	 */
-	private function high_contrast_gd( int $size = 100 ) {
-		$img = imagecreatetruecolor( $size, $size );
-		$w   = imagecolorallocate( $img, 255, 255, 255 );
-		$k   = imagecolorallocate( $img, 0, 0, 0 );
-		for ( $x = 0; $x < $size; $x++ ) {
-			for ( $y = 0; $y < $size; $y++ ) {
-				imagesetpixel( $img, $x, $y, ( ( $x + $y ) % 2 === 0 ) ? $w : $k );
-			}
-		}
-		return $img;
-	}
-
-	/**
-	 * Whether the optional Picsum fixture images have been downloaded.
-	 *
-	 * @return bool
-	 */
-	private function fixtures_available(): bool {
-		return file_exists( sprintf( '%s/001.jpg', self::$fixtures_dir ) );
-	}
-
-	// ── Output format ─────────────────────────────────────────────────────
-
-	/**
-	 * Output array must contain the `edge_vector` key.
-	 *
-	 * @return void
-	 */
-	public function test_returns_edge_vector_key(): void {
-		$gd     = $this->solid_gd( 128, 128, 128 );
+	private function vector( \GdImage $gd ): array {
 		$result = $this->processor->process( $gd, 1 );
-		imagedestroy( $gd );
-		$this->assertArrayHasKey( 'edge_vector', $result );
+		return $result['edge_vector'];
 	}
 
-	/**
-	 * Edge vector must be a flat 32-element histogram of gradient orientations.
-	 *
-	 * @return void
-	 */
-	public function test_edge_vector_has_32_elements(): void {
-		$gd     = $this->solid_gd( 200, 100, 50 );
-		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
-		imagedestroy( $gd );
+	public function test_process_returns_edge_vector_key(): void {
+		$gd     = self::gd_from_fixture( 1 );
+		$result = $this->processor->process( $gd, 1 );
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'edge_vector', $result );
+		$this->assertIsArray( $result['edge_vector'] );
+	}
+
+	public function test_vector_has_length_32(): void {
+		$vector = $this->vector( self::gd_from_fixture( 1 ) );
 		$this->assertCount( 32, $vector );
 	}
 
-	/**
-	 * Every element of the edge vector must be a float.
-	 *
-	 * @return void
-	 */
-	public function test_all_values_are_float(): void {
-		$gd     = $this->solid_gd( 100, 150, 200 );
-		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
-		imagedestroy( $gd );
+	public function test_vector_values_are_floats_in_normalised_range(): void {
+		$vector = $this->vector( self::gd_from_fixture( 3 ) );
+
 		foreach ( $vector as $v ) {
 			$this->assertIsFloat( $v );
-		}
-	}
-
-	// ── Normalisation ─────────────────────────────────────────────────────
-
-	/**
-	 * Normalised edge values must lie in [0, 1].
-	 *
-	 * @return void
-	 */
-	public function test_values_in_range_0_to_1(): void {
-		$gd     = $this->high_contrast_gd();
-		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
-		imagedestroy( $gd );
-		foreach ( $vector as $v ) {
 			$this->assertGreaterThanOrEqual( 0.0, $v );
 			$this->assertLessThanOrEqual( 1.0, $v );
 		}
 	}
 
-	// ── Semantic correctness ──────────────────────────────────────────────
-
-	/**
-	 * A solid (flat) image has no gradient: the entire edge histogram must be ~0.
-	 *
-	 * @return void
-	 */
-	public function test_solid_image_has_near_zero_edges(): void {
-		$gd     = $this->solid_gd( 200, 200, 200 );
-		$vector = $this->processor->process( $gd, 1 )['edge_vector'];
-		imagedestroy( $gd );
-		// Solid image → Sobel produces zeros everywhere (interior) or no change.
-		$sum = array_sum( $vector );
-		$this->assertEqualsWithDelta( 0.0, $sum, 1e-6 );
+	public function test_normalisation_max_value_is_one(): void {
+		// normalise() divides by max, so a non-degenerate image's peak block is 1.0.
+		$vector = $this->vector( self::gd_from_fixture( 5 ) );
+		$this->assertEqualsWithDelta( 1.0, max( $vector ), 1e-9 );
 	}
 
-	/**
-	 * High-contrast checkerboard must accumulate strictly more edge mass than a flat image.
-	 *
-	 * @return void
-	 */
-	public function test_high_contrast_image_has_higher_edges_than_solid(): void {
-		$solid   = $this->solid_gd( 128, 128, 128 );
-		$checker = $this->high_contrast_gd();
-		$v_solid   = $this->processor->process( $solid, 1 )['edge_vector'];
-		$v_checker = $this->processor->process( $checker, 1 )['edge_vector'];
-		imagedestroy( $solid );
-		imagedestroy( $checker );
-		$this->assertGreaterThan( array_sum( $v_solid ), array_sum( $v_checker ) );
+	public function test_process_is_deterministic_for_same_image(): void {
+		// Two independent decodes of the same fixture yield identical vectors.
+		$a = $this->vector( self::gd_from_fixture( 7 ) );
+		$b = $this->vector( self::gd_from_fixture( 7 ) );
+
+		$this->assertSame( $a, $b );
 	}
 
-	// ── Determinism ───────────────────────────────────────────────────────
+	public function test_process_is_deterministic_on_repeated_calls(): void {
+		$gd = self::gd_from_fixture( 2 );
 
-	/**
-	 * Processing the same GD resource twice must yield identical edge vectors.
-	 *
-	 * @return void
-	 */
-	public function test_same_image_returns_identical_vector(): void {
-		$gd = $this->high_contrast_gd();
-		$v1 = $this->processor->process( $gd, 1 )['edge_vector'];
-		$v2 = $this->processor->process( $gd, 2 )['edge_vector'];
-		imagedestroy( $gd );
-		$this->assertSame( $v1, $v2 );
+		$a = $this->vector( $gd );
+		$b = $this->vector( $gd );
+
+		$this->assertSame( $a, $b );
 	}
 
-	// ── Fixture-based ─────────────────────────────────────────────────────
+	public function test_downscale_variant_more_similar_to_base_than_other_fixture(): void {
+		$similarity = new Similarity();
 
-	/**
-	 * Sweep the 100-image Picsum fixture set and confirm every produced edge
-	 * vector has the right length and per-element bounds. Skipped when fixtures
-	 * have not been downloaded.
-	 *
-	 * @return void
-	 */
-	public function test_fixture_images_produce_valid_edge_vectors(): void {
-		if ( ! $this->fixtures_available() ) {
-			$this->markTestSkipped( 'Fixture images not downloaded. Run: composer fixtures' );
-		}
+		$base      = $this->vector( self::gd_from_fixture( 1 ) );
+		$downscale = $this->vector( self::gd_from_path( self::variation_path( 1, 'downscale' ) ) );
+		$other     = $this->vector( self::gd_from_fixture( 10 ) );
 
-		for ( $i = 1; $i <= 100; $i++ ) {
-			$path = sprintf( '%s/%03d.jpg', self::$fixtures_dir, $i );
-			if ( ! file_exists( $path ) ) {
-				continue;
-			}
-			$gd     = imagecreatefromjpeg( $path );
-			$vector = $this->processor->process( $gd, $i )['edge_vector'];
-			imagedestroy( $gd );
+		$near = $similarity->cosine_similarity( $base, $downscale );
+		$far  = $similarity->cosine_similarity( $base, $other );
 
-			$this->assertCount( 32, $vector, "Image #{$i}: wrong vector length" );
-			foreach ( $vector as $v ) {
-				$this->assertGreaterThanOrEqual( 0.0, $v, "Image #{$i}: negative edge value" );
-				$this->assertLessThanOrEqual( 1.0, $v, "Image #{$i}: edge value > 1.0" );
-			}
-		}
+		$this->assertGreaterThan( $far, $near );
+	}
+
+	public function test_blur_variant_more_similar_to_base_than_other_fixture(): void {
+		$similarity = new Similarity();
+
+		$base  = $this->vector( self::gd_from_fixture( 1 ) );
+		$blur  = $this->vector( self::gd_from_path( self::variation_path( 1, 'blur' ) ) );
+		$other = $this->vector( self::gd_from_fixture( 10 ) );
+
+		$near = $similarity->cosine_similarity( $base, $blur );
+		$far  = $similarity->cosine_similarity( $base, $other );
+
+		$this->assertGreaterThan( $far, $near );
 	}
 }

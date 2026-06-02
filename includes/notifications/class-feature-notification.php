@@ -32,17 +32,17 @@ final class Feature_Notification {
 	/**
 	 * Constructor.
 	 *
-	 * @param string             $id            Stable identifier — used as the dismissal key.
-	 *                                          Must be ASCII slug-shaped (a-z, 0-9, dash).
-	 * @param string             $title         Short headline rendered as the card title.
-	 * @param string             $body          Plain-text body. Rendered as text, not HTML.
-	 * @param string             $icon          Icon slug recognised by the React icon registry.
-	 * @param string             $severity      One of: info|success|warning.
-	 * @param string             $since_version Plugin version that introduced this notification.
-	 *                                          Reserved for "what's new" analytics; not user-facing.
-	 * @param string             $cta_label     Optional CTA label. Empty string disables CTA.
-	 * @param string             $cta_route     Optional in-app route slug ('duplicates', 'settings', …).
-	 * @param string             $cta_url       Optional absolute URL. Only honoured if route is empty.
+	 * @param string $id            Stable identifier — used as the dismissal key.
+	 *                             Must be ASCII slug-shaped (a-z, 0-9, dash).
+	 * @param string $title         Short headline rendered as the card title.
+	 * @param string $body          Plain-text body. Rendered as text, not HTML.
+	 * @param string $icon          Icon slug recognised by the React icon registry.
+	 * @param string $severity      One of: info|success|warning.
+	 * @param string $since_version Plugin version that introduced this notification.
+	 *                             Reserved for "what's new" analytics; not user-facing.
+	 * @param string $cta_label     Optional CTA label. Empty string disables CTA.
+	 * @param string $cta_route     Optional in-app route slug ('duplicates', 'settings', …).
+	 * @param string $cta_url       Optional absolute URL. Only honoured if route is empty.
 	 */
 	public function __construct(
 		public string $id,

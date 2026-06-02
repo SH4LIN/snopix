@@ -37,8 +37,6 @@ coverage/
 test-results/
 playwright-report/
 .test-cache/
-tests/fixtures/images/
-tests/fixtures/data/
 TEST_REPORT.md
 
 # Misc

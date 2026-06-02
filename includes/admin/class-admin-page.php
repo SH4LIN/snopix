@@ -123,5 +123,4 @@ class Admin_Page {
 	public function render(): void {
 		require SNOPIX_PLUGIN_DIR . 'admin/app/views/admin-root.php';
 	}
-
 }

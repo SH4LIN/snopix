@@ -292,12 +292,16 @@ class Plugin {
 		if ( wp_doing_ajax() ) {
 			return;
 		}
+
 		if ( is_network_admin() ) {
 			return;
 		}
+
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['activate-multi'] ) ) {
 			return;
 		}
