@@ -5,7 +5,6 @@
 	<file>includes/</file>
 	<file>snopix.php</file>
 	<file>uninstall.php</file>
-	<file>admin/app/views/</file>
 
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>

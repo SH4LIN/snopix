@@ -71,6 +71,17 @@ export default function IndexingProgressCard({
 						style={{ width: `${progressPct}%` }}
 					/>
 				</div>
+				<p className="mt-2.5 text-[11px] leading-snug text-snopix-muted">
+					{indexingState === 'stalled'
+						? __(
+								'Indexing stopped before finishing. Start it again to retry.',
+								'snopix'
+							)
+						: __(
+								'Indexing in the background via WordPress cron — you can leave this screen.',
+								'snopix'
+							)}
+				</p>
 			</div>
 		</div>
 	);

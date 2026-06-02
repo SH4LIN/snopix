@@ -16,9 +16,8 @@ PLUGIN_SLUG="snopix"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/build"
 STAGING_DIR="$BUILD_DIR/$PLUGIN_SLUG"
-ADMIN_APP_DIR="$ROOT_DIR/admin/app"
-PUBLIC_APP_DIR="$ROOT_DIR/public/app"
-EDITOR_BUILD_DIR="$ROOT_DIR/admin/editor/build"
+APP_DIR="$ROOT_DIR/app"
+ASSETS_DIR="$ROOT_DIR/assets"
 DISTIGNORE="$ROOT_DIR/.distignore"
 PLUGIN_FILE="$ROOT_DIR/snopix.php"
 
@@ -34,8 +33,7 @@ done
 
 [ -f "$PLUGIN_FILE" ]    || { echo "Missing $PLUGIN_FILE" >&2; exit 1; }
 [ -f "$DISTIGNORE" ]     || { echo "Missing $DISTIGNORE" >&2; exit 1; }
-[ -d "$ADMIN_APP_DIR" ]      || { echo "Missing $ADMIN_APP_DIR" >&2; exit 1; }
-[ -d "$PUBLIC_APP_DIR" ]     || { echo "Missing $PUBLIC_APP_DIR" >&2; exit 1; }
+[ -d "$APP_DIR" ]        || { echo "Missing $APP_DIR" >&2; exit 1; }
 
 # --- resolve version ------------------------------------------------------
 override_version="${1:-}"
@@ -68,42 +66,10 @@ log "Plugin: $PLUGIN_SLUG"
 log "Version: $VERSION"
 log "Output: $ZIP_PATH"
 
-# --- build admin app ------------------------------------------------------
-log "Building admin app (npm ci && npm run build)"
-(
-    cd "$ADMIN_APP_DIR"
-    if [ -f package-lock.json ]; then
-        npm ci
-    else
-        npm install
-    fi
-    npm run build
-)
-
-if [ ! -d "$ADMIN_APP_DIR/dist" ] || [ -z "$(ls -A "$ADMIN_APP_DIR/dist" 2>/dev/null)" ]; then
-    echo "admin/app/dist is empty after build — refusing to ship a zip without the bundle." >&2
-    exit 1
-fi
-
-# --- build frontend search widget -----------------------------------------
-log "Building frontend search widget (npm ci && npm run build)"
-(
-    cd "$PUBLIC_APP_DIR"
-    if [ -f package-lock.json ]; then
-        npm ci
-    else
-        npm install
-    fi
-    npm run build
-)
-
-if [ ! -d "$PUBLIC_APP_DIR/dist" ] || [ -z "$(ls -A "$PUBLIC_APP_DIR/dist" 2>/dev/null)" ]; then
-    echo "public/app/dist is empty after build — refusing to ship a zip without the bundle." >&2
-    exit 1
-fi
-
-# --- build block-editor bundle --------------------------------------------
-log "Building block-editor bundle (npm ci && npm run build:editor)"
+# --- build all JS workspaces ----------------------------------------------
+# One install + build at the repo root: npm workspaces hoist every app's deps
+# and `npm run build` fans out to admin, search, and editor via run-p.
+log "Building all JS (npm ci && npm run build)"
 (
     cd "$ROOT_DIR"
     if [ -f package-lock.json ]; then
@@ -111,11 +77,21 @@ log "Building block-editor bundle (npm ci && npm run build:editor)"
     else
         npm install
     fi
-    npm run build:editor
+    npm run build
 )
 
-if [ ! -f "$EDITOR_BUILD_DIR/index.js" ] || [ ! -f "$EDITOR_BUILD_DIR/index.asset.php" ]; then
-    echo "admin/editor/build is missing index.js or index.asset.php — refusing to ship." >&2
+if [ ! -d "$ASSETS_DIR/admin" ] || [ -z "$(ls -A "$ASSETS_DIR/admin" 2>/dev/null)" ]; then
+    echo "assets/admin is empty after build — refusing to ship a zip without the bundle." >&2
+    exit 1
+fi
+
+if [ ! -d "$ASSETS_DIR/search" ] || [ -z "$(ls -A "$ASSETS_DIR/search" 2>/dev/null)" ]; then
+    echo "assets/search is empty after build — refusing to ship a zip without the bundle." >&2
+    exit 1
+fi
+
+if [ ! -f "$ASSETS_DIR/editor/index.js" ] || [ ! -f "$ASSETS_DIR/editor/index.asset.php" ]; then
+    echo "assets/editor is missing index.js or index.asset.php — refusing to ship." >&2
     exit 1
 fi
 
@@ -125,21 +101,22 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$STAGING_DIR"
 
 # Always exclude the top-level build dir so a re-run doesn't recurse. Anchor
-# with a leading slash so nested build dirs (e.g. admin/editor/build) survive.
+# with a leading slash so only the repo-root build/ is excluded (the shipped
+# assets/ tree is a different directory and survives).
 rsync -a \
     --exclude-from="$DISTIGNORE" \
     --exclude="/build" \
     "$ROOT_DIR"/ "$STAGING_DIR"/
 
 # --- safety checks --------------------------------------------------------
-for forbidden in node_modules vendor tests .git .github composer.json package.json README.md; do
+for forbidden in app node_modules vendor tests .git .github composer.json package.json README.md; do
     if [ -e "$STAGING_DIR/$forbidden" ]; then
         echo "FATAL: $forbidden leaked into the staging directory." >&2
         exit 1
     fi
 done
 
-for required in snopix.php uninstall.php readme.txt includes admin/app/dist public/app/dist admin/editor/build/index.js admin/editor/build/index.asset.php; do
+for required in snopix.php uninstall.php readme.txt includes assets/admin assets/search assets/editor/index.js assets/editor/index.asset.php; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1

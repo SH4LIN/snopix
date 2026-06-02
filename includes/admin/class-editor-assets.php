@@ -25,7 +25,7 @@ class Editor_Assets {
 	 *
 	 * @var string
 	 */
-	private const BUILD_PATH = 'admin/editor/build/';
+	private const BUILD_PATH = 'assets/editor/';
 
 	/**
 	 * Register the editor-asset enqueue hook.

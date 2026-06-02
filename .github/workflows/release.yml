@@ -44,8 +44,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: |
             package-lock.json
-            admin/app/package-lock.json
-            public/app/package-lock.json
 
       - name: Resolve version
         id: resolve

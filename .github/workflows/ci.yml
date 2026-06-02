@@ -86,9 +86,6 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Install admin app dependencies
-        run: npm ci --prefix admin/app
-
       - name: Run ESLint
         run: npm run lint:ts
 
@@ -220,12 +217,6 @@ jobs:
 
       - name: Install Node dependencies
         run: npm ci
-
-      - name: Install admin app dependencies
-        run: npm ci --prefix admin/app
-
-      - name: Install search app dependencies
-        run: npm ci --prefix public/app
 
       - name: Build assets
         run: npm run build

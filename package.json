@@ -3,24 +3,24 @@
 	"version": "0.1.2",
 	"description": "Image similarity search for WordPress media library",
 	"private": true,
+	"workspaces": [
+		"app/*"
+	],
 	"scripts": {
 		"dev": "npm run watch",
 		"build": "run-p build:admin build:editor build:search",
-		"build:admin": "npm run build --prefix admin/app",
-		"build:editor": "wp-scripts build admin/editor/src/index.js --output-path=admin/editor/build",
-		"build:search": "npm run build --prefix public/app",
+		"build:admin": "npm run build -w snopix-admin",
+		"build:editor": "npm run build -w snopix-editor",
+		"build:search": "npm run build -w snopix-search",
 		"watch": "run-p watch:admin watch:editor watch:search",
-		"watch:admin": "npm run watch --prefix admin/app",
-		"watch:editor": "wp-scripts start admin/editor/src/index.js --output-path=admin/editor/build",
-		"watch:search": "npm run watch --prefix public/app",
+		"watch:admin": "npm run watch -w snopix-admin",
+		"watch:editor": "npm run watch -w snopix-editor",
+		"watch:search": "npm run watch -w snopix-search",
 		"build:editor:watch": "npm run watch:editor",
-		"clean": "run-p clean:admin clean:editor clean:search",
-		"clean:admin": "rm -rf admin/app/dist",
-		"clean:editor": "rm -rf admin/editor/build",
-		"clean:search": "rm -rf public/app/dist",
-		"lint": "npm run lint:ts && npm run lint:styles",
-		"lint:ts": "npm run lint --prefix admin/app",
-		"format": "prettier --write admin/app/src",
+		"clean": "rm -rf assets",
+		"lint": "npm run lint:ts",
+		"lint:ts": "npm run lint -w snopix-admin",
+		"format": "prettier --write app/admin/src",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
@@ -30,12 +30,11 @@
 	"devDependencies": {
 		"@playwright/test": "^1.60.0",
 		"@types/node": "^22.12.0",
-		"@types/react": "^19.2.14",
-		"@types/react-dom": "^19.2.3",
+		"@types/react": "^18.3.0",
+		"@types/react-dom": "^18.3.0",
 		"@typescript-eslint/eslint-plugin": "^8.23.0",
 		"@typescript-eslint/parser": "^8.23.0",
 		"@wordpress/env": "^11.5.0",
-		"@wordpress/scripts": "^32.0.0",
 		"eslint": "^9.39.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-react": "^7.37.5",
@@ -43,5 +42,9 @@
 		"prettier": "^3.8.3",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.12"
+	},
+	"overrides": {
+		"@types/react": "^18.3.0",
+		"@types/react-dom": "^18.3.0"
 	}
 }

@@ -26,7 +26,7 @@ git clone <repo> wp-content/plugins/snopix
 cd wp-content/plugins/snopix
 
 composer install
-( cd admin/app && npm ci && npm run build )
+npm ci && npm run build   # installs + builds all JS workspaces from root
 ```
 
 The optional `setup-tests.sh` script bootstraps a `wp-env`-based WordPress
@@ -46,7 +46,7 @@ composer test            # PHPUnit (units + integration)
 composer lint            # PHPCS (WordPress Coding Standards)
 composer analyse         # PHPStan level 5
 
-npm --prefix admin/app run lint
+npm run lint             # ESLint over the admin app
 npx playwright test      # End-to-end (Playwright)
 ```
 
@@ -109,16 +109,15 @@ python3 tests/fixtures/images/run_search_tests.py        # exercises /search
 
 ## Coding standards (TypeScript / React)
 
-* The admin app lives in `admin/app/`. Source is TypeScript + React 18 with
-  TanStack Query, TanStack Router, and Zustand.
-* `npm --prefix admin/app run lint` must pass (ESLint flat config +
-  Prettier).
+* All JS workspaces live under `app/` (`app/admin`, `app/search`,
+  `app/editor`, `app/shared`). The admin app lives in `app/admin/`. Source is
+  TypeScript + React 18 with TanStack Query, TanStack Router, and Zustand.
+* `npm run lint` must pass (ESLint flat config + Prettier).
 * Every exported component, hook, and helper carries a JSDoc block with
   `@param` and `@return` annotations. Match the house style in
-  `admin/app/src/components/`.
-* `npm --prefix admin/app run build` must succeed — the GitHub Actions
-  release workflow refuses to package a zip if `admin/app/dist/` is empty
-  after the build step.
+  `app/admin/src/components/`.
+* `npm run build` must succeed — the GitHub Actions release workflow refuses
+  to package a zip if `assets/admin/` is empty after the build step.
 
 ---
 
@@ -141,8 +140,8 @@ Before requesting review, confirm:
 * [ ] `composer lint` passes
 * [ ] `composer analyse` passes
 * [ ] `composer test` passes on PHP 8.1 locally
-* [ ] `npm --prefix admin/app run lint` passes
-* [ ] `npm --prefix admin/app run build` succeeds
+* [ ] `npm run lint` passes
+* [ ] `npm run build` succeeds
 * [ ] New / changed functions carry PHPDoc or JSDoc with `@param` and
       `@return`
 * [ ] User-facing strings are wrapped in `__()` / `esc_html__()` with the

@@ -8,7 +8,7 @@
  * widget owns its own resets inside `src/styles/globals.css` so we don't
  * apply Tailwind's preflight to the host page.
  */
-import snopixPreset from '../../shared/tailwind-preset.js'
+import snopixPreset from '../shared/tailwind-preset.js'
 
 export default {
 	presets: [snopixPreset],

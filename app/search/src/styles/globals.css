@@ -11,7 +11,7 @@
  * progress fill animation) — anything that maps cleanly to one utility
  * stays in JSX.
  */
-@import "../../../../shared/tokens.css";
+@import "../../../shared/tokens.css";
 
 @tailwind base;
 @tailwind components;

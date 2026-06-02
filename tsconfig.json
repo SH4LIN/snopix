@@ -26,12 +26,12 @@
 		/* Path aliases */
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["admin/app/src/*"]
+			"@/*": ["app/admin/src/*"]
 		}
 	},
 	"include": [
 		"env.d.ts",
-		"admin/app/src",
+		"app/admin/src",
 		"tests/e2e",
 		"playwright.config.ts"
 	],

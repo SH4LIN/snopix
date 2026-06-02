@@ -63,9 +63,13 @@ export default function ReindexButton() {
 						onClick={() => resetProgress()}
 						disabled={isResetting}
 					>
-						{isResetting
-							? __('Resetting…', 'snopix')
-							: __('Reset', 'snopix')}
+						{isRunning
+							? isResetting
+								? __('Stopping…', 'snopix')
+								: __('Stop', 'snopix')
+							: isResetting
+								? __('Resetting…', 'snopix')
+								: __('Reset', 'snopix')}
 					</button>
 				)}
 			</div>
@@ -83,12 +87,23 @@ export default function ReindexButton() {
 			</div>
 			<div className="mt-2 flex justify-between text-[11px] text-snopix-muted snopix-mono">
 				<span>{Math.round(isDone ? 100 : pct)}%</span>
-				{isStalled && (
-					<span>
-						{__('Cron chain idle — click Reset.', 'snopix')}
-					</span>
-				)}
 			</div>
+			<p className="mt-2 text-[12px] leading-snug text-snopix-muted">
+				{isDone
+					? __(
+							'All attachments are indexed. This card closes automatically.',
+							'snopix'
+						)
+					: isStalled
+						? __(
+								'Indexing stopped before finishing — usually because WordPress cron didn’t run. Click Reset, then start indexing again.',
+								'snopix'
+							)
+						: __(
+								'Snopix is indexing your media in the background via WordPress cron. You can leave this page — it keeps running. Counts refresh every few seconds. Click Stop to cancel.',
+								'snopix'
+							)}
+			</p>
 		</div>
 	);
 }

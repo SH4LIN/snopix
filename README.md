@@ -16,7 +16,7 @@ Reverse image search and duplicate detection for the WordPress media library.
 git clone <repo> wp-content/plugins/snopix
 cd wp-content/plugins/snopix
 composer install
-npm ci && npm ci --prefix admin/app && npm ci --prefix public/app
+npm ci          # installs all JS workspaces (admin, search, editor)
 npm run build   # admin app + front-end search widget + editor block
 wp plugin activate snopix
 ```

@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   - max_results  Cap on result cards rendered after a search. Clamped
  *                  between 1 and 48. Defaults to 12.
  *
- * Markup is a single mount point — the React bundle in `public/app/dist`
+ * Markup is a single mount point — the React bundle in `assets/search`
  * boots into every `[data-snopix-search]` element on the page, so multiple
  * shortcodes can live on the same page without sharing state.
  */
@@ -71,13 +71,13 @@ class Shortcode {
 
 		wp_enqueue_style(
 			'snopix-search',
-			SNOPIX_PLUGIN_URL . 'public/app/dist/snopix-search.css',
+			SNOPIX_PLUGIN_URL . 'assets/search/snopix-search.css',
 			array(),
 			SNOPIX_VERSION
 		);
 		wp_enqueue_script(
 			'snopix-search',
-			SNOPIX_PLUGIN_URL . 'public/app/dist/snopix-search.js',
+			SNOPIX_PLUGIN_URL . 'assets/search/snopix-search.js',
 			array(),
 			SNOPIX_VERSION,
 			true

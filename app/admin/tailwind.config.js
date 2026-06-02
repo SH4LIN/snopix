@@ -6,7 +6,7 @@
  * stay visually in sync. Only the `content` glob — which is bundle-specific —
  * lives here.
  */
-import snopixPreset from '../../shared/tailwind-preset.js'
+import snopixPreset from '../shared/tailwind-preset.js'
 
 export default {
 	presets: [snopixPreset],

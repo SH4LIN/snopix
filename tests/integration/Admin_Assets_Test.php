@@ -186,11 +186,11 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	 * build artefact (index.asset.php) exists.
 	 *
 	 * NOTE: Editor_Assets::enqueue() is a no-op when SNOPIX_PLUGIN_DIR .
-	 * 'admin/editor/build/index.asset.php' is absent (fresh checkout without
+	 * 'assets/editor/index.asset.php' is absent (fresh checkout without
 	 * `npm run build:editor`). This test is skipped in that scenario.
 	 */
 	public function test_editor_assets_enqueues_script_when_build_exists(): void {
-		$asset_file = SNOPIX_PLUGIN_DIR . 'admin/editor/build/index.asset.php';
+		$asset_file = SNOPIX_PLUGIN_DIR . 'assets/editor/index.asset.php';
 
 		if ( ! file_exists( $asset_file ) ) {
 			$this->markTestSkipped( 'Editor build artefact not present; run `npm run build:editor` first.' );
@@ -212,7 +212,7 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	 * It is skipped if it happens to be present (i.e. a built checkout).
 	 */
 	public function test_editor_assets_is_noop_when_build_absent(): void {
-		$asset_file = SNOPIX_PLUGIN_DIR . 'admin/editor/build/index.asset.php';
+		$asset_file = SNOPIX_PLUGIN_DIR . 'assets/editor/index.asset.php';
 
 		if ( file_exists( $asset_file ) ) {
 			$this->markTestSkipped( 'Editor build artefact is present; skip no-op guard test.' );

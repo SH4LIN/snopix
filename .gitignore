@@ -3,9 +3,7 @@ node_modules/
 vendor/
 
 # Build outputs
-admin/dist/
-admin/app/dist/
-public/app/dist/
+assets/
 
 # Node package lock files
 yarn.lock

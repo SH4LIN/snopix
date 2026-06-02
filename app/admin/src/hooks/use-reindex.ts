@@ -9,12 +9,14 @@ export interface Progress {
 	status: 'idle' | 'running' | 'done' | 'stalled';
 }
 
-const STALL_MS = 45_000;
+// Must stay comfortably above the backend's BATCH_DELAY (15 s) plus WP-Cron
+// jitter, otherwise the normal gap between chained batches reads as a stall.
+const STALL_MS = 120_000;
 const DONE_RESET_MS = 3_000;
 
 /**
  * Poll `/progress` while indexing is running and drive the indexing state
- * machine (running → done → idle, or running → stalled → idle after 45 s of
+ * machine (running → done → idle, or running → stalled → idle after 120 s of
  * no counter movement). Returns the latest progress payload for UI use.
  *
  * @return {Progress|undefined} Latest progress payload, or undefined while idle.

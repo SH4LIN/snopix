@@ -43,7 +43,27 @@ class Admin_Page {
 		);
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'in_admin_header', array( $this, 'suppress_foreign_notices' ) );
 		add_filter( 'plugin_action_links_' . $this->plugin_basename(), array( $this, 'add_dashboard_link' ) );
+	}
+
+	/**
+	 * Strip third-party admin notices from the Snopix screen.
+	 *
+	 * Other plugins crowd the top of every admin page with notices; on the
+	 * Snopix dashboard they break the React app's full-bleed layout. Remove
+	 * every `admin_notices` / `all_admin_notices` callback, but only on our own
+	 * screen so the rest of wp-admin keeps its update and security warnings.
+	 *
+	 * @return void
+	 */
+	public function suppress_foreign_notices(): void {
+		$screen = get_current_screen();
+		if ( ! $screen instanceof \WP_Screen || false === strpos( $screen->id, 'snopix' ) ) {
+			return;
+		}
+		remove_all_actions( 'admin_notices' );
+		remove_all_actions( 'all_admin_notices' );
 	}
 
 	/**
@@ -85,14 +105,14 @@ class Admin_Page {
 
 		wp_enqueue_style(
 			'snopix-admin',
-			SNOPIX_PLUGIN_URL . 'admin/app/dist/snopix-admin.css',
+			SNOPIX_PLUGIN_URL . 'assets/admin/snopix-admin.css',
 			array(),
 			SNOPIX_VERSION
 		);
 
 		wp_enqueue_script(
 			'snopix-admin',
-			SNOPIX_PLUGIN_URL . 'admin/app/dist/snopix-admin.js',
+			SNOPIX_PLUGIN_URL . 'assets/admin/snopix-admin.js',
 			// wp-api-fetch is core's REST helper; declaring it here guarantees
 			// the `wp.apiFetch` global is loaded before our bundle boots so the
 			// shared `@wordpress/api-fetch` import resolves to the same
@@ -121,6 +141,6 @@ class Admin_Page {
 	 * @return void
 	 */
 	public function render(): void {
-		require SNOPIX_PLUGIN_DIR . 'admin/app/views/admin-root.php';
+		require SNOPIX_PLUGIN_DIR . 'includes/admin/views/admin-root.php';
 	}
 }
