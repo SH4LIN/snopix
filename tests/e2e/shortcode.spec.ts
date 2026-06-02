@@ -1,9 +1,8 @@
 /**
  * Snopix shortcode e2e spec — [snopix_search] widget on a front-end post.
  *
- * The post containing the shortcode is created once per worker via
- * `requestUtils.createPost()` (WP REST API) — no browser-side block editor
- * interaction required.
+ * The post containing the shortcode is created once per suite via
+ * `createPostWithShortcode()` in a `beforeAll` hook.
  *
  * Selectors are best-effort from the React source (SnopixWidget.tsx / main.tsx).
  * Whether the search returns real matches depends on whether the media library
@@ -20,7 +19,7 @@
  */
 
 import { test, expect } from './fixtures';
-import { login, fixturePath } from './helpers';
+import { login, createPostWithShortcode, fixturePath } from './helpers';
 
 const SHORTCODE = '[snopix_search]';
 
@@ -40,16 +39,11 @@ const EMPTY_TEXT    = 'No visually similar images';
 test.describe('[snopix_search] shortcode — front-end widget', () => {
 	let postUrl: string;
 
-	// Create + publish a post containing the shortcode once for the whole
-	// worker via the REST API — no block editor interaction needed.
-	test.beforeAll(async ({ requestUtils }) => {
-		const post = await requestUtils.createPost({
-			title: 'Snopix Search Test',
-			content: SHORTCODE,
-			status: 'publish',
-			date_gmt: new Date().toISOString().replace( /\.\d{3}Z$/, '' ),
-		});
-		postUrl = post.link;
+	test.beforeAll(async ({ browser }) => {
+		const page = await browser.newPage();
+		await login(page);
+		postUrl = await createPostWithShortcode(page, SHORTCODE);
+		await page.close();
 	});
 
 	test.beforeEach(async ({ page }) => {

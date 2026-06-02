@@ -9,8 +9,6 @@
  *   - Progress percentage span:        numeric text like "42%"
  *   - Stats tile label:                "Indexed"
  *
- * Media uploads use the WP REST API via `requestUtils.uploadMedia()` which
- * is faster and more reliable than browser-based uploads.
  *
  * WP-Cron must be able to run (either normally or via `wp-cron.php` requests).
  * The default wp-env setup fires cron on page load, which the test triggers
@@ -18,7 +16,7 @@
  */
 
 import { test, expect } from './fixtures';
-import { login, gotoSnopix, fixturePath } from './helpers';
+import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
 
 const UPLOAD_COUNT = 2;
 const FIXTURE_NAMES = ['001.jpg', '002.jpg'] as const;
@@ -61,13 +59,12 @@ test.describe('Snopix indexing', () => {
 
 	test('uploads fixture images, triggers indexing, and confirms Indexed count increases', async ({
 		page,
-		requestUtils,
 	}) => {
 		// ----------------------------------------------------------------
-		// Step 1: Upload fixture images via the WP REST API.
+		// Step 1: Upload fixture images via the WordPress media library.
 		// ----------------------------------------------------------------
 		for (const name of FIXTURE_NAMES) {
-			await requestUtils.uploadMedia(fixturePath(name));
+			await uploadMedia(page, fixturePath(name));
 		}
 
 		// ----------------------------------------------------------------

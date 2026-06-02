@@ -29,7 +29,7 @@
 
 import { type Page } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { login, gotoSnopix, fixturePath } from './helpers';
+import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
 
 const DUPLICATES_TAB_LABEL = 'Duplicates';
 const SCAN_BUTTON_TEXT = 'Rescan';
@@ -75,12 +75,11 @@ test.describe('Duplicates tab', () => {
 		await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible();
 	});
 
-	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page, requestUtils }) => {
-		// ── Seed: upload the same fixture twice via REST API ─────────────────
-		// Both calls create two separate attachment records from the same file.
+	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page }) => {
+		// ── Seed: upload the same fixture twice ──────────────────────────────
 		const fixture = fixturePath('001.jpg');
-		await requestUtils.uploadMedia(fixture);
-		await requestUtils.uploadMedia(fixture);
+		await uploadMedia(page, fixture);
+		await uploadMedia(page, fixture);
 
 		// ── Navigate to Duplicates ───────────────────────────────────────────
 		await gotoDuplicates(page);
