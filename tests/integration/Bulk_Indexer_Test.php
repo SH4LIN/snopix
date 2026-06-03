@@ -271,4 +271,125 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		$this->assertCount( 0, $this->repo->get_all_indexed() );
 		$this->assertSame( Job_Status::IDLE, $this->progress->get()['status'] );
 	}
+
+	/**
+	 * 700 attachments (10 real + 690 broken) processed across 14 chained batches.
+	 *
+	 * Verifies:
+	 * - schedule() correctly enqueues all 700 IDs.
+	 * - Broken images (no physical file → unfingerprintable) do not abort the chain.
+	 * - The first batch succeeds (real images first in queue) preventing a stall.
+	 * - All 14 batches complete; final status is DONE, not STALLED.
+	 * - Repository counts: 10 indexed, 690 failed, 0 pending.
+	 * - Every broken attachment row carries error_code = 'unfingerprintable'.
+	 */
+	public function test_large_bulk_index_with_broken_images_completes_without_abort(): void {
+		global $wpdb;
+
+		$total_count  = 700;
+		$real_count   = 10;
+		$broken_count = $total_count - $real_count;
+		$batch_size   = 50;
+
+		// Real attachments first so they land at lower IDs.
+		// get_unindexed_ids() orders by p.ID ASC, so the first batch of 50
+		// includes all 10 real images → guaranteed successes → no first-batch stall.
+		$real_ids = array();
+		for ( $i = 1; $i <= $real_count; $i++ ) {
+			$real_ids[] = $this->attach_fixture( $i ); // fixtures 001.jpg – 010.jpg
+		}
+
+		// Broken attachments: valid JPEG MIME, no physical file.
+		// GD_Loader::load() returns false → mark_failed( 'unfingerprintable' ).
+		$broken_ids = array();
+		for ( $i = 0; $i < $broken_count; $i++ ) {
+			$id = wp_insert_post(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'post_mime_type' => 'image/jpeg',
+					'post_title'     => sprintf( 'broken-%04d', $i ),
+				)
+			);
+			$this->assertIsInt( $id );
+			$this->assertGreaterThan( 0, $id );
+			$broken_ids[] = $id;
+		}
+
+		update_option( 'snopix_settings', array( 'batch_size' => $batch_size ) );
+
+		// ── Schedule ──────────────────────────────────────────────────────────
+		$scheduled = $this->bulk_indexer->schedule();
+		$this->assertTrue( $scheduled, 'schedule() must return true when attachments exist.' );
+
+		$pending = get_transient( Bulk_Indexer::PENDING_KEY );
+		$this->assertIsArray( $pending );
+		$this->assertCount( $total_count, $pending, 'Pending queue must contain all 700 IDs.' );
+
+		$state = $this->progress->get();
+		$this->assertSame( Job_Status::RUNNING, $state['status'] );
+		$this->assertSame( $total_count, $state['total'] );
+
+		// ── Drive all batches ─────────────────────────────────────────────────
+		// In production each batch is triggered by a separate WP-Cron request, so
+		// the object-cache lock (snopix_bulk_lock) naturally expires between ticks.
+		// In the test process the cache persists, so we clear it manually before
+		// each call to prevent process_batch() from bailing on the lock check.
+		$expected_batches = (int) ceil( $total_count / $batch_size ); // 14
+		$batches_run      = 0;
+
+		while ( false !== get_transient( Bulk_Indexer::PENDING_KEY ) ) {
+			wp_cache_delete( 'snopix_bulk_lock' );
+			$this->bulk_indexer->process_batch();
+			$batches_run++;
+
+			// Safety valve — prevent an infinite loop if the logic is broken.
+			if ( $batches_run > $expected_batches + 2 ) {
+				$this->fail( sprintf( 'process_batch() ran %d times without draining the queue.', $batches_run ) );
+			}
+		}
+
+		$this->assertSame( $expected_batches, $batches_run, 'Exactly 14 batches must be needed to drain 700 images at batch_size=50.' );
+
+		// ── Final state ───────────────────────────────────────────────────────
+		$final = $this->progress->get();
+		$this->assertSame(
+			Job_Status::DONE,
+			$final['status'],
+			'Bulk job must finish as DONE — broken images must be skipped, not abort the chain.'
+		);
+		$this->assertSame( $total_count, $final['done'], 'All 700 images must be counted in progress.' );
+		$this->assertFalse( get_transient( Bulk_Indexer::PENDING_KEY ), 'Pending queue must be empty after completion.' );
+
+		// ── Repository counts ─────────────────────────────────────────────────
+		$counts = $this->repo->get_counts();
+		$this->assertSame( $real_count, $counts['indexed'], '10 real images must be indexed successfully.' );
+		$this->assertSame( $broken_count, $counts['failed'], '690 broken images must be recorded as failed.' );
+		$this->assertSame( 0, $counts['pending'], 'No images must remain pending after the job finishes.' );
+
+		// ── Per-attachment verification ────────────────────────────────────────
+		$indexed_rows = $this->repo->get_all_indexed();
+		$indexed_ids  = array_map( 'intval', array_column( $indexed_rows, 'attachment_id' ) );
+		foreach ( $real_ids as $real_id ) {
+			$this->assertContains( $real_id, $indexed_ids, "Real attachment ID {$real_id} must appear in the index." );
+		}
+
+		$table = $wpdb->prefix . 'snopix_index';
+		foreach ( $broken_ids as $broken_id ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$error_code = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT error_code FROM $table WHERE attachment_id = %d",
+					$broken_id
+				)
+			);
+			$this->assertSame(
+				'unfingerprintable',
+				$error_code,
+				"Broken attachment ID {$broken_id} must carry error_code='unfingerprintable'."
+			);
+		}
+
+		delete_option( 'snopix_settings' );
+	}
 }
