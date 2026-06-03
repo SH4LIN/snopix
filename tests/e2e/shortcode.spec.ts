@@ -27,13 +27,9 @@ const SHORTCODE = '[snopix_search]';
 const MOUNT_POINT   = '[data-snopix-search]';
 const WIDGET_ROOT   = '.snopix-widget';
 const FILE_INPUT    = 'input[type="file"][accept="image/jpeg,image/png,image/gif,image/webp"]';
-// Text inside the drop-zone that confirms the widget rendered in idle state
 const DROP_ZONE_CUE = 'Drop an image to search';
-// Scanning: the progress bar visible while the POST /snopix/v1/search is in flight
 const PROGRESS_BAR  = '.sx-progress';
-// Post-search: the heading that shows match count, "No matches", or "Search failed"
 const RESULT_HEADING_PATTERN = /\d+ match(es)?|No matches|Search failed/i;
-// "No visually similar images" text for the empty state
 const EMPTY_TEXT    = 'No visually similar images';
 
 test.describe('[snopix_search] shortcode — front-end widget', () => {
@@ -54,104 +50,121 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 	// 1. Widget mounts into [data-snopix-search] and renders the drop-zone UI
 	// -------------------------------------------------------------------------
 	test('widget mounts and renders the upload drop-zone', async ({ page }) => {
-		await page.goto(postUrl);
+		await test.step('navigate to the shortcode post', async () => {
+			await page.goto(postUrl);
+		});
 
-		// Mount point must exist in the DOM.
-		const mountPoint = page.locator(MOUNT_POINT).first();
-		await expect(mountPoint).toBeAttached({ timeout: 15_000 });
+		await test.step('assert widget mounts and drop-zone renders', async () => {
+			const mountPoint = page.locator(MOUNT_POINT).first();
+			await expect(mountPoint).toBeAttached({ timeout: 15_000 });
 
-		// React must have rendered children inside it — the .snopix-widget root.
-		const widgetRoot = page.locator(WIDGET_ROOT).first();
-		await expect(widgetRoot).toBeVisible({ timeout: 15_000 });
+			const widgetRoot = page.locator(WIDGET_ROOT).first();
+			await expect(widgetRoot).toBeVisible({ timeout: 15_000 });
 
-		// The idle drop-zone copy should be present.
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+			await expect(page.locator(FILE_INPUT)).toBeAttached({ timeout: 5_000 });
 
-		// The hidden file input must be in the DOM (attached but hidden).
-		await expect(page.locator(FILE_INPUT)).toBeAttached({ timeout: 5_000 });
+			const screenshot = await page.screenshot();
+			await test.info().attach('widget-idle', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 
 	// -------------------------------------------------------------------------
 	// 2. Uploading a query image triggers a search and renders a result state
 	// -------------------------------------------------------------------------
 	test('uploading a query image executes search and renders a result state', async ({ page }) => {
-		await page.goto(postUrl);
+		await test.step('navigate to shortcode post and wait for widget', async () => {
+			await page.goto(postUrl);
+			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		});
 
-		// Wait for the widget to reach the idle / drop-zone phase.
-		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		await test.step('set query image on file input', async () => {
+			const fileInput = page.locator(FILE_INPUT);
+			await fileInput.setInputFiles(fixturePath('001.jpg'));
 
-		// Set the file directly on the hidden input without clicking through
-		// the OS file-picker (setInputFiles bypasses the hidden attribute).
-		const fileInput = page.locator(FILE_INPUT);
-		await fileInput.setInputFiles(fixturePath('001.jpg'));
+			const screenshot = await page.screenshot();
+			await test.info().attach('query-image-set', { body: screenshot, contentType: 'image/png' });
+		});
 
-		// The widget should immediately enter the "scanning" phase:
-		// the drop-zone disappears, the probe preview + progress bar appear.
-		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+		await test.step('wait for search to complete and assert result heading', async () => {
+			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
 
-		// Wait for the search to complete: progress bar disappears and a
-		// result-state heading appears. Give the REST call generous time.
-		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			await expect(
+				page.locator(WIDGET_ROOT).first().locator('div').filter({ hasText: RESULT_HEADING_PATTERN }).first()
+			).toBeVisible({ timeout: 10_000 });
 
-		// One of: "N matches", "No matches", "Search failed" must be shown.
-		await expect(
-			page.locator(WIDGET_ROOT).first().locator('div').filter({ hasText: RESULT_HEADING_PATTERN }).first()
-		).toBeVisible({ timeout: 10_000 });
+			const screenshot = await page.screenshot();
+			await test.info().attach('search-result', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 
 	// -------------------------------------------------------------------------
 	// 3. Empty or results state: correct UI renders without a JS crash
 	// -------------------------------------------------------------------------
 	test('post-search state renders either results grid or empty/error message', async ({ page }) => {
-		await page.goto(postUrl);
-		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		await test.step('navigate to shortcode post', async () => {
+			await page.goto(postUrl);
+			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		});
 
-		const fileInput = page.locator(FILE_INPUT);
-		await fileInput.setInputFiles(fixturePath('001.jpg'));
+		await test.step('trigger search with fixture image', async () => {
+			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
+			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+		});
 
-		// Wait for scanning to finish.
-		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
-		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+		await test.step('assert exactly one post-search state is rendered', async () => {
+			const widget = page.locator(WIDGET_ROOT).first();
 
-		const widget = page.locator(WIDGET_ROOT).first();
+			const hasResults   = await widget.locator('a[href]').count() > 0;
+			const hasEmptyText = await widget.getByText(EMPTY_TEXT).count() > 0;
+			const hasError     = await widget.locator('div.py-10').count() > 0;
 
-		// Check which state the widget landed in and assert the correct UI.
-		const hasResults   = await widget.locator('a[href]').count() > 0;
-		const hasEmptyText = await widget.getByText(EMPTY_TEXT).count() > 0;
-		// "Search failed" error state: the error paragraph has class py-10 px-6
-		const hasError     = await widget.locator('div.py-10').count() > 0;
+			expect(hasResults || hasEmptyText || hasError).toBe(true);
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeHidden();
 
-		// Exactly one of the three post-search states must be rendered.
-		expect(hasResults || hasEmptyText || hasError).toBe(true);
+			test.info().annotations.push({
+				type: 'post-search-state',
+				description: hasResults ? 'results' : hasEmptyText ? 'empty' : 'error',
+			});
 
-		// In all cases, the drop-zone must have been replaced (no longer visible).
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeHidden();
+			const screenshot = await page.screenshot();
+			await test.info().attach('post-search-state', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 
 	// -------------------------------------------------------------------------
 	// 4. "New search" button resets the widget back to the idle drop-zone
 	// -------------------------------------------------------------------------
 	test('"New search" resets the widget to idle drop-zone state', async ({ page }) => {
-		await page.goto(postUrl);
-		await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		await test.step('navigate to shortcode post', async () => {
+			await page.goto(postUrl);
+			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+		});
 
-		const fileInput = page.locator(FILE_INPUT);
-		await fileInput.setInputFiles(fixturePath('001.jpg'));
+		await test.step('trigger search and wait for completion', async () => {
+			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
+			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
+			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
 
-		// Wait for the search to settle into any post-scan state.
-		await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
-		await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			const screenshot = await page.screenshot();
+			await test.info().attach('post-search-before-reset', { body: screenshot, contentType: 'image/png' });
+		});
 
-		// Click "New search" to reset.
-		const newSearchBtn = page.getByRole('button', { name: /new search/i });
-		await expect(newSearchBtn).toBeVisible({ timeout: 5_000 });
-		await newSearchBtn.click();
+		await test.step('click "New search" and confirm widget resets to idle', async () => {
+			const newSearchBtn = page.getByRole('button', { name: /new search/i });
+			await expect(newSearchBtn).toBeVisible({ timeout: 5_000 });
+			await newSearchBtn.click();
 
-		// Widget must return to the idle drop-zone state.
-		await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 5_000 });
-		await expect(page.locator(FILE_INPUT)).toBeAttached();
+			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 5_000 });
+			await expect(page.locator(FILE_INPUT)).toBeAttached();
+
+			const screenshot = await page.screenshot();
+			await test.info().attach('widget-reset-to-idle', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 });

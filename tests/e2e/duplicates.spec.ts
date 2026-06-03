@@ -39,13 +39,10 @@ const SCANNING_TEXT = 'Scanning…';
 async function gotoDuplicates(page: Page): Promise<void> {
 	await gotoSnopix(page);
 
-	// The SPA may land on /dashboard. Click the "Duplicates" tab.
 	const tab = page.getByRole('tab', { name: DUPLICATES_TAB_LABEL });
-	// Desktop shell uses role=tab; mobile uses a bottom-nav button — try both.
 	const tabOrBtn = tab.or(page.getByRole('button', { name: DUPLICATES_TAB_LABEL }));
 	await tabOrBtn.first().click();
 
-	// Wait for the Duplicates heading to confirm the route is active.
 	await expect(page.getByRole('heading', { name: DUPLICATES_TAB_LABEL })).toBeVisible({
 		timeout: 10_000,
 	});
@@ -53,10 +50,6 @@ async function gotoDuplicates(page: Page): Promise<void> {
 
 /** Wait until the scan is no longer in the "Scanning…" state. */
 async function waitForScanComplete(page: Page): Promise<void> {
-	// The button returns to "Rescan" text when scanning is done (after a ~3 s
-	// "done" reset timer in useDuplicateScanProgress). The progress card with
-	// "Scanning for duplicates…" also disappears. We wait for the button text
-	// to settle back to "Rescan" as the terminal signal.
 	await expect(
 		page.getByRole('button', { name: SCAN_BUTTON_TEXT })
 	).toBeVisible({ timeout: 60_000 });
@@ -68,126 +61,130 @@ test.describe('Duplicates tab', () => {
 	});
 
 	test('navigate to the Duplicates tab', async ({ page }) => {
-		await gotoDuplicates(page);
+		await test.step('navigate to Duplicates tab', async () => {
+			await gotoDuplicates(page);
+		});
 
-		// The heading "Duplicates" and the scan button must be present.
-		await expect(page.getByRole('heading', { name: DUPLICATES_TAB_LABEL })).toBeVisible();
-		await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible();
+		await test.step('assert heading and Rescan button are visible', async () => {
+			await expect(page.getByRole('heading', { name: DUPLICATES_TAB_LABEL })).toBeVisible();
+			await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible();
+
+			const screenshot = await page.screenshot();
+			await test.info().attach('duplicates-tab', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 
 	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page }) => {
-		// ── Seed: upload the same fixture twice ──────────────────────────────
-		const fixture = fixturePath('001.jpg');
-		await uploadMedia(page, fixture);
-		await uploadMedia(page, fixture);
+		await test.step('upload the same fixture image twice', async () => {
+			const fixture = fixturePath('001.jpg');
+			await uploadMedia(page, fixture);
+			await uploadMedia(page, fixture);
 
-		// ── Navigate to Duplicates ───────────────────────────────────────────
-		await gotoDuplicates(page);
-
-		// ── Trigger scan ─────────────────────────────────────────────────────
-		const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
-		await expect(scanBtn).toBeVisible({ timeout: 10_000 });
-		await scanBtn.click();
-
-		// Button should immediately flip to "Scanning…" (or stay "Rescan" for a
-		// very fast scan — both are valid here; we just proceed to wait).
-		// We do NOT assert "Scanning…" is visible because on a fast machine the
-		// scan can complete before Playwright queries the DOM.
-
-		// ── Wait for completion ───────────────────────────────────────────────
-		await waitForScanComplete(page);
-
-		// ── Assert terminal UI state ──────────────────────────────────────────
-		// Either a duplicate group card is shown, or one of the two empty-state
-		// messages. Both confirm the scan completed without a crash.
-
-		const groupCard = page.locator('.snopix-card').filter({
-			has: page.locator('text=/\\d+\\.\\d+%\\s*match/'),
+			const screenshot = await page.screenshot();
+			await test.info().attach('after-duplicate-uploads', { body: screenshot, contentType: 'image/png' });
 		});
 
-		// Desktop empty state (post-scan): "No duplicate clusters above N%"
-		const emptyStatePostScan = page.getByText(/No duplicate clusters above \d+%/);
-		// Desktop pre-scan empty state (should not appear after a scan, but safe to include)
-		const emptyStateNoScan = page.getByText('No scan run yet.');
-		// Mobile empty state
-		const emptyStateMobile = page.getByText('No duplicate clusters found.');
+		await test.step('navigate to Duplicates tab', async () => {
+			await gotoDuplicates(page);
+		});
 
-		await expect(
-			groupCard.or(emptyStatePostScan).or(emptyStateNoScan).or(emptyStateMobile).first()
-		).toBeVisible({ timeout: 20_000 });
+		await test.step('click Rescan to trigger duplicate scan', async () => {
+			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
+			await expect(scanBtn).toBeVisible({ timeout: 10_000 });
+			await scanBtn.click();
 
-		// If groups were found, sanity-check the card structure.
-		if (await groupCard.first().isVisible()) {
-			// Each card has a header like "Group · N attachments".
+			const screenshot = await page.screenshot();
+			await test.info().attach('scan-triggered', { body: screenshot, contentType: 'image/png' });
+		});
+
+		await test.step('wait for scan to complete', async () => {
+			await waitForScanComplete(page);
+		});
+
+		await test.step('assert terminal UI state: group card or empty state is visible', async () => {
+			const groupCard = page.locator('.snopix-card').filter({
+				has: page.locator('text=/\\d+\\.\\d+%\\s*match/'),
+			});
+
+			const emptyStatePostScan = page.getByText(/No duplicate clusters above \d+%/);
+			const emptyStateNoScan   = page.getByText('No scan run yet.');
+			const emptyStateMobile   = page.getByText('No duplicate clusters found.');
+
 			await expect(
-				page.getByText(/Group\s*·\s*\d+ attachments/).first()
-			).toBeVisible();
+				groupCard.or(emptyStatePostScan).or(emptyStateNoScan).or(emptyStateMobile).first()
+			).toBeVisible({ timeout: 20_000 });
 
-			// The "Delete all duplicates" button must be enabled.
-			await expect(
-				page.getByRole('button', { name: 'Delete all duplicates' })
-			).toBeEnabled();
-		}
+			if (await groupCard.first().isVisible()) {
+				await expect(
+					page.getByText(/Group\s*·\s*\d+ attachments/).first()
+				).toBeVisible();
+
+				await expect(
+					page.getByRole('button', { name: 'Delete all duplicates' })
+				).toBeEnabled();
+			}
+
+			const screenshot = await page.screenshot();
+			await test.info().attach('scan-result', { body: screenshot, contentType: 'image/png' });
+		});
 	});
 
 	test('scan button is disabled while a scan is running', async ({ page }) => {
-		await gotoDuplicates(page);
+		await test.step('navigate to Duplicates tab', async () => {
+			await gotoDuplicates(page);
+		});
 
-		// Generous timeout: a parallel test may have left a global scan running,
-		// in which case the button reads "Scanning…" until it settles to "Rescan".
-		const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
-		await expect(scanBtn).toBeVisible({ timeout: 60_000 });
-		await scanBtn.click();
+		await test.step('click Rescan and confirm button disables immediately', async () => {
+			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
+			await expect(scanBtn).toBeVisible({ timeout: 60_000 });
+			await scanBtn.click();
 
-		// Immediately after clicking the button should be disabled (either
-		// because it entered "Scanning…" state or the mutation is in-flight).
-		// We use a short timeout here — if the scan is instant this assertion
-		// may not catch the disabled window, which is acceptable.
-		const scanningBtn = page.getByRole('button', { name: SCANNING_TEXT });
-		const disabledRescanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
+			const scanningBtn      = page.getByRole('button', { name: SCANNING_TEXT });
+			const disabledRescanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
 
-		// At least one of: the button shows "Scanning…" or "Rescan" (scan done).
-		// What we must NOT see is both buttons visible simultaneously.
-		await expect(
-			scanningBtn.or(disabledRescanBtn).first()
-		).toBeVisible({ timeout: 5_000 });
+			await expect(
+				scanningBtn.or(disabledRescanBtn).first()
+			).toBeVisible({ timeout: 5_000 });
 
-		// Wait for the scan to finish so we leave the page in a clean state.
-		await waitForScanComplete(page);
+			const screenshot = await page.screenshot();
+			await test.info().attach('scan-button-disabled', { body: screenshot, contentType: 'image/png' });
+		});
+
+		await test.step('wait for scan to finish', async () => {
+			await waitForScanComplete(page);
+		});
 	});
 
 	test('progress bar is visible during an active scan', async ({ page }) => {
-		await gotoDuplicates(page);
+		await test.step('navigate to Duplicates tab', async () => {
+			await gotoDuplicates(page);
+		});
 
-		// Use a generous timeout — a parallel test may have left a scan running.
-		const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
-		await expect(scanBtn).toBeVisible({ timeout: 60_000 });
-		await scanBtn.click();
+		await test.step('click Rescan and check for progress indicator', async () => {
+			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
+			await expect(scanBtn).toBeVisible({ timeout: 60_000 });
+			await scanBtn.click();
 
-		// The progress container has class "snopix-progress" and appears while
-		// isScanning is true. It may vanish quickly on a fast machine — we use a
-		// short timeout and a soft assertion so the test does not flake on speed.
-		const progressBar = page.locator('.snopix-progress');
-		const progressText = page.getByText('Scanning for duplicates…');
+			const progressBar  = page.locator('.snopix-progress');
+			const progressText = page.getByText('Scanning for duplicates…');
 
-		// Either the progress bar or the "Scanning for duplicates…" text should
-		// appear (or the scan is already done — also valid).
-		const appeared = await progressBar
-			.or(progressText)
-			.first()
-			.isVisible({ timeout: 5_000 })
-			.catch(() => false);
+			const appeared = await progressBar
+				.or(progressText)
+				.first()
+				.isVisible({ timeout: 5_000 })
+				.catch(() => false);
 
-		// Not a hard failure — a fast scan may never surface the progress bar.
-		// The test primarily proves clicking "Rescan" does not crash the UI.
-		if (!appeared) {
-			// Scan was instant; confirm terminal state is clean.
-			await expect(
-				page.getByRole('button', { name: SCAN_BUTTON_TEXT })
-			).toBeVisible({ timeout: 30_000 });
-		} else {
-			// Progress bar appeared — now wait for scan to complete normally.
-			await waitForScanComplete(page);
-		}
+			const screenshot = await page.screenshot();
+			await test.info().attach('progress-bar-check', { body: screenshot, contentType: 'image/png' });
+			test.info().annotations.push({ type: 'progress-appeared', description: String(appeared) });
+
+			if (!appeared) {
+				await expect(
+					page.getByRole('button', { name: SCAN_BUTTON_TEXT })
+				).toBeVisible({ timeout: 30_000 });
+			} else {
+				await waitForScanComplete(page);
+			}
+		});
 	});
 });

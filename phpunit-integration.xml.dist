@@ -12,6 +12,10 @@
 		</testsuite>
 	</testsuites>
 
+	<logging>
+		<junit outputFile="/tmp/snopix-phpunit-integration.xml"/>
+	</logging>
+
 	<php>
 		<ini name="error_reporting" value="-1"/>
 		<ini name="display_errors" value="On"/>
