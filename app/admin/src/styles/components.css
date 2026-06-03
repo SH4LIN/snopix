@@ -269,11 +269,11 @@
 		@apply cursor-not-allowed opacity-60;
 	}
 
-	/* Editable slider value */
+	/* Editable slider value — sized to match the label text so the row height
+	   stays put (no boxy input pushing the layout down). */
 	.snopix-range-value {
 		font-family: var(--snopix-font-mono);
-		@apply text-sm font-semibold text-snopix-text text-center bg-snopix-bg border border-snopix-accent rounded-[6px] w-[76px] px-2 py-1 outline-none;
-		box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+		@apply text-sm font-semibold text-snopix-text text-center bg-transparent border-0 border-b border-snopix-accent w-14 p-0 outline-none;
 	}
 	.snopix-range-value::-webkit-outer-spin-button,
 	.snopix-range-value::-webkit-inner-spin-button {

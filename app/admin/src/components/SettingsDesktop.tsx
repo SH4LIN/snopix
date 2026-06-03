@@ -455,19 +455,32 @@ function SliderRow({
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState('');
 	const cancelled = useRef(false);
+	const startValue = useRef(0);
+
+	const snap = (n: number) => {
+		const clamped = Math.min(max, Math.max(min, n));
+		return Math.round((clamped - min) / step) * step + min;
+	};
+
+	// Push live changes to the slider as the user types, but only for an
+	// in-range number so partial input (e.g. "5" before "50") doesn't snap.
+	const onDraftChange = (text: string) => {
+		setDraft(text);
+		const n = parseFloat(text);
+		if (!Number.isNaN(n) && n >= min && n <= max) {
+			onChange(snap(n));
+		}
+	};
 
 	const commit = () => {
 		if (cancelled.current) {
 			cancelled.current = false;
+			onChange(startValue.current);
 			setEditing(false);
 			return;
 		}
 		const n = parseFloat(draft);
-		if (!Number.isNaN(n)) {
-			const clamped = Math.min(max, Math.max(min, n));
-			const snapped = Math.round((clamped - min) / step) * step + min;
-			onChange(snapped);
-		}
+		onChange(snap(Number.isNaN(n) ? startValue.current : n));
 		setEditing(false);
 	};
 
@@ -481,7 +494,7 @@ function SliderRow({
 				</span>
 				{editing ? (
 					<input
-						className="snopix-mono text-sm font-semibold text-snopix-text bg-snopix-bg border border-snopix-accent rounded-[6px] w-20 text-center px-1 py-0.5 outline-none"
+						className="snopix-range-value"
 						type="number"
 						min={min}
 						max={max}
@@ -489,7 +502,7 @@ function SliderRow({
 						value={draft}
 						autoFocus
 						onFocus={(e) => e.target.select()}
-						onChange={(e) => setDraft(e.target.value)}
+						onChange={(e) => onDraftChange(e.target.value)}
 						onKeyDown={(e) => {
 							if (e.key === 'Enter') {
 								e.currentTarget.blur();
@@ -507,6 +520,7 @@ function SliderRow({
 						title={__('Click to edit', 'snopix')}
 						onClick={() => {
 							setDraft(String(value));
+							startValue.current = value;
 							setEditing(true);
 						}}
 					>
