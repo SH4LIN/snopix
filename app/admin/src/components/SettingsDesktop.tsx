@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useAdvancedOpen, useSettingsForm } from '../hooks/use-settings-form';
 import { ratioToPercent } from '../lib/format';
@@ -199,7 +199,7 @@ export default function Settings() {
 									__('100% · exact only', 'snopix'),
 								]}
 							/>
-							<div className="mt-2.5 px-3 py-2.5 bg-snopix-surface rounded-lg text-[12px] text-snopix-muted flex items-start gap-2">
+							<div className="mt-2.5 px-3 py-2.5 bg-snopix-surface rounded-lg text-[12px] text-snopix-muted flex gap-2 items-center">
 								<IconInfo size={14} />
 								<span>
 									{__(
@@ -452,6 +452,25 @@ function SliderRow({
 	extremes,
 	disabled,
 }: SliderRowProps) {
+	const [editing, setEditing] = useState(false);
+	const [draft, setDraft] = useState('');
+	const cancelled = useRef(false);
+
+	const commit = () => {
+		if (cancelled.current) {
+			cancelled.current = false;
+			setEditing(false);
+			return;
+		}
+		const n = parseFloat(draft);
+		if (!Number.isNaN(n)) {
+			const clamped = Math.min(max, Math.max(min, n));
+			const snapped = Math.round((clamped - min) / step) * step + min;
+			onChange(snapped);
+		}
+		setEditing(false);
+	};
+
 	return (
 		<div
 			className={`py-4 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
@@ -460,9 +479,40 @@ function SliderRow({
 				<span className="text-[13px] text-snopix-muted">
 					{extremes[0]}
 				</span>
-				<span className="snopix-mono text-sm font-semibold text-snopix-text">
-					{valueLabel}
-				</span>
+				{editing ? (
+					<input
+						className="snopix-mono text-sm font-semibold text-snopix-text bg-snopix-bg border border-snopix-accent rounded-[6px] w-20 text-center px-1 py-0.5 outline-none"
+						type="number"
+						min={min}
+						max={max}
+						step={step}
+						value={draft}
+						autoFocus
+						onFocus={(e) => e.target.select()}
+						onChange={(e) => setDraft(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter') {
+								e.currentTarget.blur();
+							} else if (e.key === 'Escape') {
+								cancelled.current = true;
+								e.currentTarget.blur();
+							}
+						}}
+						onBlur={commit}
+					/>
+				) : (
+					<button
+						type="button"
+						className="snopix-mono text-sm font-semibold text-snopix-text bg-transparent border-0 cursor-text p-0"
+						title={__('Click to edit', 'snopix')}
+						onClick={() => {
+							setDraft(String(value));
+							setEditing(true);
+						}}
+					>
+						{valueLabel}
+					</button>
+				)}
 				<span className="text-[13px] text-snopix-muted">
 					{extremes[1]}
 				</span>

@@ -71,7 +71,8 @@ export default function ImageRow({ image, onImageClick }: Props) {
 		: '—';
 	const displayName =
 		image.filename || image.title || `ID ${image.attachment_id}`;
-	const previewUrl = image.full_url || image.thumbnail_url || '';
+	const thumbUrl = image.thumbnail_url || image.full_url || '';
+	const zoomUrl = image.full_url || image.thumbnail_url || '';
 
 	return (
 		<tr
@@ -79,14 +80,14 @@ export default function ImageRow({ image, onImageClick }: Props) {
 			className="cursor-pointer"
 		>
 			<td className="pl-6">
-				{previewUrl ? (
+				{thumbUrl ? (
 					<img
-						src={previewUrl}
+						src={thumbUrl}
 						alt={displayName}
 						className="snopix-thumb cursor-zoom-in object-cover"
 						onClick={(e) => {
 							e.stopPropagation();
-							onImageClick(previewUrl);
+							onImageClick(zoomUrl);
 						}}
 					/>
 				) : (

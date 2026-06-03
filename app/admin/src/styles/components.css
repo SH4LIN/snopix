@@ -255,7 +255,7 @@
 	.snopix-range::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
-		@apply w-[18px] h-[18px] rounded-full bg-white border border-snopix-border-strong;
+		@apply w-[18px] h-[18px] rounded-full bg-snopix-accent border-2 border-white;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 		transition: transform 120ms ease-out;
 	}
@@ -263,10 +263,26 @@
 		transform: scale(1.08);
 	}
 	.snopix-range::-moz-range-thumb {
-		@apply w-[18px] h-[18px] rounded-full bg-white border border-snopix-border-strong;
+		@apply w-[18px] h-[18px] rounded-full bg-snopix-accent border-2 border-white;
 	}
 	.snopix-range:disabled {
 		@apply cursor-not-allowed opacity-60;
+	}
+
+	/* Editable slider value */
+	.snopix-range-value {
+		font-family: var(--snopix-font-mono);
+		@apply text-sm font-semibold text-snopix-text text-center bg-snopix-bg border border-snopix-accent rounded-[6px] w-[76px] px-2 py-1 outline-none;
+		box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+	}
+	.snopix-range-value::-webkit-outer-spin-button,
+	.snopix-range-value::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+	.snopix-range-value[type="number"] {
+		-moz-appearance: textfield;
+		appearance: textfield;
 	}
 
 	/* Radio bullet */

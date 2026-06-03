@@ -91,7 +91,7 @@ export default function AppShellDesktop() {
 				</div>
 			</div>
 
-			<div className="mx-auto w-full max-w-[1240px] px-10 py-8">
+			<div className="mx-auto w-full max-w-[1240px] px-10 pt-8 pb-16">
 				<Outlet />
 			</div>
 		</div>
