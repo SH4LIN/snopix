@@ -261,12 +261,12 @@ final class Plugin_Lifecycle_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// uninstall() — shared side-effects regardless of drop setting
+	// uninstall() — transients deleted when drop_on_uninstall is true
 	// -------------------------------------------------------------------------
 
 	public function test_uninstall_deletes_bulk_pending_transient(): void {
 		set_transient( Bulk_Indexer::PENDING_KEY, 1, 3600 );
-		update_option( Settings::OPTION_NAME, array_merge( Settings::defaults(), array( 'drop_on_uninstall' => false ) ) );
+		update_option( Settings::OPTION_NAME, array_merge( Settings::defaults(), array( 'drop_on_uninstall' => true ) ) );
 
 		Plugin::uninstall();
 
@@ -275,7 +275,7 @@ final class Plugin_Lifecycle_Test extends Snopix_Integration_TestCase {
 
 	public function test_uninstall_deletes_duplicate_scan_state_transient(): void {
 		set_transient( 'snopix_duplicate_scan_state', array( 'status' => 'running' ), 3600 );
-		update_option( Settings::OPTION_NAME, array_merge( Settings::defaults(), array( 'drop_on_uninstall' => false ) ) );
+		update_option( Settings::OPTION_NAME, array_merge( Settings::defaults(), array( 'drop_on_uninstall' => true ) ) );
 
 		Plugin::uninstall();
 
