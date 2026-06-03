@@ -51,18 +51,22 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 	// -------------------------------------------------------------------------
 	test('widget mounts and renders the upload drop-zone', async ({ page }) => {
 		await test.step('navigate to the shortcode post', async () => {
+			console.log(`[shortcode] navigating to post: ${postUrl}`);
 			await page.goto(postUrl);
 		});
 
 		await test.step('assert widget mounts and drop-zone renders', async () => {
 			const mountPoint = page.locator(MOUNT_POINT).first();
 			await expect(mountPoint).toBeAttached({ timeout: 15_000 });
+			console.log('[shortcode] mount point attached');
 
 			const widgetRoot = page.locator(WIDGET_ROOT).first();
 			await expect(widgetRoot).toBeVisible({ timeout: 15_000 });
+			console.log('[shortcode] widget root visible');
 
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
 			await expect(page.locator(FILE_INPUT)).toBeAttached({ timeout: 5_000 });
+			console.log('[shortcode] drop-zone and file input ready');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('widget-idle', { body: screenshot, contentType: 'image/png' });
@@ -74,26 +78,32 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 	// -------------------------------------------------------------------------
 	test('uploading a query image executes search and renders a result state', async ({ page }) => {
 		await test.step('navigate to shortcode post and wait for widget', async () => {
+			console.log('[shortcode] navigating to post for search test');
 			await page.goto(postUrl);
 			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
+			console.log('[shortcode] widget ready');
 		});
 
 		await test.step('set query image on file input', async () => {
-			const fileInput = page.locator(FILE_INPUT);
-			await fileInput.setInputFiles(fixturePath('001.jpg'));
+			console.log('[shortcode] setting 001.jpg as query image');
+			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
+			console.log('[shortcode] file set — search should start');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('query-image-set', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('wait for search to complete and assert result heading', async () => {
+			console.log('[shortcode] waiting for progress bar to appear then disappear');
 			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
 			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			console.log('[shortcode] search complete');
 
 			await expect(
 				page.locator(WIDGET_ROOT).first().locator('div').filter({ hasText: RESULT_HEADING_PATTERN }).first()
 			).toBeVisible({ timeout: 10_000 });
+			console.log('[shortcode] result heading visible');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('search-result', { body: screenshot, contentType: 'image/png' });
@@ -105,15 +115,18 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 	// -------------------------------------------------------------------------
 	test('post-search state renders either results grid or empty/error message', async ({ page }) => {
 		await test.step('navigate to shortcode post', async () => {
+			console.log('[shortcode] navigating for post-search-state test');
 			await page.goto(postUrl);
 			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
 		});
 
 		await test.step('trigger search with fixture image', async () => {
+			console.log('[shortcode] triggering search with 001.jpg');
 			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
 			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
 			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			console.log('[shortcode] search done');
 		});
 
 		await test.step('assert exactly one post-search state is rendered', async () => {
@@ -123,13 +136,13 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 			const hasEmptyText = await widget.getByText(EMPTY_TEXT).count() > 0;
 			const hasError     = await widget.locator('div.py-10').count() > 0;
 
+			const state = hasResults ? 'results' : hasEmptyText ? 'empty' : 'error';
+			console.log(`[shortcode] post-search state: ${state}`);
+
 			expect(hasResults || hasEmptyText || hasError).toBe(true);
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeHidden();
 
-			test.info().annotations.push({
-				type: 'post-search-state',
-				description: hasResults ? 'results' : hasEmptyText ? 'empty' : 'error',
-			});
+			test.info().annotations.push({ type: 'post-search-state', description: state });
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('post-search-state', { body: screenshot, contentType: 'image/png' });
@@ -141,27 +154,32 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 	// -------------------------------------------------------------------------
 	test('"New search" resets the widget to idle drop-zone state', async ({ page }) => {
 		await test.step('navigate to shortcode post', async () => {
+			console.log('[shortcode] navigating for new-search reset test');
 			await page.goto(postUrl);
 			await expect(page.locator(WIDGET_ROOT).first()).toBeVisible({ timeout: 15_000 });
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 10_000 });
 		});
 
 		await test.step('trigger search and wait for completion', async () => {
+			console.log('[shortcode] triggering search to reach post-search state');
 			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
 			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
 			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			console.log('[shortcode] search complete — widget in post-search state');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('post-search-before-reset', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('click "New search" and confirm widget resets to idle', async () => {
+			console.log('[shortcode] clicking "New search"');
 			const newSearchBtn = page.getByRole('button', { name: /new search/i });
 			await expect(newSearchBtn).toBeVisible({ timeout: 5_000 });
 			await newSearchBtn.click();
 
 			await expect(page.getByText(DROP_ZONE_CUE)).toBeVisible({ timeout: 5_000 });
 			await expect(page.locator(FILE_INPUT)).toBeAttached();
+			console.log('[shortcode] widget reset to idle drop-zone state');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('widget-reset-to-idle', { body: screenshot, contentType: 'image/png' });

@@ -30,8 +30,7 @@ export default defineConfig({
 	   saturating the shared WordPress DB or causing race conditions. */
 	workers: process.env.CI ? 2 : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
-	reporter: [['list'], ['html']],
-	globalTeardown: './tests/e2e/global-teardown',
+	reporter: 'html',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */

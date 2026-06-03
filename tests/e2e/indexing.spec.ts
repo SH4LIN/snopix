@@ -68,7 +68,9 @@ test.describe('Snopix indexing', () => {
 		// ----------------------------------------------------------------
 		await test.step('upload fixture images via REST API', async () => {
 			for (const name of FIXTURE_NAMES) {
+				console.log(`[indexing] uploading fixture: ${name}`);
 				await uploadMedia(page, fixturePath(name));
+				console.log(`[indexing] uploaded: ${name}`);
 			}
 
 			const screenshot = await page.screenshot();
@@ -81,6 +83,7 @@ test.describe('Snopix indexing', () => {
 		// ----------------------------------------------------------------
 		await test.step('capture WP REST nonce from admin page', async () => {
 			nonce = await getNonce(page);
+			console.log(`[indexing] nonce captured (present: ${nonce.length > 0})`);
 			test.info().annotations.push({ type: 'nonce-present', description: String(nonce.length > 0) });
 		});
 
@@ -88,10 +91,12 @@ test.describe('Snopix indexing', () => {
 		// Step 3: Navigate to the Snopix admin SPA.
 		// ----------------------------------------------------------------
 		await test.step('navigate to Snopix admin SPA', async () => {
+			console.log('[indexing] navigating to Snopix admin SPA');
 			await gotoSnopix(page);
 			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 				timeout: 15_000,
 			});
+			console.log('[indexing] Dashboard visible');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('snopix-dashboard', { body: screenshot, contentType: 'image/png' });
@@ -108,6 +113,7 @@ test.describe('Snopix indexing', () => {
 
 			await expect(indexedTile).not.toHaveText('—', { timeout: 10_000 });
 			indexedBefore = parseInt((await indexedTile.textContent()) ?? '0', 10);
+			console.log(`[indexing] Indexed count before: ${indexedBefore}`);
 			test.info().annotations.push({ type: 'indexed-before', description: String(indexedBefore) });
 		});
 
@@ -115,10 +121,12 @@ test.describe('Snopix indexing', () => {
 		// Step 5: Trigger indexing via the Snopix REST API.
 		// ----------------------------------------------------------------
 		await test.step('POST /snopix/v1/reindex to schedule indexing', async () => {
+			console.log('[indexing] triggering reindex via REST API');
 			const reindexRes = await page.request.post('/wp-json/snopix/v1/reindex', {
 				headers: { 'X-WP-Nonce': nonce },
 			});
 
+			console.log(`[indexing] POST /snopix/v1/reindex → ${reindexRes.status()}`);
 			expect(
 				[200, 201, 409],
 				`POST /snopix/v1/reindex returned unexpected status ${reindexRes.status()}`
@@ -131,6 +139,7 @@ test.describe('Snopix indexing', () => {
 		// Step 6: Poll /progress until done, kicking WP-Cron each iteration.
 		// ----------------------------------------------------------------
 		await test.step('poll /progress until indexing job is done', async () => {
+			console.log('[indexing] polling /progress...');
 			await expect
 				.poll(
 					async () => {
@@ -141,6 +150,7 @@ test.describe('Snopix indexing', () => {
 						});
 
 						if (!res.ok()) {
+							console.log('[indexing] /progress returned non-OK — treating as idle');
 							return true;
 						}
 
@@ -150,6 +160,7 @@ test.describe('Snopix indexing', () => {
 							status: 'idle' | 'running' | 'done' | 'stalled';
 						};
 
+						console.log(`[indexing] progress: ${data.done}/${data.total} status=${data.status}`);
 						return data.status === 'done' || data.status === 'idle';
 					},
 					{
@@ -160,6 +171,7 @@ test.describe('Snopix indexing', () => {
 				)
 				.toBe(true);
 
+			console.log('[indexing] indexing job reached terminal state');
 			const screenshot = await page.screenshot();
 			await test.info().attach('indexing-complete', { body: screenshot, contentType: 'image/png' });
 		});
@@ -181,6 +193,7 @@ test.describe('Snopix indexing', () => {
 				failed: number;
 			};
 
+			console.log(`[indexing] /status → total=${status.total} indexed=${status.indexed} pending=${status.pending} failed=${status.failed}`);
 			test.info().annotations.push({ type: 'status-indexed', description: String(status.indexed) });
 
 			expect(
@@ -193,6 +206,7 @@ test.describe('Snopix indexing', () => {
 		// Step 8: Confirm the "Indexed" stat tile in the SPA reflects the update.
 		// ----------------------------------------------------------------
 		await test.step('reload SPA and verify Indexed stat tile updated', async () => {
+			console.log('[indexing] reloading SPA to verify stat tile');
 			await gotoSnopix(page);
 			await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 				timeout: 10_000,
@@ -208,6 +222,7 @@ test.describe('Snopix indexing', () => {
 					async () => {
 						const text = await indexedTile.textContent();
 						const value = parseInt(text ?? '0', 10);
+						console.log(`[indexing] stat tile Indexed = ${value}`);
 						return value >= UPLOAD_COUNT || value > indexedBefore;
 					},
 					{
@@ -229,6 +244,7 @@ test.describe('Snopix indexing', () => {
 		await test.step('optional: confirm progress card shows Indexing complete', async () => {
 			const progressCard = page.locator('div[data-tour="reindex-button"]').first();
 			if (await progressCard.isVisible()) {
+				console.log('[indexing] progress card still visible — checking for "Indexing complete"');
 				await expect(progressCard).toContainText('Indexing complete', {
 					timeout: 5_000,
 				});
@@ -245,19 +261,20 @@ test.describe('Snopix indexing', () => {
 	// -----------------------------------------------------------------------
 	test('dashboard renders stat tiles and the Index remaining button', async ({ page }) => {
 		await test.step('navigate to Snopix admin page', async () => {
+			console.log('[indexing:smoke] navigating to Snopix admin page');
 			await gotoSnopix(page);
 		});
 
 		await test.step('assert all stat tiles and the Index remaining button are visible', async () => {
 			for (const label of ['Total', 'Indexed', 'Pending', 'Failed']) {
-				await expect(
-					page.locator('.snopix-stat__label', { hasText: label })
-				).toBeVisible({ timeout: 15_000 });
+				await expect(page.locator('.snopix-stat__label', { hasText: label })).toBeVisible({ timeout: 15_000 });
+				console.log(`[indexing:smoke] stat tile "${label}" visible`);
 			}
 
 			const indexBtn = page.locator('button[data-tour="reindex-button"]');
 			await expect(indexBtn).toBeVisible({ timeout: 15_000 });
 			await expect(indexBtn).toContainText('Index remaining');
+			console.log('[indexing:smoke] "Index remaining" button visible');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('dashboard-smoke', { body: screenshot, contentType: 'image/png' });

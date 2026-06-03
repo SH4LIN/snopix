@@ -291,6 +291,8 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		$broken_count = $total_count - $real_count;
 		$batch_size   = 50;
 
+		fwrite( STDOUT, "\n[bulk-large] creating {$real_count} real + {$broken_count} broken attachments (total {$total_count})\n" );
+
 		// Real attachments first so they land at lower IDs.
 		// get_unindexed_ids() orders by p.ID ASC, so the first batch of 50
 		// includes all 10 real images → guaranteed successes → no first-batch stall.
@@ -298,6 +300,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		for ( $i = 1; $i <= $real_count; $i++ ) {
 			$real_ids[] = $this->attach_fixture( $i ); // fixtures 001.jpg – 010.jpg
 		}
+		fwrite( STDOUT, "[bulk-large] real attachments created: " . implode( ', ', $real_ids ) . "\n" );
 
 		// Broken attachments: valid JPEG MIME, no physical file.
 		// GD_Loader::load() returns false → mark_failed( 'unfingerprintable' ).
@@ -315,20 +318,24 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 			$this->assertGreaterThan( 0, $id );
 			$broken_ids[] = $id;
 		}
+		fwrite( STDOUT, "[bulk-large] broken attachments created: {$broken_count}\n" );
 
 		update_option( 'snopix_settings', array( 'batch_size' => $batch_size ) );
 
 		// ── Schedule ──────────────────────────────────────────────────────────
+		fwrite( STDOUT, "[bulk-large] calling schedule() with batch_size={$batch_size}\n" );
 		$scheduled = $this->bulk_indexer->schedule();
 		$this->assertTrue( $scheduled, 'schedule() must return true when attachments exist.' );
 
 		$pending = get_transient( Bulk_Indexer::PENDING_KEY );
 		$this->assertIsArray( $pending );
 		$this->assertCount( $total_count, $pending, 'Pending queue must contain all 700 IDs.' );
+		fwrite( STDOUT, "[bulk-large] pending queue size: " . count( $pending ) . "\n" );
 
 		$state = $this->progress->get();
 		$this->assertSame( Job_Status::RUNNING, $state['status'] );
 		$this->assertSame( $total_count, $state['total'] );
+		fwrite( STDOUT, "[bulk-large] progress: status={$state['status']} total={$state['total']}\n" );
 
 		// ── Drive all batches ─────────────────────────────────────────────────
 		// In production each batch is triggered by a separate WP-Cron request, so
@@ -343,6 +350,10 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 			$this->bulk_indexer->process_batch();
 			$batches_run++;
 
+			$mid_state    = $this->progress->get();
+			$queue_size   = count( (array) get_transient( Bulk_Indexer::PENDING_KEY ) );
+			fwrite( STDOUT, "[bulk-large] batch {$batches_run}/{$expected_batches}: done={$mid_state['done']} status={$mid_state['status']} remaining={$queue_size}\n" );
+
 			// Safety valve — prevent an infinite loop if the logic is broken.
 			if ( $batches_run > $expected_batches + 2 ) {
 				$this->fail( sprintf( 'process_batch() ran %d times without draining the queue.', $batches_run ) );
@@ -350,9 +361,11 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		}
 
 		$this->assertSame( $expected_batches, $batches_run, 'Exactly 14 batches must be needed to drain 700 images at batch_size=50.' );
+		fwrite( STDOUT, "[bulk-large] all {$batches_run} batches complete\n" );
 
 		// ── Final state ───────────────────────────────────────────────────────
 		$final = $this->progress->get();
+		fwrite( STDOUT, "[bulk-large] final state: status={$final['status']} done={$final['done']} total={$final['total']}\n" );
 		$this->assertSame(
 			Job_Status::DONE,
 			$final['status'],
@@ -363,6 +376,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 
 		// ── Repository counts ─────────────────────────────────────────────────
 		$counts = $this->repo->get_counts();
+		fwrite( STDOUT, "[bulk-large] repo counts: indexed={$counts['indexed']} failed={$counts['failed']} pending={$counts['pending']}\n" );
 		$this->assertSame( $real_count, $counts['indexed'], '10 real images must be indexed successfully.' );
 		$this->assertSame( $broken_count, $counts['failed'], '690 broken images must be recorded as failed.' );
 		$this->assertSame( 0, $counts['pending'], 'No images must remain pending after the job finishes.' );
@@ -373,6 +387,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		foreach ( $real_ids as $real_id ) {
 			$this->assertContains( $real_id, $indexed_ids, "Real attachment ID {$real_id} must appear in the index." );
 		}
+		fwrite( STDOUT, "[bulk-large] all {$real_count} real attachment IDs verified in index\n" );
 
 		$table = $wpdb->prefix . 'snopix_index';
 		foreach ( $broken_ids as $broken_id ) {
@@ -389,7 +404,9 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 				"Broken attachment ID {$broken_id} must carry error_code='unfingerprintable'."
 			);
 		}
+		fwrite( STDOUT, "[bulk-large] all {$broken_count} broken attachments verified as unfingerprintable\n" );
 
 		delete_option( 'snopix_settings' );
+		fwrite( STDOUT, "[bulk-large] PASS\n" );
 	}
 }

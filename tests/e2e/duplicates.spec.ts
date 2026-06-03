@@ -62,12 +62,15 @@ test.describe('Duplicates tab', () => {
 
 	test('navigate to the Duplicates tab', async ({ page }) => {
 		await test.step('navigate to Duplicates tab', async () => {
+			console.log('[duplicates] navigating to Duplicates tab');
 			await gotoDuplicates(page);
+			console.log('[duplicates] Duplicates tab active');
 		});
 
 		await test.step('assert heading and Rescan button are visible', async () => {
 			await expect(page.getByRole('heading', { name: DUPLICATES_TAB_LABEL })).toBeVisible();
 			await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible();
+			console.log('[duplicates] heading and Rescan button visible');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('duplicates-tab', { body: screenshot, contentType: 'image/png' });
@@ -76,29 +79,36 @@ test.describe('Duplicates tab', () => {
 
 	test('run a duplicate scan and see results or empty state after uploading the same image twice', async ({ page }) => {
 		await test.step('upload the same fixture image twice', async () => {
+			console.log('[duplicates] uploading 001.jpg twice to seed duplicate');
 			const fixture = fixturePath('001.jpg');
 			await uploadMedia(page, fixture);
 			await uploadMedia(page, fixture);
+			console.log('[duplicates] both uploads done');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('after-duplicate-uploads', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('navigate to Duplicates tab', async () => {
+			console.log('[duplicates] navigating to Duplicates tab');
 			await gotoDuplicates(page);
 		});
 
 		await test.step('click Rescan to trigger duplicate scan', async () => {
+			console.log('[duplicates] clicking Rescan');
 			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
 			await expect(scanBtn).toBeVisible({ timeout: 10_000 });
 			await scanBtn.click();
+			console.log('[duplicates] scan triggered');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('scan-triggered', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('wait for scan to complete', async () => {
+			console.log('[duplicates] waiting for scan to complete...');
 			await waitForScanComplete(page);
+			console.log('[duplicates] scan complete');
 		});
 
 		await test.step('assert terminal UI state: group card or empty state is visible', async () => {
@@ -114,14 +124,13 @@ test.describe('Duplicates tab', () => {
 				groupCard.or(emptyStatePostScan).or(emptyStateNoScan).or(emptyStateMobile).first()
 			).toBeVisible({ timeout: 20_000 });
 
-			if (await groupCard.first().isVisible()) {
-				await expect(
-					page.getByText(/Group\s*·\s*\d+ attachments/).first()
-				).toBeVisible();
+			const groupsFound = await groupCard.first().isVisible();
+			console.log(`[duplicates] result state: ${groupsFound ? 'group card visible' : 'empty state'}`);
 
-				await expect(
-					page.getByRole('button', { name: 'Delete all duplicates' })
-				).toBeEnabled();
+			if (groupsFound) {
+				await expect(page.getByText(/Group\s*·\s*\d+ attachments/).first()).toBeVisible();
+				await expect(page.getByRole('button', { name: 'Delete all duplicates' })).toBeEnabled();
+				console.log('[duplicates] group card structure verified');
 			}
 
 			const screenshot = await page.screenshot();
@@ -131,36 +140,41 @@ test.describe('Duplicates tab', () => {
 
 	test('scan button is disabled while a scan is running', async ({ page }) => {
 		await test.step('navigate to Duplicates tab', async () => {
+			console.log('[duplicates] navigating for button-disabled test');
 			await gotoDuplicates(page);
 		});
 
 		await test.step('click Rescan and confirm button disables immediately', async () => {
+			console.log('[duplicates] clicking Rescan');
 			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
 			await expect(scanBtn).toBeVisible({ timeout: 60_000 });
 			await scanBtn.click();
 
-			const scanningBtn      = page.getByRole('button', { name: SCANNING_TEXT });
+			const scanningBtn       = page.getByRole('button', { name: SCANNING_TEXT });
 			const disabledRescanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
 
-			await expect(
-				scanningBtn.or(disabledRescanBtn).first()
-			).toBeVisible({ timeout: 5_000 });
+			await expect(scanningBtn.or(disabledRescanBtn).first()).toBeVisible({ timeout: 5_000 });
+			console.log('[duplicates] button entered scanning or rescan state immediately after click');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('scan-button-disabled', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('wait for scan to finish', async () => {
+			console.log('[duplicates] waiting for scan to finish...');
 			await waitForScanComplete(page);
+			console.log('[duplicates] scan finished');
 		});
 	});
 
 	test('progress bar is visible during an active scan', async ({ page }) => {
 		await test.step('navigate to Duplicates tab', async () => {
+			console.log('[duplicates] navigating for progress-bar test');
 			await gotoDuplicates(page);
 		});
 
 		await test.step('click Rescan and check for progress indicator', async () => {
+			console.log('[duplicates] clicking Rescan');
 			const scanBtn = page.getByRole('button', { name: SCAN_BUTTON_TEXT });
 			await expect(scanBtn).toBeVisible({ timeout: 60_000 });
 			await scanBtn.click();
@@ -174,17 +188,18 @@ test.describe('Duplicates tab', () => {
 				.isVisible({ timeout: 5_000 })
 				.catch(() => false);
 
+			console.log(`[duplicates] progress indicator appeared: ${appeared}`);
 			const screenshot = await page.screenshot();
 			await test.info().attach('progress-bar-check', { body: screenshot, contentType: 'image/png' });
 			test.info().annotations.push({ type: 'progress-appeared', description: String(appeared) });
 
 			if (!appeared) {
-				await expect(
-					page.getByRole('button', { name: SCAN_BUTTON_TEXT })
-				).toBeVisible({ timeout: 30_000 });
+				console.log('[duplicates] scan was instant — waiting for terminal state');
+				await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible({ timeout: 30_000 });
 			} else {
 				await waitForScanComplete(page);
 			}
+			console.log('[duplicates] test complete');
 		});
 	});
 });
