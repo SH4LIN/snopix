@@ -323,11 +323,11 @@ export default function Settings() {
 								checked={form.drop_on_uninstall}
 								onChange={(v) => set('drop_on_uninstall', v)}
 								title={__(
-									'Drop the wp_snopix_index table on uninstall',
+									'Remove all plugin data on uninstall',
 									'snopix'
 								)}
 								hint={__(
-									'Recommended. Removes all fingerprints and every Snopix option / transient.',
+									'Drops the index table and removes all Snopix options, transients, cron events, and per-user data.',
 									'snopix'
 								)}
 							/>

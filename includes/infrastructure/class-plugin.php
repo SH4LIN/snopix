@@ -247,9 +247,14 @@ class Plugin {
 	 * @return void
 	 */
 	public static function uninstall(): void {
+		global $wpdb;
+
 		// Read the cleanup preference BEFORE we drop the option — otherwise we
 		// always see the default value once the row is gone.
-		$should_drop = Settings::should_drop_on_uninstall();
+		if ( ! Settings::should_drop_on_uninstall() ) {
+			// User opted out — leave everything so a reinstall resumes where it left off.
+			return;
+		}
 
 		( new Index_Progress() )->reset();
 		( new Duplicate_Progress() )->reset();
@@ -257,12 +262,20 @@ class Plugin {
 		delete_transient( Bulk_Indexer::PENDING_KEY );
 		delete_transient( 'snopix_duplicate_scan_state' );
 
-		if ( ! $should_drop ) {
-			// User opted out of destructive uninstall — leave the table, the
-			// settings row, and any cached duplicate results so a reinstall
-			// resumes where they left off.
-			return;
-		}
+		// Wildcard-delete ephemeral transients (rate-limiter + activation redirect)
+		// that can't be removed by key because they're namespaced by IP / user-ID.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			"DELETE FROM `{$wpdb->options}`
+			WHERE `option_name` LIKE '_transient_snopix_ratelimit_%'
+			   OR `option_name` LIKE '_transient_timeout_snopix_ratelimit_%'
+			   OR `option_name` LIKE '_transient_snopix_activation_redirect_%'
+			   OR `option_name` LIKE '_transient_timeout_snopix_activation_redirect_%'"
+		);
+
+		wp_clear_scheduled_hook( Bulk_Indexer::CRON_HOOK );
+		wp_clear_scheduled_hook( Duplicate_Scanner::CRON_HOOK );
+		wp_clear_scheduled_hook( Duplicate_Scanner::DAILY_HOOK );
 
 		$schema = new Schema();
 		$schema->uninstall();

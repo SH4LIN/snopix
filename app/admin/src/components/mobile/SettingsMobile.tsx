@@ -168,8 +168,8 @@ export default function SettingsMobile() {
 						<SwitchRow
 							checked={form.drop_on_uninstall}
 							onChange={(v) => set('drop_on_uninstall', v)}
-							title={__('Drop wp_snopix_index', 'snopix')}
-							hint={__('Removes all fingerprints on uninstall.', 'snopix')}
+							title={__('Remove all data on uninstall', 'snopix')}
+							hint={__('Drops the index table and removes all Snopix options, transients, and per-user data.', 'snopix')}
 						/>
 					</SectionGroup>
 				</>

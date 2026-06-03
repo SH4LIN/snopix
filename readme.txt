@@ -4,7 +4,7 @@ Tags: image-search, reverse-image-search, similarity-search, duplicates, media-l
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -151,6 +151,13 @@ transients; disable it first if you want the index to survive a reinstall.
 
 == Changelog ==
 
+= 0.1.3 - 2026-06-03 =
+* Fixed: bulk indexer no longer aborts the entire queue when a later batch encounters only unreadable images; the stall guard now fires only on the first batch, so isolated file failures are skipped rather than stranding all remaining attachments.
+* Changed: inter-batch delay reduced from 60 s to 15 s, keeping the reindex progress UI responsive during a full library scan.
+* Fixed: third-party admin notices are now suppressed on the Snopix dashboard to prevent them from breaking the full-bleed layout.
+* Changed: admin script now declares `wp-i18n` as a dependency; build artefacts reorganised to `assets/` subdirectories.
+* Fixed: uninstall cleanup now removes all plugin data — index table, all options, transients, scheduled cron events, and per-user meta — when the "Remove all plugin data on uninstall" setting is enabled.
+
 = 0.1.2 - 2026-06-02 =
 * Fixed: removed `readonly` properties that broke activation on PHP 8.0 (the declared minimum version).
 * Changed: per-IP search rate limiting now uses an atomic counter when a persistent object cache is present, and fails closed when the client IP cannot be resolved.
@@ -177,6 +184,9 @@ transients; disable it first if you want the index to survive a reinstall.
 * WordPress.org compatibility: JPEG, PNG, GIF, WebP, BMP.
 
 == Upgrade Notice ==
+
+= 0.1.3 =
+Hardens bulk indexing resilience, speeds up reindex progress, and fixes uninstall cleanup to remove all plugin data.
 
 = 0.1.2 =
 Restores PHP 8.0 compatibility and hardens background indexing, duplicate scanning, and search rate limiting.
