@@ -50,10 +50,17 @@ export default function EditableValue({
 
 	// Push live changes to the slider as the user types, but only for an
 	// in-range number so partial input (e.g. "5" before "50") doesn't snap.
+	// Cap at `max` as they type so the value can never exceed the upper bound;
+	// the lower bound stays uncapped so partial input is still typable.
 	const onDraftChange = (text: string) => {
 		const clean = text.replace(/[^0-9]/g, '').slice(0, 4);
-		setDraft(clean);
 		const n = parseInt(clean, 10);
+		if (!Number.isNaN(n) && n > max) {
+			setDraft(String(max));
+			onChange(snap(max));
+			return;
+		}
+		setDraft(clean);
 		if (!Number.isNaN(n) && n >= min && n <= max) {
 			onChange(snap(n));
 		}
