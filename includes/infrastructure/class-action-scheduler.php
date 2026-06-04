@@ -1,6 +1,6 @@
 <?php
 /**
- * Action scheduler — wrapper around WP-Cron for background processing.
+ * Action scheduler - wrapper around WP-Cron for background processing.
  *
  * Abstracts wp_schedule_single_event so the bulk indexer is decoupled
  * from WP-Cron specifics. A future implementation could delegate to the

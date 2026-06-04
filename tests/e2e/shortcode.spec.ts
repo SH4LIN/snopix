@@ -1,5 +1,5 @@
 /**
- * Snopix shortcode e2e spec — [snopix_search] widget on a front-end post.
+ * Snopix shortcode e2e spec - [snopix_search] widget on a front-end post.
  *
  * The post containing the shortcode is created once per suite via
  * `createPostWithShortcode()` in a `beforeAll` hook.
@@ -12,7 +12,8 @@
  * Widget mount point : [data-snopix-search]
  * Drop-zone trigger  : .snopix-widget div[data-over] (click opens file picker)
  * Hidden file input  : input[type="file"][accept="image/jpeg,image/png,image/gif,image/webp"]
- * Scanning indicator : .sx-progress  (progress bar shown while fetch is in flight)
+ * Scanning indicator : .sx-progress  (progress bar; may complete too fast to observe reliably)
+ * Search complete    : button[name="New search"] appears when phase transitions out of scanning
  * Results heading    : text matching /\d+ match(es)?|No matches|Search failed/
  * Empty state        : text "No visually similar images"
  * Error state        : .snopix-widget div.py-10 (error paragraph inside results panel)
@@ -32,7 +33,7 @@ const PROGRESS_BAR  = '.sx-progress';
 const RESULT_HEADING_PATTERN = /\d+ match(es)?|No matches|Search failed/i;
 const EMPTY_TEXT    = 'No visually similar images';
 
-test.describe('[snopix_search] shortcode — front-end widget', () => {
+test.describe('[snopix_search] shortcode - front-end widget', () => {
 	let postUrl: string;
 
 	test.beforeAll(async ({ browser }) => {
@@ -88,16 +89,15 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 		await test.step('set query image on file input', async () => {
 			console.log('[shortcode] setting 001.jpg as query image');
 			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
-			console.log('[shortcode] file set — search should start');
+			console.log('[shortcode] file set - search should start');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('query-image-set', { body: screenshot, contentType: 'image/png' });
 		});
 
 		await test.step('wait for search to complete and assert result heading', async () => {
-			console.log('[shortcode] waiting for progress bar to appear then disappear');
-			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
-			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			console.log('[shortcode] waiting for search to complete');
+			await expect(page.getByRole('button', { name: /new search/i })).toBeVisible({ timeout: 30_000 });
 			console.log('[shortcode] search complete');
 
 			await expect(
@@ -124,8 +124,7 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 		await test.step('trigger search with fixture image', async () => {
 			console.log('[shortcode] triggering search with 001.jpg');
 			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
-			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
-			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
+			await expect(page.getByRole('button', { name: /new search/i })).toBeVisible({ timeout: 30_000 });
 			console.log('[shortcode] search done');
 		});
 
@@ -163,9 +162,8 @@ test.describe('[snopix_search] shortcode — front-end widget', () => {
 		await test.step('trigger search and wait for completion', async () => {
 			console.log('[shortcode] triggering search to reach post-search state');
 			await page.locator(FILE_INPUT).setInputFiles(fixturePath('001.jpg'));
-			await expect(page.locator(PROGRESS_BAR)).toBeVisible({ timeout: 10_000 });
-			await expect(page.locator(PROGRESS_BAR)).toBeHidden({ timeout: 30_000 });
-			console.log('[shortcode] search complete — widget in post-search state');
+			await expect(page.getByRole('button', { name: /new search/i })).toBeVisible({ timeout: 30_000 });
+			console.log('[shortcode] search complete - widget in post-search state');
 
 			const screenshot = await page.screenshot();
 			await test.info().attach('post-search-before-reset', { body: screenshot, contentType: 'image/png' });

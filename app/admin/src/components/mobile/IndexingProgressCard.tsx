@@ -8,7 +8,7 @@ interface Props {
 	 * Tailwind padding wrapper applied around the card. Lets callers tune
 	 * the horizontal/vertical rhythm against the surrounding screen (e.g.
 	 * `px-[18px] pt-4` vs `px-[18px] pb-3`). Defaults to no wrapper padding
-	 * — caller can position the card directly.
+	 * - caller can position the card directly.
 	 */
 	wrapperClassName?: string;
 }
@@ -78,7 +78,7 @@ export default function IndexingProgressCard({
 								'snopix'
 							)
 						: __(
-								'Indexing in the background via WordPress cron — you can leave this screen.',
+								'Indexing in the background via WordPress cron - you can leave this screen.',
 								'snopix'
 							)}
 				</p>

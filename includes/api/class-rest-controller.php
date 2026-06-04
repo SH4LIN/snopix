@@ -265,7 +265,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /search — reverse image search.
+	 * Handle POST /search - reverse image search.
 	 *
 	 * @param \WP_REST_Request $request REST request.
 	 *
@@ -341,7 +341,7 @@ class REST_Controller {
 							return 'publish' === $parent_status;
 						}
 						// Orphan attachments (no parent) are admin-uploaded
-						// library items — surface them.
+						// library items - surface them.
 						return true;
 					}
 					return 'publish' === $post->post_status;
@@ -366,7 +366,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /status — index counts plus current bulk-job progress so
+	 * Handle GET /status - index counts plus current bulk-job progress so
 	 * the admin app can hydrate its state machine on mount without an
 	 * extra round-trip.
 	 *
@@ -379,7 +379,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /images — paginated image list.
+	 * Handle GET /images - paginated image list.
 	 *
 	 * @param \WP_REST_Request $request REST request.
 	 *
@@ -418,7 +418,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /reindex — schedule bulk reindex.
+	 * Handle POST /reindex - schedule bulk reindex.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
@@ -434,7 +434,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /reset-progress — abort any in-flight bulk job and clear
+	 * Handle POST /reset-progress - abort any in-flight bulk job and clear
 	 * progress state. Used by the UI to recover from a stalled chain.
 	 *
 	 * @return \WP_REST_Response
@@ -445,7 +445,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /progress — bulk index progress.
+	 * Handle GET /progress - bulk index progress.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -454,7 +454,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle DELETE /index/{id} — remove a single index entry.
+	 * Handle DELETE /index/{id} - remove a single index entry.
 	 *
 	 * @param \WP_REST_Request $request REST request.
 	 *
@@ -476,7 +476,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /tools/reindex-all — wipe + reindex every attachment.
+	 * Handle POST /tools/reindex-all - wipe + reindex every attachment.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
@@ -492,7 +492,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /tools/clear-index — delete every index row.
+	 * Handle POST /tools/clear-index - delete every index row.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
@@ -510,7 +510,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /tools/orphans — count of stale index rows.
+	 * Handle GET /tools/orphans - count of stale index rows.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -519,7 +519,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /tools/delete-orphans — drop rows whose attachment is gone.
+	 * Handle POST /tools/delete-orphans - drop rows whose attachment is gone.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -529,7 +529,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /tools/clear-cache — flush plugin transients and object cache.
+	 * Handle POST /tools/clear-cache - flush plugin transients and object cache.
 	 *
 	 * Rejects with 409 while a bulk index job is in flight because resetting
 	 * the progress transient mid-run would leave the cron chain incrementing
@@ -552,7 +552,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle GET /settings — return the full sanitised snopix_settings payload.
+	 * Handle GET /settings - return the full sanitised snopix_settings payload.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -566,7 +566,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /settings — merge inbound fields onto the stored option,
+	 * Handle POST /settings - merge inbound fields onto the stored option,
 	 * sanitise via {@see Settings::sanitize()}, persist, and echo the new
 	 * canonical payload.
 	 *
@@ -603,7 +603,7 @@ class REST_Controller {
 	}
 
 	/**
-	 * Handle POST /tour/complete — record the current user's onboarding
+	 * Handle POST /tour/complete - record the current user's onboarding
 	 * walkthrough outcome in user_meta so the tour never re-opens.
 	 *
 	 * @param \WP_REST_Request $request REST request.

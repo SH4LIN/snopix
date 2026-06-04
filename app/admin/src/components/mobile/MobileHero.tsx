@@ -17,7 +17,7 @@ interface Props {
 /**
  * Standard mobile screen hero header.
  *
- * Three-line stack — uppercase label, large display title, muted subtitle —
+ * Three-line stack - uppercase label, large display title, muted subtitle -
  * with the spacing/typography the mobile design specifies for every screen
  * in the admin app. Any line that's omitted is simply not rendered, so
  * Settings (title only) and Dashboard (label + title + subtitle) share the

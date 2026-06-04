@@ -59,7 +59,7 @@ final class Duplicate_Finder_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Exact duplicates — same bytes, same file_hash.
+	// Exact duplicates - same bytes, same file_hash.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -125,7 +125,7 @@ final class Duplicate_Finder_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Perceptual (near) duplicates — visually similar, different bytes.
+	// Perceptual (near) duplicates - visually similar, different bytes.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -209,7 +209,7 @@ final class Duplicate_Finder_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Non-duplicates — unrelated images must not share a group.
+	// Non-duplicates - unrelated images must not share a group.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -266,7 +266,7 @@ final class Duplicate_Finder_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * find() on a single-row set returns an empty array — no pair to match.
+	 * find() on a single-row set returns an empty array - no pair to match.
 	 */
 	public function test_find_with_single_row_returns_empty(): void {
 		$id = $this->attach_fixture( 7 );
@@ -283,7 +283,7 @@ final class Duplicate_Finder_Test extends Snopix_Integration_TestCase {
 
 	/**
 	 * Exact-duplicate attachment IDs are excluded from the perceptual-grouping
-	 * pass — they must not appear in both an exact and a perceptual group.
+	 * pass - they must not appear in both an exact and a perceptual group.
 	 */
 	public function test_exact_duplicate_ids_are_not_also_in_perceptual_group(): void {
 		[ $id_a, $id_b ] = $this->attach_fixture_twice( 1 );

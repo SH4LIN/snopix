@@ -58,7 +58,7 @@ final class Media_Hooks_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -----------------------------------------------------------------------
-	// on_upload — adds an index row for regular image attachments.
+	// on_upload - adds an index row for regular image attachments.
 	// -----------------------------------------------------------------------
 
 	/**
@@ -111,7 +111,7 @@ final class Media_Hooks_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -----------------------------------------------------------------------
-	// on_delete — removes the index row for a deleted attachment.
+	// on_delete - removes the index row for a deleted attachment.
 	// -----------------------------------------------------------------------
 
 	/**
@@ -164,7 +164,7 @@ final class Media_Hooks_Test extends Snopix_Integration_TestCase {
 	public function test_on_delete_is_noop_when_row_does_not_exist(): void {
 		$attachment_id = $this->attach_fixture( 6 );
 
-		// Do NOT index it — call on_delete against a row that was never written.
+		// Do NOT index it - call on_delete against a row that was never written.
 		$before_count = count( $this->repo->get_all_indexed() );
 		$this->hooks->on_delete( $attachment_id );
 		$after_count = count( $this->repo->get_all_indexed() );

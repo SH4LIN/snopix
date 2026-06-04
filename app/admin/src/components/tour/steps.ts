@@ -1,7 +1,7 @@
 /**
  * Step configuration for the first-run walkthrough.
  *
- * Pure data — no React imports — keyed on the `data-tour` attributes the
+ * Pure data - no React imports - keyed on the `data-tour` attributes the
  * shells render. A step with no `target` renders as a centered welcome card.
  * A step with `route` triggers a router navigation before measuring.
  */
@@ -39,7 +39,7 @@ export function buildSteps(): TourStep[] {
 			target: '[data-tour="reindex-button"]',
 			title: __('Start by indexing your library', 'snopix'),
 			content: __(
-				'Snopix needs to fingerprint your media before it can search or detect duplicates. Click here to kick off a bulk index job — pending items will be processed in the background.',
+				'Snopix needs to fingerprint your media before it can search or detect duplicates. Click here to kick off a bulk index job - pending items will be processed in the background.',
 				'snopix'
 			),
 		},

@@ -123,7 +123,7 @@ export function useDuplicateScanProgress() {
 	//
 	// `queryFn` is captured once (staleTime: Infinity) so closing over
 	// `duplicateScanState` from the hook scope would freeze the value forever
-	// — read live store state at signal time instead.
+	// - read live store state at signal time instead.
 	useQuery<DuplicateScanProgress>({
 		queryKey: ['duplicates-progress-hydrate'],
 		queryFn: async () => {

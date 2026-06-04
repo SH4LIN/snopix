@@ -1,6 +1,6 @@
 <?php
 /**
- * Query image handler — uploads a temporary image for similarity search.
+ * Query image handler - uploads a temporary image for similarity search.
  *
  * @package Snopix
  */
@@ -37,7 +37,7 @@ class Query_Image {
 
 	/**
 	 * Postmeta flag set on probe attachments so Media_Hooks::on_upload can skip
-	 * auto-indexing — the probe is a throwaway search input, not library media.
+	 * auto-indexing - the probe is a throwaway search input, not library media.
 	 */
 	public const PROBE_META_KEY = '_snopix_probe';
 
@@ -95,7 +95,7 @@ class Query_Image {
 		}
 
 		// Downscale oversized probes so the fingerprinting pipeline operates
-		// on a bounded canvas. Failures here are non-fatal — fingerprinting
+		// on a bounded canvas. Failures here are non-fatal - fingerprinting
 		// will fall back to the original file.
 		$this->downscale_if_needed( $upload['file'], $upload['type'], (int) $dims[0], (int) $dims[1] );
 

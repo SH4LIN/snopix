@@ -16,13 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Manages progress state for duplicate scan operations using a single
  * transient envelope. The single-key layout mirrors Index_Progress and
  * guarantees that cron ticks always observe a consistent (done, total,
- * status) triple — there is no window where, say, status='running' but
+ * status) triple - there is no window where, say, status='running' but
  * done/total are stale from a previous run.
  *
  * Status values:
- *   idle    — no scan running.
- *   running — scan in flight.
- *   done    — scan completed.
+ *   idle    - no scan running.
+ *   running - scan in flight.
+ *   done    - scan completed.
  */
 class Duplicate_Progress {
 

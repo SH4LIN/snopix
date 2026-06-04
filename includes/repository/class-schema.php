@@ -58,7 +58,7 @@ class Schema {
 	public function uninstall(): void {
 		global $wpdb;
 
-		// Table identifier is built from $wpdb->prefix and a literal — no user input is interpolated.
+		// Table identifier is built from $wpdb->prefix and a literal - no user input is interpolated.
 		$table_name = esc_sql( $wpdb->prefix . 'snopix_index' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( "DROP TABLE IF EXISTS $table_name" );

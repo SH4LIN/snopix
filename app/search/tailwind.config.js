@@ -4,7 +4,7 @@
  * Inherits design tokens from `shared/tailwind-preset.js`. Every Tailwind
  * utility is scoped under `.snopix-widget` via the `important` selector so
  * the bundle can drop into any host theme without leaking utility classes
- * into surrounding markup. Plain `corePlugins.preflight` is disabled — the
+ * into surrounding markup. Plain `corePlugins.preflight` is disabled - the
  * widget owns its own resets inside `src/styles/globals.css` so we don't
  * apply Tailwind's preflight to the host page.
  */

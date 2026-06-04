@@ -31,7 +31,7 @@ export default function SearchPreview() {
 					</h2>
 					<p className="text-[13px] text-snopix-muted">
 						{__(
-							'Drop or upload an image — Snopix returns the most visually similar attachments in your library.',
+							'Drop or upload an image - Snopix returns the most visually similar attachments in your library.',
 							'snopix'
 						)}
 					</p>

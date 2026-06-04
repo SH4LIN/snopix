@@ -122,7 +122,7 @@ class Index_Repository implements Index_Repository_Interface {
 		$query_high = substr( $query_phash, 0, 8 );
 		$query_low  = substr( $query_phash, 8, 8 );
 
-		// $index_table is built from $wpdb->prefix only — no user input — and
+		// $index_table is built from $wpdb->prefix only - no user input - and
 		// table identifiers cannot be parameterised via $wpdb->prepare().
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$sql = $this->wpdb->prepare(

@@ -33,7 +33,7 @@ for ( $i = 1; $i <= 25; $i++ ) {
 	$data = @file_get_contents( $url ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 	if ( false === $data || strlen( $data ) < 1024 ) {
-		echo "FAIL  #{$i} — skipping\n";
+		echo "FAIL  #{$i} - skipping\n";
 		++$failed;
 		continue;
 	}

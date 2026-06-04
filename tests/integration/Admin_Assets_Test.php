@@ -69,7 +69,7 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Admin_Page — menu registration
+	// Admin_Page - menu registration
 	// -------------------------------------------------------------------------
 
 	/**
@@ -118,7 +118,7 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Admin_Page — asset enqueueing
+	// Admin_Page - asset enqueueing
 	// -------------------------------------------------------------------------
 
 	/**
@@ -160,7 +160,7 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Editor_Assets — registration hook
+	// Editor_Assets - registration hook
 	// -------------------------------------------------------------------------
 
 	/**
@@ -178,7 +178,7 @@ final class Admin_Assets_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Editor_Assets — conditional enqueue
+	// Editor_Assets - conditional enqueue
 	// -------------------------------------------------------------------------
 
 	/**

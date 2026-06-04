@@ -1,6 +1,6 @@
 <?php
 /**
- * Duplicate image finder — pure algorithm class.
+ * Duplicate image finder - pure algorithm class.
  *
  * @package Snopix
  */
@@ -55,7 +55,7 @@ class Duplicate_Finder {
 
 	/**
 	 * Hamming threshold the scanner uses when unioning candidates. Derived
-	 * from the configured similarity floor — closer to 1.0 means a tighter
+	 * from the configured similarity floor - closer to 1.0 means a tighter
 	 * cluster.
 	 *
 	 * @return int
@@ -158,7 +158,7 @@ class Duplicate_Finder {
 
 		$threshold = self::scanner_phash_threshold();
 
-		// O(n²) pair comparison — acceptable for typical media libraries.
+		// O(n²) pair comparison - acceptable for typical media libraries.
 		for ( $i = 0; $i < $n; $i++ ) {
 			for ( $j = $i + 1; $j < $n; $j++ ) {
 				$dist = $this->similarity->hamming_distance(

@@ -113,7 +113,7 @@ class Attachment_Query {
 	/**
 	 * Search image attachment IDs by post title or attached filename.
 	 *
-	 * Capped at SEARCH_LIMIT rows — title search is user-driven and bounded.
+	 * Capped at SEARCH_LIMIT rows - title search is user-driven and bounded.
 	 *
 	 * @param string $title Search term.
 	 *

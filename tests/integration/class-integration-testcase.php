@@ -132,7 +132,7 @@ abstract class Snopix_Integration_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Attach the same fixture bytes twice — two attachments, identical content.
+	 * Attach the same fixture bytes twice - two attachments, identical content.
 	 * Used for exact-duplicate (file_hash) detection.
 	 *
 	 * @param int $id Fixture index.

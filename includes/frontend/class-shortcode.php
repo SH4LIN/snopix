@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   - max_results  Cap on result cards rendered after a search. Clamped
  *                  between 1 and 48. Defaults to 12.
  *
- * Markup is a single mount point — the React bundle in `assets/search`
+ * Markup is a single mount point - the React bundle in `assets/search`
  * boots into every `[data-snopix-search]` element on the page, so multiple
  * shortcodes can live on the same page without sharing state.
  */

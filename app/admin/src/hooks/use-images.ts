@@ -24,7 +24,7 @@ interface UseImagesParams {
  * page stays cached for an instant "previous" navigation.
  *
  * @param {UseImagesParams} params         Query parameters.
- * @param {number}          params.afterId Keyset cursor — return images with id > this value (0 for first page).
+ * @param {number}          params.afterId Keyset cursor - return images with id > this value (0 for first page).
  * @param {string}          params.search  Substring search across title and `_wp_attached_file`.
  *
  * @return {import('@tanstack/react-query').UseQueryResult<ImageRow[]>}

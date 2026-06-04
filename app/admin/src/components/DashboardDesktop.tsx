@@ -6,7 +6,7 @@ import ImageTable from './ImageTable';
 import { useIndexStatus } from '../hooks/use-index-status';
 
 /**
- * Dashboard route — landing tab of the admin app.
+ * Dashboard route - landing tab of the admin app.
  *
  * Stacks the page heading, reverse-image search panel, stat tiles, an inline
  * indexing-job progress card (when applicable), and the recently-indexed

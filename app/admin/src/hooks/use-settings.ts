@@ -14,7 +14,7 @@ export interface PSSettings {
 /**
  * Fetch the persisted Snopix settings via `GET /wp-json/snopix/v1/settings`.
  *
- * Cached for 30 s — settings rarely change and the form is the only writer,
+ * Cached for 30 s - settings rarely change and the form is the only writer,
  * which invalidates the query manually on success.
  *
  * @return {import('@tanstack/react-query').UseQueryResult<PSSettings>}

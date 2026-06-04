@@ -80,7 +80,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Happy-path tests — SKIPPED: from_upload() success requires is_uploaded_file()
+	// Happy-path tests - SKIPPED: from_upload() success requires is_uploaded_file()
 	// -------------------------------------------------------------------------
 
 	/**
@@ -126,12 +126,12 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Rejection: file-size guard (fires BEFORE wp_handle_upload — testable)
+	// Rejection: file-size guard (fires BEFORE wp_handle_upload - testable)
 	// -------------------------------------------------------------------------
 
 	/**
 	 * When the 'size' key exceeds 10 MB the upload is rejected before any disk
-	 * I/O — from_upload() returns false immediately.
+	 * I/O - from_upload() returns false immediately.
 	 *
 	 * The guard reads $file['size'] from the supplied array; it does NOT stat
 	 * tmp_name. Passing an inflated size value is therefore sufficient to
@@ -157,7 +157,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Rejection: decompression-bomb guard — constant contract
+	// Rejection: decompression-bomb guard - constant contract
 	// -------------------------------------------------------------------------
 
 	/**
@@ -172,7 +172,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * A committed 'downscale' variant does not exceed the pixel limit —
+	 * A committed 'downscale' variant does not exceed the pixel limit -
 	 * verified via reflection only; the real upload path is skipped.
 	 */
 	public function test_from_upload_normal_image_passes_pixel_check(): void {
@@ -200,7 +200,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Cleanup — uses attach_fixture() (real attachment, no from_upload())
+	// Cleanup - uses attach_fixture() (real attachment, no from_upload())
 	// -------------------------------------------------------------------------
 
 	/**
@@ -235,7 +235,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * cleanup() is idempotent — calling it twice does not throw or return an error.
+	 * cleanup() is idempotent - calling it twice does not throw or return an error.
 	 */
 	public function test_cleanup_is_idempotent(): void {
 		$id = $this->attach_fixture( 3 );
@@ -248,7 +248,7 @@ final class Query_Image_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Downscale integration — SKIPPED: requires from_upload() success
+	// Downscale integration - SKIPPED: requires from_upload() success
 	// -------------------------------------------------------------------------
 
 	/**

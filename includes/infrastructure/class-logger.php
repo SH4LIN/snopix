@@ -28,7 +28,7 @@ final class Logger {
 
 	/**
 	 * Emit a debug line to the PHP error log if WP_DEBUG is enabled. No-op
-	 * otherwise — call sites do not need to gate the call themselves.
+	 * otherwise - call sites do not need to gate the call themselves.
 	 *
 	 * @param string $message Free-form message; do not include the plugin prefix.
 	 *
@@ -54,7 +54,7 @@ final class Logger {
 	public static function exception( \Throwable $e, string $context ): void {
 		self::debug(
 			sprintf(
-				'%s — %s: %s at %s:%d',
+				'%s - %s: %s at %s:%d',
 				$context,
 				get_class( $e ),
 				$e->getMessage(),

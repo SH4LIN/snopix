@@ -23,7 +23,7 @@ const NOTICES_KEY = ['feature-notices'] as const;
  * Server returns only notices the user has NOT dismissed, in registry order.
  * Cached aggressively because the list only changes when (a) the user
  * dismisses one (handled by optimistic update in `useDismissNotice`) or
- * (b) a plugin update ships a new notice — both are rare events.
+ * (b) a plugin update ships a new notice - both are rare events.
  *
  * @return {import('@tanstack/react-query').UseQueryResult<FeatureNotice[]>}
  */

@@ -40,7 +40,7 @@ final class Shortcode_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Markup — mount point
+	// Markup - mount point
 	// -------------------------------------------------------------------------
 
 	public function test_render_returns_div_with_data_attribute(): void {
@@ -120,7 +120,7 @@ final class Shortcode_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// max_results attribute — clamping
+	// max_results attribute - clamping
 	// -------------------------------------------------------------------------
 
 	public function test_custom_max_results_is_honoured(): void {
@@ -158,7 +158,7 @@ final class Shortcode_Test extends Snopix_Integration_TestCase {
 	}
 
 	public function test_assets_not_enqueued_before_render(): void {
-		// Fresh instance, register only — do not call do_shortcode.
+		// Fresh instance, register only - do not call do_shortcode.
 		$fresh = new Shortcode();
 		$fresh->register();
 
@@ -172,7 +172,7 @@ final class Shortcode_Test extends Snopix_Integration_TestCase {
 
 	public function test_output_is_a_single_root_element(): void {
 		$html = do_shortcode( '[snopix_search]' );
-		// Strip the one expected <div …></div> — nothing should remain.
+		// Strip the one expected <div …></div> - nothing should remain.
 		$stripped = trim( preg_replace( '/<div [^>]+><\/div>/', '', $html ) );
 		$this->assertSame( '', $stripped );
 	}

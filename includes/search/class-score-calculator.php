@@ -1,6 +1,6 @@
 <?php
 /**
- * Score calculator — computes a weighted similarity score between two fingerprints.
+ * Score calculator - computes a weighted similarity score between two fingerprints.
  *
  * @package Snopix
  */
@@ -46,7 +46,7 @@ class Score_Calculator {
 	 * @param array<string, mixed> $query_fp  Fingerprint of the query image.
 	 * @param array<string, mixed> $stored_fp Fingerprint row from the index.
 	 *
-	 * @return float Composite score in the range 0.0–1.0.
+	 * @return float Composite score in the range 0.0-1.0.
 	 */
 	public function calculate( array $query_fp, array $stored_fp ): float {
 		$required = array( 'phash', 'color_vector', 'edge_vector' );

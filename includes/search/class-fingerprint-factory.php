@@ -1,6 +1,6 @@
 <?php
 /**
- * Fingerprint factory — orchestrates GD loading and processor pipeline.
+ * Fingerprint factory - orchestrates GD loading and processor pipeline.
  *
  * @package Snopix
  */
@@ -66,7 +66,7 @@ class Fingerprint_Factory {
 			if ( false === $resized ) {
 				// A failed pre-downscale means we cannot uphold the 512 px
 				// working-size invariant. Bail rather than fingerprinting
-				// the original — callers treat the empty array as
+				// the original - callers treat the empty array as
 				// "unprocessable" and surface 422 to the client.
 				$this->loader->destroy( $gd );
 				return array();

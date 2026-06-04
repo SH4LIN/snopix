@@ -125,7 +125,7 @@ class PHash_Processor implements Processor_Interface {
 	 *
 	 * Mean is computed across the 63 AC coefficients only (DC at [0][0] excluded).
 	 * The DC coefficient represents overall brightness and is typically an order of
-	 * magnitude larger than the AC terms — including it skews the mean and degrades
+	 * magnitude larger than the AC terms - including it skews the mean and degrades
 	 * the hash. Each bit is 1 if its coefficient exceeds the AC mean, else 0.
 	 *
 	 * @param array<int, array<int, float>> $dct 8×8 DCT coefficients.

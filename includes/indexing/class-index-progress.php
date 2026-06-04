@@ -21,10 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * legitimately completed with zero items" (status=done, total=0).
  *
  * Status values:
- *   idle    — no job running.
- *   running — batches in flight.
- *   done    — all batches completed.
- *   stalled — chain aborted because every image in a batch failed.
+ *   idle    - no job running.
+ *   running - batches in flight.
+ *   done    - all batches completed.
+ *   stalled - chain aborted because every image in a batch failed.
  */
 class Index_Progress {
 

@@ -6,8 +6,8 @@
  * real Image_Indexer so rows land in the snopix_index table. Then attaches a
  * downscale variant of fixture 1 (not indexed) and runs the real Search_Pipeline
  * against it. Asserts that the indexed base (fixture 1) is the top-ranked result,
- * confirming the full pipeline — GD load → pHash/Color/Edge processors → DB
- * candidate fetch → Hamming pre-filter → composite score → rank — works end to
+ * confirming the full pipeline - GD load → pHash/Color/Edge processors → DB
+ * candidate fetch → Hamming pre-filter → composite score → rank - works end to
  * end against a genuine visual near-duplicate.
  *
  * @package Snopix
@@ -81,7 +81,7 @@ final class Search_Pipeline_Integration_Test extends Snopix_Integration_TestCase
 		$this->assertTrue( $this->indexer->index_single( $base10_id ), 'Failed to index fixture 10.' );
 		$this->assertTrue( $this->indexer->index_single( $base15_id ), 'Failed to index fixture 15.' );
 
-		// Attach a downscale variant of fixture 1 — do NOT index it.
+		// Attach a downscale variant of fixture 1 - do NOT index it.
 		$variant_id = $this->attach_variant( 1, 'downscale' );
 
 		// Run the live pipeline against the variant.
@@ -129,7 +129,7 @@ final class Search_Pipeline_Integration_Test extends Snopix_Integration_TestCase
 	 */
 	public function test_search_returns_empty_when_no_candidates(): void {
 		// Index only fixture 5 so there is at least one row, then query a
-		// downscale of fixture 1 — its pHash will be far from fixture 5's.
+		// downscale of fixture 1 - its pHash will be far from fixture 5's.
 		// If the Hamming pre-filter produces zero candidates the pipeline must
 		// return an empty array, not throw.
 		$base5_id   = $this->attach_fixture( 5 );
@@ -155,7 +155,7 @@ final class Search_Pipeline_Integration_Test extends Snopix_Integration_TestCase
 		$results = $this->pipeline->search( $variant_id );
 
 		if ( empty( $results ) ) {
-			$this->markTestSkipped( 'No results returned — Hamming threshold may have filtered the only candidate.' );
+			$this->markTestSkipped( 'No results returned - Hamming threshold may have filtered the only candidate.' );
 		}
 
 		$first = $results[0];

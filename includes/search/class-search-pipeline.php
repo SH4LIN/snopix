@@ -1,6 +1,6 @@
 <?php
 /**
- * Search pipeline — scores indexed images against a query fingerprint.
+ * Search pipeline - scores indexed images against a query fingerprint.
  *
  * @package Snopix
  */
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The composite-score floor used by the final filter comes from
  * {@see Settings::get_match_threshold()} so the admin can tune precision /
  * recall from the Settings tab. The cheap hamming pre-filter stays as a
- * hard-coded shortcut — it is purely a candidate-narrowing step.
+ * hard-coded shortcut - it is purely a candidate-narrowing step.
  */
 class Search_Pipeline {
 

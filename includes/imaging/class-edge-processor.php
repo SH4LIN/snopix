@@ -1,6 +1,6 @@
 <?php
 /**
- * Sobel edge-density processor — produces a 32-float normalised edge vector.
+ * Sobel edge-density processor - produces a 32-float normalised edge vector.
  *
  * @package Snopix
  */
@@ -149,7 +149,7 @@ class Edge_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Normalise values to 0.0–1.0 by dividing by the maximum value.
+	 * Normalise values to 0.0-1.0 by dividing by the maximum value.
 	 *
 	 * @param array<int, float> $values Raw edge values.
 	 *

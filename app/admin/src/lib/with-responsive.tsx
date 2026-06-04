@@ -8,7 +8,7 @@ import { useViewport } from '../hooks/use-viewport';
  * The wrapper subscribes to `useViewport` so a window resize (or tablet
  * rotation) flips the live tree without a reload. Both variants receive the
  * exact same props, which is what lets one route entry serve both layouts
- * — TanStack Router only knows about the wrapped component.
+ * - TanStack Router only knows about the wrapped component.
  *
  * @template P                 Shared prop shape for both variants.
  * @param   {ComponentType<P>} Desktop Rendered when the viewport is ≥ the mobile cutoff.

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Enforces per-IP request limits using WordPress transients.
  *
  * The per-window cap is read from the {@see Settings} option so admins can
- * tune it from the Settings tab. The window stays fixed at 60 seconds — short
+ * tune it from the Settings tab. The window stays fixed at 60 seconds - short
  * enough to feel responsive, long enough to bucket burst behaviour.
  */
 class Rate_Limiter {
@@ -71,7 +71,7 @@ class Rate_Limiter {
 
 		$count = wp_cache_incr( $key, 1, self::CACHE_GROUP );
 		if ( false === $count ) {
-			// Key expired between the add and the incr — start a fresh window.
+			// Key expired between the add and the incr - start a fresh window.
 			wp_cache_add( $key, 1, self::CACHE_GROUP, self::WINDOW );
 			return true;
 		}
@@ -125,7 +125,7 @@ class Rate_Limiter {
 	/**
 	 * Resolve the effective client IP to limit on.
 	 *
-	 * `REMOTE_ADDR` is always the immediate peer — behind any reverse proxy
+	 * `REMOTE_ADDR` is always the immediate peer - behind any reverse proxy
 	 * that is the proxy itself, which would coalesce every visitor into one
 	 * bucket. When the request is forwarded by a configured trusted proxy
 	 * (constant `SNOPIX_TRUSTED_PROXIES`, a comma-separated list of IPs)

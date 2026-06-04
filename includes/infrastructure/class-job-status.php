@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Plain `const class` (not a PHP 8.1 enum) so the codebase keeps its PHP 8.0
  * floor (see composer.json `"php": ">=8.0"`). The string values are part of
- * the REST contract — the admin app's TypeScript discriminated unions match
- * these exact tokens, and persisted transients contain them — so DO NOT
+ * the REST contract - the admin app's TypeScript discriminated unions match
+ * these exact tokens, and persisted transients contain them - so DO NOT
  * rename them without bumping the plugin DB version and migrating.
  */
 final class Job_Status {
@@ -44,7 +44,7 @@ final class Job_Status {
 	public const DONE = 'done';
 
 	/**
-	 * Whether the given status represents an in-flight or stuck job — i.e.
+	 * Whether the given status represents an in-flight or stuck job - i.e.
 	 * something the user must explicitly reset before scheduling a new run.
 	 *
 	 * @param string $status Status string from a progress envelope.

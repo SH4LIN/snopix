@@ -19,7 +19,7 @@ import MobileHero from './MobileHero';
  * a Save/Discard pair appears at the bottom once the form is dirty (sticky
  * above the bottom tab bar).
  *
- * Similarity thresholds round-trip as 0–1 floats but render as 50–100% to
+ * Similarity thresholds round-trip as 0-1 floats but render as 50-100% to
  * match the desktop view.
  *
  * @return {JSX.Element}
@@ -169,7 +169,7 @@ export default function SettingsMobile() {
 							checked={form.drop_on_uninstall}
 							onChange={(v) => set('drop_on_uninstall', v)}
 							title={__('Delete all Snopix data when removed', 'snopix')}
-							hint={__('Permanently deletes the search index and all Snopix settings. Only happens when you delete the plugin — not when you deactivate it.', 'snopix')}
+							hint={__('Permanently deletes the search index and all Snopix settings. Only happens when you delete the plugin - not when you deactivate it.', 'snopix')}
 						/>
 					</SectionGroup>
 				</>

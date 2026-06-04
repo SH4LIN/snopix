@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap for pure unit tests — no WordPress, no database.
+ * Bootstrap for pure unit tests - no WordPress, no database.
  *
  * Every Snopix source file guards with `if ( ! defined( 'ABSPATH' ) ) exit;`.
  * Define a dummy ABSPATH so those guards pass, then load the plugin's own

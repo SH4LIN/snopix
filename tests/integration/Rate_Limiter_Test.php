@@ -166,7 +166,7 @@ final class Rate_Limiter_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * Both buckets can be exhausted independently — confirms isolation is
+	 * Both buckets can be exhausted independently - confirms isolation is
 	 * symmetric (neither direction bleeds into the other).
 	 */
 	public function test_both_buckets_enforce_their_own_cap(): void {

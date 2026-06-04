@@ -83,7 +83,7 @@ class Duplicates_REST_Controller {
 	}
 
 	/**
-	 * Handle GET /duplicates — return stored groups, enriched with attachment data.
+	 * Handle GET /duplicates - return stored groups, enriched with attachment data.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -107,7 +107,7 @@ class Duplicates_REST_Controller {
 	}
 
 	/**
-	 * Handle POST /duplicates/scan — schedule a background scan.
+	 * Handle POST /duplicates/scan - schedule a background scan.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
@@ -125,7 +125,7 @@ class Duplicates_REST_Controller {
 	}
 
 	/**
-	 * Handle GET /duplicates/progress — poll scan progress.
+	 * Handle GET /duplicates/progress - poll scan progress.
 	 *
 	 * @return \WP_REST_Response
 	 */
@@ -134,7 +134,7 @@ class Duplicates_REST_Controller {
 	}
 
 	/**
-	 * Handle POST /duplicates/reset — abort any in-flight scan and clear
+	 * Handle POST /duplicates/reset - abort any in-flight scan and clear
 	 * progress state. Lets the UI recover from a stalled or zombie scan.
 	 *
 	 * @return \WP_REST_Response

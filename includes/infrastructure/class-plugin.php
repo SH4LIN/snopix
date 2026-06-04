@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Main plugin class — bootstraps all services and hooks.
+ * Main plugin class - bootstraps all services and hooks.
  */
 class Plugin {
 	/**
@@ -219,7 +219,7 @@ class Plugin {
 		$user_id = get_current_user_id();
 		if ( $user_id ) {
 			// Only auto-open the onboarding tour for users who have not already
-			// finished or skipped it — otherwise a deactivate/reactivate cycle
+			// finished or skipped it - otherwise a deactivate/reactivate cycle
 			// would re-trigger the walkthrough they have already seen.
 			$tour = get_user_meta( $user_id, 'snopix_tour_completed', true );
 			if ( 'completed' !== $tour && 'skipped' !== $tour ) {
@@ -249,10 +249,10 @@ class Plugin {
 	public static function uninstall(): void {
 		global $wpdb;
 
-		// Read the cleanup preference BEFORE we drop the option — otherwise we
+		// Read the cleanup preference BEFORE we drop the option - otherwise we
 		// always see the default value once the row is gone.
 		if ( ! Settings::should_drop_on_uninstall() ) {
-			// User opted out — leave everything so a reinstall resumes where it left off.
+			// User opted out - leave everything so a reinstall resumes where it left off.
 			return;
 		}
 
@@ -280,7 +280,7 @@ class Plugin {
 		$schema = new Schema();
 		$schema->uninstall();
 
-		// Wipe per-user state across every user — dismissed notifications and
+		// Wipe per-user state across every user - dismissed notifications and
 		// tour completion flags would otherwise survive a destructive uninstall
 		// and pollute a fresh reinstall's onboarding.
 		delete_metadata( 'user', 0, 'snopix_tour_completed', '', true );

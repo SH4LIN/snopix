@@ -325,7 +325,7 @@ export default function SnopixWidget({
 								</div>
 								<div className="px-2.5 py-2 border-t border-snopix-border">
 									<div className="text-xs font-medium overflow-hidden text-ellipsis whitespace-nowrap">
-										{r.title || '—'}
+										{r.title || '-'}
 									</div>
 									<div className="mt-1.5 h-[3px] bg-snopix-border rounded-sm overflow-hidden">
 										<div

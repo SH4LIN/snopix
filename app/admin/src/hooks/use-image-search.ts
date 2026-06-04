@@ -42,7 +42,7 @@ export interface ImageSearchState {
  *
  * Owns the same idle → scanning → results flow that both `SearchPreview`
  * (desktop) and `SearchPreviewMobile` render. Components stay focused on
- * layout — the probe object URL bookkeeping, error mapping, and REST call
+ * layout - the probe object URL bookkeeping, error mapping, and REST call
  * live here.
  *
  * @return {ImageSearchState}

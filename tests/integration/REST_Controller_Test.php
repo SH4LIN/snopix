@@ -8,16 +8,16 @@
  * (permission callbacks, REST server argument sanitisation, rate limiter) runs.
  *
  * Covered:
- *   - GET  snopix/v1/status         — shape + HTTP 200
- *   - GET  snopix/v1/progress        — shape + HTTP 200
- *   - GET  snopix/v1/images          — shape + HTTP 200
- *   - GET  snopix/v1/settings        — shape + HTTP 200
- *   - POST snopix/v1/settings        — merge persists + HTTP 200
- *   - POST snopix/v1/reindex         — schedules a job, HTTP 200
- *   - POST snopix/v1/reset-progress  — resets to idle, HTTP 200
- *   - DELETE snopix/v1/index/{id}    — removes row, HTTP 200 / 404
- *   - POST snopix/v1/search          — permission gating by visibility setting
- *   - POST snopix/v1/search          — rate limiting returns 429 when exhausted
+ *   - GET  snopix/v1/status         - shape + HTTP 200
+ *   - GET  snopix/v1/progress        - shape + HTTP 200
+ *   - GET  snopix/v1/images          - shape + HTTP 200
+ *   - GET  snopix/v1/settings        - shape + HTTP 200
+ *   - POST snopix/v1/settings        - merge persists + HTTP 200
+ *   - POST snopix/v1/reindex         - schedules a job, HTTP 200
+ *   - POST snopix/v1/reset-progress  - resets to idle, HTTP 200
+ *   - DELETE snopix/v1/index/{id}    - removes row, HTTP 200 / 404
+ *   - POST snopix/v1/search          - permission gating by visibility setting
+ *   - POST snopix/v1/search          - rate limiting returns 429 when exhausted
  *
  * @package Snopix
  */
@@ -154,7 +154,7 @@ final class REST_Controller_Test extends Snopix_Integration_TestCase {
 	 * Dispatch a rate-limited search request from the test IP.
 	 *
 	 * Injects REMOTE_ADDR so Rate_Limiter::resolve_client_ip() returns self::IP,
-	 * then fires an empty file upload (which will fail at the 'no_file' check —
+	 * then fires an empty file upload (which will fail at the 'no_file' check -
 	 * but the rate-limit check fires first).
 	 *
 	 * @return WP_REST_Response
@@ -473,12 +473,12 @@ final class REST_Controller_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -----------------------------------------------------------------------
-	// POST /search — visibility permission gating
+	// POST /search - visibility permission gating
 	// -----------------------------------------------------------------------
 
 	/**
 	 * POST /search with visibility=anyone allows an unauthenticated request
-	 * (it fails with 400 "no_file" — not 401 — because permission passed).
+	 * (it fails with 400 "no_file" - not 401 - because permission passed).
 	 */
 	public function test_search_visibility_anyone_allows_anonymous_request(): void {
 		update_option(
@@ -491,7 +491,7 @@ final class REST_Controller_Test extends Snopix_Integration_TestCase {
 		$request  = new WP_REST_Request( 'POST', '/' . self::NS . '/search' );
 		$response = rest_do_request( $request );
 
-		// Permission callback passed — response must not be 401/403.
+		// Permission callback passed - response must not be 401/403.
 		$this->assertNotSame( 401, $response->get_status(), 'Anonymous request must not be blocked when visibility=anyone.' );
 		$this->assertNotSame( 403, $response->get_status(), 'Anonymous request must not be forbidden when visibility=anyone.' );
 	}
@@ -532,13 +532,13 @@ final class REST_Controller_Test extends Snopix_Integration_TestCase {
 		$request  = new WP_REST_Request( 'POST', '/' . self::NS . '/search' );
 		$response = rest_do_request( $request );
 
-		// Permission passed — result is 400 (no file) or 429 (rate limited), not 401/403.
+		// Permission passed - result is 400 (no file) or 429 (rate limited), not 401/403.
 		$this->assertNotSame( 401, $response->get_status(), 'Logged-in user must not be blocked when visibility=logged_in.' );
 		$this->assertNotSame( 403, $response->get_status(), 'Logged-in user must not be forbidden when visibility=logged_in.' );
 	}
 
 	// -----------------------------------------------------------------------
-	// POST /search — rate limiting
+	// POST /search - rate limiting
 	// -----------------------------------------------------------------------
 
 	/**
@@ -556,11 +556,11 @@ final class REST_Controller_Test extends Snopix_Integration_TestCase {
 		wp_set_current_user( 0 );
 		$_SERVER['REMOTE_ADDR'] = self::IP;
 
-		// First request — consumes the sole allowed slot (fails at 'no_file', not rate limit).
+		// First request - consumes the sole allowed slot (fails at 'no_file', not rate limit).
 		$first = $this->dispatch_search_for_rate_limit();
 		$this->assertNotSame( 429, $first->get_status(), 'First request must not be rate-limited.' );
 
-		// Second request — must be rate-limited.
+		// Second request - must be rate-limited.
 		$second = $this->dispatch_search_for_rate_limit();
 		$this->assertSame( 429, $second->get_status(), 'Second request beyond the cap must return 429.' );
 	}

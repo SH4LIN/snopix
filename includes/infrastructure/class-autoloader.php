@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
- * PSR-4–style autoloader for Snopix namespaced classes.
+ * PSR-4-style autoloader for Snopix namespaced classes.
  */
 class Autoloader {
 

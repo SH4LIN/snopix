@@ -1,5 +1,5 @@
 /**
- * Duplicates tab – end-to-end spec.
+ * Duplicates tab - end-to-end spec.
  *
  * Selectors are best-effort from source (DuplicatesDesktop.tsx /
  * DuplicatesMobile.tsx). The scan button label is "Rescan" on desktop (the
@@ -18,12 +18,12 @@
  *     results or empty state visible). Generous 60 s timeout: the scan runs
  *     via WP-Cron / Action Scheduler in batches and the app polls every 2 s.
  *  4. Assert that after scanning either a group card OR a no-duplicates empty
- *     state is visible — i.e., the scan completed without a JS error.
+ *     state is visible - i.e., the scan completed without a JS error.
  *
  * Caveats: indexing must have completed before the scan can detect duplicates.
  * If the indexer has not processed the two uploads yet the scan may return zero
  * groups and the test falls back to the empty-state assertion. Both outcomes
- * are valid — the test proves the UI renders a terminal state, not an infinite
+ * are valid - the test proves the UI renders a terminal state, not an infinite
  * spinner or error page.
  */
 
@@ -128,7 +128,7 @@ test.describe('Duplicates tab', () => {
 			console.log(`[duplicates] result state: ${groupsFound ? 'group card visible' : 'empty state'}`);
 
 			if (groupsFound) {
-				await expect(page.getByText(/Group\s*·\s*\d+ attachments/).first()).toBeVisible();
+				await expect(page.getByText(/Group\s*·\s*\d+ images/).first()).toBeVisible();
 				await expect(page.getByRole('button', { name: 'Delete all duplicates' })).toBeEnabled();
 				console.log('[duplicates] group card structure verified');
 			}
@@ -194,7 +194,7 @@ test.describe('Duplicates tab', () => {
 			test.info().annotations.push({ type: 'progress-appeared', description: String(appeared) });
 
 			if (!appeared) {
-				console.log('[duplicates] scan was instant — waiting for terminal state');
+				console.log('[duplicates] scan was instant - waiting for terminal state');
 				await expect(page.getByRole('button', { name: SCAN_BUTTON_TEXT })).toBeVisible({ timeout: 30_000 });
 			} else {
 				await waitForScanComplete(page);

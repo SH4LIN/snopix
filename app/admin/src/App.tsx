@@ -21,7 +21,7 @@ const safeProgress = async (path: string): Promise<ProgressResponse> => {
 
 /**
  * Sync the Zustand store with any in-flight indexing or duplicate-scan jobs at
- * boot. See the replay-guard rationale on each effect — both shells inherit
+ * boot. See the replay-guard rationale on each effect - both shells inherit
  * the same hydration logic so a hard reload during an active job leaves the
  * UI in the correct running/stalled state.
  *
@@ -81,7 +81,7 @@ const AppShell = withResponsive(AppShellDesktop, AppShellMobile, 'AppShell');
 /**
  * Root admin app component.
  *
- * Runs progress hydration once, then delegates to the responsive shell —
+ * Runs progress hydration once, then delegates to the responsive shell -
  * `AppShellDesktop` above the mobile breakpoint, `AppShellMobile` below it.
  *
  * @return {JSX.Element}

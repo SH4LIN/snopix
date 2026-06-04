@@ -1,6 +1,6 @@
 <?php
 /**
- * Color histogram processor — produces a 48-float RGB channel histogram vector.
+ * Color histogram processor - produces a 48-float RGB channel histogram vector.
  *
  * @package Snopix
  */

@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPStan bootstrap — defines constants required for static analysis.
+ * PHPStan bootstrap - defines constants required for static analysis.
  *
  * @package Snopix
  */

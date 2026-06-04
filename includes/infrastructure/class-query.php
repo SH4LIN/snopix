@@ -541,7 +541,7 @@ class Query {
 
 	/**
 	 * Delete every row in the table. Separate method from {@see delete()} so
-	 * the empty-WHERE guard there stays intact — accidental unbounded
+	 * the empty-WHERE guard there stays intact - accidental unbounded
 	 * deletes via a missing where() call should still fail loudly.
 	 *
 	 * @return int|false Affected row count, or false on DB error.

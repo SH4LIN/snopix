@@ -6,7 +6,7 @@
  * The panel parses the shortcode attributes, exposes UI for the supported
  * options (variant, title, max_results), and writes the result back into the
  * block `text` attribute. Editing falls back gracefully if the block also
- * contains other shortcodes or surrounding text — only the [snopix_search]
+ * contains other shortcodes or surrounding text - only the [snopix_search]
  * tag is rewritten.
  */
 

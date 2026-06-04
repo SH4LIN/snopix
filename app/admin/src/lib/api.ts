@@ -28,7 +28,7 @@ function ensureMiddleware(): void {
 	}
 	middlewareRegistered = true;
 
-	// snopix_data.rest_url ends with `snopix/v1/` — strip back to the site REST root
+	// snopix_data.rest_url ends with `snopix/v1/` - strip back to the site REST root
 	// so callers can pass either bare `snopix/v1/foo` or core paths like
 	// `/wp/v2/media/123`.
 	const restRoot = snopix_data.rest_url.replace(/snopix\/v1\/?$/, '');

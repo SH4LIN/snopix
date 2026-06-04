@@ -20,7 +20,7 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * Convert a similarity ratio (0–1) to a whole-number percentage.
+ * Convert a similarity ratio (0-1) to a whole-number percentage.
  *
  * @param {number} ratio Value in `[0, 1]`.
  *

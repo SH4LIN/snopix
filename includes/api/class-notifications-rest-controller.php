@@ -82,7 +82,7 @@ class Notifications_REST_Controller {
 	}
 
 	/**
-	 * Handle GET /notices — return the wire payload for every notification
+	 * Handle GET /notices - return the wire payload for every notification
 	 * the current user has not dismissed.
 	 *
 	 * @return \WP_REST_Response
@@ -100,7 +100,7 @@ class Notifications_REST_Controller {
 	}
 
 	/**
-	 * Handle POST /notices/{id}/dismiss — record dismissal for the current user.
+	 * Handle POST /notices/{id}/dismiss - record dismissal for the current user.
 	 *
 	 * Rejects unknown notification IDs with 404 so we never persist arbitrary
 	 * keys.
@@ -141,7 +141,7 @@ class Notifications_REST_Controller {
 	}
 
 	/**
-	 * Handle POST /notices/dismiss-all — bulk-dismiss every currently
+	 * Handle POST /notices/dismiss-all - bulk-dismiss every currently
 	 * registered notification for the current user.
 	 *
 	 * @return \WP_REST_Response|\WP_Error

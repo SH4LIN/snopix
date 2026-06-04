@@ -77,7 +77,7 @@ class Settings {
 
 	/**
 	 * Sanitize settings input. Every key is clamped/cast to a safe value and
-	 * unknown keys are dropped — engines can rely on the schema.
+	 * unknown keys are dropped - engines can rely on the schema.
 	 *
 	 * @param array<string, mixed> $input Raw input array.
 	 *
@@ -178,7 +178,7 @@ class Settings {
 	}
 
 	/**
-	 * Indexer batch size — attachments fingerprinted per WP-Cron tick.
+	 * Indexer batch size - attachments fingerprinted per WP-Cron tick.
 	 *
 	 * @return int
 	 */

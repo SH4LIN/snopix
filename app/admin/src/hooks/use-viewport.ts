@@ -4,8 +4,8 @@ export type Viewport = 'mobile' | 'desktop';
 
 /**
  * Width breakpoint that flips the admin app between the WP-admin desktop
- * shell and the mobile single-column shell. Anything narrower than this —
- * phones plus portrait/landscape tablets — gets the mobile shell so the
+ * shell and the mobile single-column shell. Anything narrower than this -
+ * phones plus portrait/landscape tablets - gets the mobile shell so the
  * thumb-reachable bottom-tab nav and grouped list layouts kick in well
  * before the desktop chrome would start to feel cramped.
  */

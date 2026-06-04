@@ -77,7 +77,7 @@ final class Duplicates_REST_Controller_Test extends Snopix_Integration_TestCase 
 	}
 
 	// -------------------------------------------------------------------------
-	// Permission enforcement — anonymous user must be denied on every route.
+	// Permission enforcement - anonymous user must be denied on every route.
 	// -------------------------------------------------------------------------
 
 	public function test_get_duplicates_anonymous_returns_401(): void {
@@ -105,7 +105,7 @@ final class Duplicates_REST_Controller_Test extends Snopix_Integration_TestCase 
 	}
 
 	// -------------------------------------------------------------------------
-	// GET /snopix/v1/duplicates — empty state.
+	// GET /snopix/v1/duplicates - empty state.
 	// -------------------------------------------------------------------------
 
 	public function test_get_duplicates_returns_200_with_expected_shape(): void {
@@ -123,7 +123,7 @@ final class Duplicates_REST_Controller_Test extends Snopix_Integration_TestCase 
 	}
 
 	// -------------------------------------------------------------------------
-	// GET /snopix/v1/duplicates — with pre-seeded results.
+	// GET /snopix/v1/duplicates - with pre-seeded results.
 	// -------------------------------------------------------------------------
 
 	public function test_get_duplicates_returns_persisted_exact_group(): void {
@@ -167,7 +167,7 @@ final class Duplicates_REST_Controller_Test extends Snopix_Integration_TestCase 
 	public function test_get_duplicates_filters_group_with_only_one_valid_attachment(): void {
 		wp_set_current_user( $this->admin_id );
 
-		// Group references a non-existent attachment — enrich drops it, resulting
+		// Group references a non-existent attachment - enrich drops it, resulting
 		// in fewer than 2 images, so the group must be excluded from the response.
 		$groups = array(
 			array(
@@ -218,7 +218,7 @@ final class Duplicates_REST_Controller_Test extends Snopix_Integration_TestCase 
 	public function test_progress_idle_returns_idle_status(): void {
 		wp_set_current_user( $this->admin_id );
 
-		// No scan triggered — progress transient absent → idle sentinel.
+		// No scan triggered - progress transient absent → idle sentinel.
 		$response = rest_do_request( new WP_REST_Request( 'GET', '/snopix/v1/duplicates/progress' ) );
 		$data     = $response->get_data();
 

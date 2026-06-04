@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Source of truth for in-app feature announcements.
  *
- * Notifications are declared as plain PHP — adding a new "what's new" card
+ * Notifications are declared as plain PHP - adding a new "what's new" card
  * means appending one constructor call to {@see self::seed()}. Third-party
  * code can extend or replace the list via the `snopix_feature_notifications`
  * filter so addons can ship their own announcements without modifying the
@@ -32,7 +32,7 @@ final class Feature_Notification_Registry {
 	/**
 	 * Return every notification currently registered, keyed by notification ID.
 	 *
-	 * Identifier collisions resolve to last-write-wins after the filter runs —
+	 * Identifier collisions resolve to last-write-wins after the filter runs -
 	 * addon authors who want to override a default notification simply
 	 * re-register the same ID with new payload.
 	 *
@@ -67,7 +67,7 @@ final class Feature_Notification_Registry {
 	 * Look up a notification by ID, or null if it isn't registered.
 	 *
 	 * Used by the dismiss endpoint to validate that the inbound `{id}` maps
-	 * to a real notification before writing to user_meta — prevents arbitrary
+	 * to a real notification before writing to user_meta - prevents arbitrary
 	 * keys polluting per-user dismissal storage.
 	 *
 	 * @param string $id Notification identifier.
@@ -94,7 +94,7 @@ final class Feature_Notification_Registry {
 	/**
 	 * Built-in notifications shipped with the plugin.
 	 *
-	 * Keep this list short — only announce features that materially change
+	 * Keep this list short - only announce features that materially change
 	 * what the user can do. Marketing copy belongs on the project site, not
 	 * inside the admin app.
 	 *

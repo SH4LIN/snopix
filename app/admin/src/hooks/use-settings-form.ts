@@ -57,7 +57,7 @@ export interface SettingsForm {
  * changes.
  *
  * Hydration uses the "derive state during render" pattern keyed on the
- * server `data` reference — when React Query returns a new payload the form
+ * server `data` reference - when React Query returns a new payload the form
  * and the server snapshot are reset in lockstep. Saves send a shallow diff
  * so the POST body shows the user's actual change, not the entire option
  * blob, which makes both the network panel and any rate-limited audit log

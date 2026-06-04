@@ -29,7 +29,7 @@ interface Action {
 }
 
 /**
- * Tools tab — index maintenance actions and the running-job status panel.
+ * Tools tab - index maintenance actions and the running-job status panel.
  *
  * Renders four action cards (Reindex everything, Delete orphan rows, Flush
  * plugin caches, Clear the index) plus a live progress card for any bulk job

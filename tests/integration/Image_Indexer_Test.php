@@ -105,7 +105,7 @@ final class Image_Indexer_Test extends Snopix_Integration_TestCase {
 
 	/**
 	 * Attaching an attachment with an unsupported MIME type causes
-	 * mark_failed('unsupported_mime') — the row has a non-empty error_code and
+	 * mark_failed('unsupported_mime') - the row has a non-empty error_code and
 	 * does not appear in get_all_indexed().
 	 */
 	public function test_unsupported_mime_produces_failed_row(): void {

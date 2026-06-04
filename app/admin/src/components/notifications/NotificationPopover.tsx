@@ -18,7 +18,7 @@ interface Props {
  * Renders the active notice list as a tall, scrollable card with a header
  * ("Notifications" + count + Dismiss all) and a body that either lists notice
  * rows or shows the empty-state placeholder. Closes on outside click and on
- * Escape — the bell button itself toggles open/closed via the parent
+ * Escape - the bell button itself toggles open/closed via the parent
  * (`useState`) so this component only needs to know how to clean up.
  *
  * @param {Props}    props         Component props.

@@ -16,7 +16,7 @@ import { IconCheck, IconRefresh, IconTrash, IconWarn } from './icons';
 type ConfirmTarget = { kind: 'group'; group: DuplicateGroup } | { kind: 'all' };
 
 /**
- * Duplicates tab — scans for and resolves visually identical attachments.
+ * Duplicates tab - scans for and resolves visually identical attachments.
  *
  * Summary bar with group/dup/recoverable counts, a similarity-threshold slider
  * for client-side filtering, then one card per group with a keep-radio tile

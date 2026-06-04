@@ -198,7 +198,7 @@ final class Plugin_Lifecycle_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// uninstall() — drop_on_uninstall = true
+	// uninstall() - drop_on_uninstall = true
 	// -------------------------------------------------------------------------
 
 	public function test_uninstall_drops_table_when_drop_setting_is_true(): void {
@@ -228,7 +228,7 @@ final class Plugin_Lifecycle_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// uninstall() — drop_on_uninstall = false
+	// uninstall() - drop_on_uninstall = false
 	// -------------------------------------------------------------------------
 
 	public function test_uninstall_keeps_table_when_drop_setting_is_false(): void {
@@ -261,7 +261,7 @@ final class Plugin_Lifecycle_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// uninstall() — transients deleted when drop_on_uninstall is true
+	// uninstall() - transients deleted when drop_on_uninstall is true
 	// -------------------------------------------------------------------------
 
 	public function test_uninstall_deletes_bulk_pending_transient(): void {

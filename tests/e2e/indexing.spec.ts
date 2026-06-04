@@ -1,5 +1,5 @@
 /**
- * Snopix — Indexing e2e spec
+ * Snopix - Indexing e2e spec
  *
  * NOTE: This spec depends on WP-Cron to process fingerprint batches.
  * Selectors and UI labels are derived from the React source (best-effort);
@@ -21,7 +21,7 @@ import { login, gotoSnopix, uploadMedia, fixturePath } from './helpers';
 const UPLOAD_COUNT = 2;
 const FIXTURE_NAMES = ['001.jpg', '002.jpg'] as const;
 
-// How long (ms) to give the indexing job to complete — cron batches take time.
+// How long (ms) to give the indexing job to complete - cron batches take time.
 const INDEXING_TIMEOUT = 90_000;
 
 // How long to give the "Indexed" stat tile to update in the SPA.
@@ -45,7 +45,7 @@ async function tickCron(page: import('@playwright/test').Page): Promise<void> {
 	try {
 		await page.request.get('/wp-cron.php?doing_wp_cron', { timeout: 10_000 });
 	} catch {
-		// Non-fatal — cron may simply have nothing to run.
+		// Non-fatal - cron may simply have nothing to run.
 	}
 }
 
@@ -111,7 +111,7 @@ test.describe('Snopix indexing', () => {
 				.filter({ has: page.locator('.snopix-stat__label', { hasText: 'Indexed' }) })
 				.locator('.snopix-stat__value');
 
-			await expect(indexedTile).not.toHaveText('—', { timeout: 10_000 });
+			await expect(indexedTile).not.toHaveText('-', { timeout: 10_000 });
 			indexedBefore = parseInt((await indexedTile.textContent()) ?? '0', 10);
 			console.log(`[indexing] Indexed count before: ${indexedBefore}`);
 			test.info().annotations.push({ type: 'indexed-before', description: String(indexedBefore) });
@@ -150,7 +150,7 @@ test.describe('Snopix indexing', () => {
 						});
 
 						if (!res.ok()) {
-							console.log('[indexing] /progress returned non-OK — treating as idle');
+							console.log('[indexing] /progress returned non-OK - treating as idle');
 							return true;
 						}
 
@@ -239,12 +239,12 @@ test.describe('Snopix indexing', () => {
 
 		// ----------------------------------------------------------------
 		// Step 9 (optional): If the progress card is still visible, assert
-		// it shows "Indexing complete". Soft check — card auto-hides after 3 s.
+		// it shows "Indexing complete". Soft check - card auto-hides after 3 s.
 		// ----------------------------------------------------------------
 		await test.step('optional: confirm progress card shows Indexing complete', async () => {
 			const progressCard = page.locator('div[data-tour="reindex-button"]').first();
 			if (await progressCard.isVisible()) {
-				console.log('[indexing] progress card still visible — checking for "Indexing complete"');
+				console.log('[indexing] progress card still visible - checking for "Indexing complete"');
 				await expect(progressCard).toContainText('Indexing complete', {
 					timeout: 5_000,
 				});

@@ -22,7 +22,7 @@ class Search_Result {
 	 * @param string $url          Full-size image URL.
 	 * @param string $thumbnail  Thumbnail image URL.
 	 * @param string $title      Attachment title.
-	 * @param float  $score      Composite similarity score 0.0–1.0.
+	 * @param float  $score      Composite similarity score 0.0-1.0.
 	 */
 	public function __construct(
 		public int $attachment_id,

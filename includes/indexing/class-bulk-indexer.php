@@ -212,21 +212,21 @@ class Bulk_Indexer {
 						++$succeeded;
 					}
 				} catch ( \Throwable $e ) {
-					// One bad attachment must not poison the whole batch — log and continue.
+					// One bad attachment must not poison the whole batch - log and continue.
 					Logger::exception( $e, sprintf( 'index_single threw for attachment %d', $id ) );
 				}
 			}
 
 			$this->progress->increment_by( count( $batch_ids ) );
 		} catch ( \Throwable $e ) {
-			// Unexpected — counter not advanced; abort the chain so progress doesn't stick on running.
+			// Unexpected - counter not advanced; abort the chain so progress doesn't stick on running.
 			delete_transient( self::PENDING_KEY );
 			$this->progress->mark_stalled();
 			Logger::exception( $e, 'process_batch aborted' );
 			return;
 		}
 
-		// Only halt when the very FIRST batch produced zero successes — that
+		// Only halt when the very FIRST batch produced zero successes - that
 		// points at a fundamentally broken environment (missing GD/Imagick,
 		// unreadable uploads dir) rather than a cluster of bad files. A later
 		// all-failed batch must NOT abort the rest of the queue: skip it and

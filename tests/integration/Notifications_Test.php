@@ -85,7 +85,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Feature_Notification_Store — unit-level persistence
+	// Feature_Notification_Store - unit-level persistence
 	// -------------------------------------------------------------------------
 
 	public function test_store_not_dismissed_by_default(): void {
@@ -226,7 +226,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Feature_Notification — to_array wire shape
+	// Feature_Notification - to_array wire shape
 	// -------------------------------------------------------------------------
 
 	public function test_notification_to_array_shape(): void {
@@ -281,7 +281,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// REST — GET /snopix/v1/notices (list)
+	// REST - GET /snopix/v1/notices (list)
 	// -------------------------------------------------------------------------
 
 	public function test_rest_list_requires_manage_options(): void {
@@ -370,7 +370,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// REST — POST /snopix/v1/notices/{id}/dismiss (single dismiss)
+	// REST - POST /snopix/v1/notices/{id}/dismiss (single dismiss)
 	// -------------------------------------------------------------------------
 
 	public function test_rest_dismiss_requires_manage_options(): void {
@@ -445,7 +445,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// REST — POST /snopix/v1/notices/dismiss-all
+	// REST - POST /snopix/v1/notices/dismiss-all
 	// -------------------------------------------------------------------------
 
 	public function test_rest_dismiss_all_requires_manage_options(): void {
@@ -504,7 +504,7 @@ final class Notifications_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// REST — payload shape contract
+	// REST - payload shape contract
 	// -------------------------------------------------------------------------
 
 	public function test_rest_list_payload_contains_expected_keys(): void {

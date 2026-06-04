@@ -120,7 +120,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * Calling schedule() twice must not leave duplicate cron events — each
+	 * Calling schedule() twice must not leave duplicate cron events - each
 	 * call cancels the existing chain before scheduling a new one.
 	 */
 	public function test_schedule_cancels_existing_event_before_rescheduling(): void {
@@ -176,7 +176,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// run() — empty index.
+	// run() - empty index.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -203,7 +203,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 	}
 
 	/**
-	 * With a single indexed attachment, run() finalises with no groups —
+	 * With a single indexed attachment, run() finalises with no groups -
 	 * a pair is needed to form any group.
 	 */
 	public function test_run_with_single_indexed_image_produces_no_groups(): void {
@@ -221,7 +221,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// run() — exact duplicate pair detected and persisted.
+	// run() - exact duplicate pair detected and persisted.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -333,7 +333,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Unrelated images — no groups produced.
+	// Unrelated images - no groups produced.
 	// -------------------------------------------------------------------------
 
 	/**
@@ -363,7 +363,7 @@ final class Duplicate_Scanner_Test extends Snopix_Integration_TestCase {
 
 	/**
 	 * After run() completes (finalise path), the cross-batch state transient
-	 * must be absent — it should not persist beyond the completed scan.
+	 * must be absent - it should not persist beyond the completed scan.
 	 */
 	public function test_state_transient_is_deleted_after_run_completes(): void {
 		[ $id_a, $id_b ] = $this->attach_fixture_twice( 4 );

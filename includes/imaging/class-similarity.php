@@ -1,6 +1,6 @@
 <?php
 /**
- * Similarity metrics — Hamming distance for pHash, cosine similarity for vectors.
+ * Similarity metrics - Hamming distance for pHash, cosine similarity for vectors.
  *
  * @package Snopix
  */
@@ -18,13 +18,13 @@ class Similarity {
 	/**
 	 * Compute the Hamming distance between two 16-character hex pHash strings.
 	 *
-	 * Returns the count of differing bits (0–64).
+	 * Returns the count of differing bits (0-64).
 	 * Returns 64 if the strings are not the same length.
 	 *
 	 * @param string $h1 First hex pHash (16 chars = 64 bits).
 	 * @param string $h2 Second hex pHash (16 chars = 64 bits).
 	 *
-	 * @return int Hamming distance 0–64.
+	 * @return int Hamming distance 0-64.
 	 */
 	public function hamming_distance( string $h1, string $h2 ): int {
 		if ( strlen( $h1 ) !== strlen( $h2 ) ) {
@@ -42,13 +42,13 @@ class Similarity {
 	/**
 	 * Compute cosine similarity between two float vectors.
 	 *
-	 * Returns a value in the range 0.0–1.0.
+	 * Returns a value in the range 0.0-1.0.
 	 * Returns 0.0 if either vector has zero magnitude.
 	 *
 	 * @param array<int, float> $a First vector.
 	 * @param array<int, float> $b Second vector.
 	 *
-	 * @return float Cosine similarity 0.0–1.0.
+	 * @return float Cosine similarity 0.0-1.0.
 	 */
 	public function cosine_similarity( array $a, array $b ): float {
 		$dot   = 0.0;
@@ -71,7 +71,7 @@ class Similarity {
 
 		$similarity = $dot / ( $mag_a * $mag_b );
 
-		// Clamp to [0.0, 1.0] — floating point drift can produce values slightly outside.
+		// Clamp to [0.0, 1.0] - floating point drift can produce values slightly outside.
 		return max( 0.0, min( 1.0, $similarity ) );
 	}
 

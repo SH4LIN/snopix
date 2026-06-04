@@ -32,7 +32,7 @@ final class Feature_Notification {
 	/**
 	 * Constructor.
 	 *
-	 * @param string $id            Stable identifier — used as the dismissal key.
+	 * @param string $id            Stable identifier - used as the dismissal key.
 	 *                             Must be ASCII slug-shaped (a-z, 0-9, dash).
 	 * @param string $title         Short headline rendered as the card title.
 	 * @param string $body          Plain-text body. Rendered as text, not HTML.

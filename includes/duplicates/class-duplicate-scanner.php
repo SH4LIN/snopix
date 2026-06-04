@@ -176,7 +176,7 @@ class Duplicate_Scanner {
 			}
 		}
 
-		// Update progress once per tick rather than per row — collapses N
+		// Update progress once per tick rather than per row - collapses N
 		// three-transient writes into a single envelope write.
 		$this->progress->set( $cursor, $n );
 
@@ -330,7 +330,7 @@ class Duplicate_Scanner {
 	}
 
 	/**
-	 * Union-find union (size-agnostic — fine for our scale).
+	 * Union-find union (size-agnostic - fine for our scale).
 	 *
 	 * @param array<int, int> $parents Parent map (passed by reference).
 	 * @param int             $a       First node.

@@ -68,7 +68,7 @@ export default function ImageRow({ image, onImageClick }: Props) {
 			: __('Pending', 'snopix');
 	const date = image.indexed_at
 		? new Date(image.indexed_at).toLocaleDateString()
-		: '—';
+		: '-';
 	const displayName =
 		image.filename || image.title || `ID ${image.attachment_id}`;
 	const thumbUrl = image.thumbnail_url || image.full_url || '';

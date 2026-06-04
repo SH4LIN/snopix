@@ -82,7 +82,7 @@ final class Cron_Handler_Test extends Snopix_Integration_TestCase {
 	}
 
 	public function tear_down(): void {
-		// WP-Cron events live outside the DB transaction — clear them explicitly.
+		// WP-Cron events live outside the DB transaction - clear them explicitly.
 		wp_clear_scheduled_hook( Bulk_Indexer::CRON_HOOK );
 		delete_transient( Bulk_Indexer::PENDING_KEY );
 		$this->progress->reset();
@@ -162,7 +162,7 @@ final class Cron_Handler_Test extends Snopix_Integration_TestCase {
 	 * Firing the batch hook callback indexes the queued attachments.
 	 *
 	 * Manually loads the pending transient and calls the handler so we do not
-	 * depend on WP-Cron actually firing — the unit under test is the callback
+	 * depend on WP-Cron actually firing - the unit under test is the callback
 	 * logic, not the cron scheduler.
 	 */
 	public function test_process_batch_indexes_attachments(): void {

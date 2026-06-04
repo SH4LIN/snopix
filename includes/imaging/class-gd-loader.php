@@ -1,6 +1,6 @@
 <?php
 /**
- * GD image loader — creates and destroys GD resources from WordPress attachments.
+ * GD image loader - creates and destroys GD resources from WordPress attachments.
  *
  * @package Snopix
  */

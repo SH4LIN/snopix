@@ -30,7 +30,7 @@ export interface ToolActions {
 	toast: string | null;
 	/** Dismiss the active toast. */
 	dismissToast: () => void;
-	/** Manually push a toast message — used by desktop chrome (e.g. after Cancel). */
+	/** Manually push a toast message - used by desktop chrome (e.g. after Cancel). */
 	setToast: (message: string | null) => void;
 }
 
@@ -41,8 +41,8 @@ export interface ToolActions {
  * normalises their result payloads into user-facing toast copy. Both the
  * desktop Tools tab (with its ConfirmModal flow) and the mobile Tools sheet
  * (with inline `window.confirm` per action) call into the same `run`, so a
- * future change to action semantics — e.g. swapping in a different deletion
- * pipeline — happens in exactly one place.
+ * future change to action semantics - e.g. swapping in a different deletion
+ * pipeline - happens in exactly one place.
  *
  * @return {ToolActions}
  */

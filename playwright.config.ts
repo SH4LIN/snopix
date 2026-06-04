@@ -26,7 +26,7 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
 	retries: process.env.CI ? 2 : 0,
-	/* 2 workers on CI — enough to run spec files in parallel without
+	/* 2 workers on CI - enough to run spec files in parallel without
 	   saturating the shared WordPress DB or causing race conditions. */
 	workers: process.env.CI ? 2 : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */

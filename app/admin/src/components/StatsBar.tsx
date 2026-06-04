@@ -60,7 +60,7 @@ export default function StatsBar({ status }: Props) {
 				<div key={label} className="snopix-stat">
 					<div className="snopix-stat__label">{label}</div>
 					<div className={`snopix-stat__value ${valueClass}`}>
-						{typeof value === 'number' ? value.toLocaleString() : '—'}
+						{typeof value === 'number' ? value.toLocaleString() : '-'}
 					</div>
 					<div className="snopix-stat__delta">{delta}</div>
 				</div>

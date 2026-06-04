@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap for integration tests — boots the full WordPress test suite and
+ * Bootstrap for integration tests - boots the full WordPress test suite and
  * loads the plugin so tests run against real WP, the database, and the plugin's
  * cron/REST/hook surface.
  *

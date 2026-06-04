@@ -174,7 +174,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		$this->assertContains( (string) $id1, $indexed_ids );
 		$this->assertContains( (string) $id2, $indexed_ids );
 
-		// Progress must advance — done equals total, so status becomes done.
+		// Progress must advance - done equals total, so status becomes done.
 		$state = $this->progress->get();
 		$this->assertSame( 2, $state['done'] );
 		$this->assertSame( 2, $state['total'] );
@@ -265,7 +265,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 	 */
 	public function test_process_batch_noop_when_pending_empty(): void {
 		delete_transient( Bulk_Indexer::PENDING_KEY );
-		// No progress set — status is idle.
+		// No progress set - status is idle.
 		$this->bulk_indexer->process_batch();
 
 		$this->assertCount( 0, $this->repo->get_all_indexed() );
@@ -298,7 +298,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		// includes all 10 real images → guaranteed successes → no first-batch stall.
 		$real_ids = array();
 		for ( $i = 1; $i <= $real_count; $i++ ) {
-			$real_ids[] = $this->attach_fixture( $i ); // fixtures 001.jpg – 010.jpg
+			$real_ids[] = $this->attach_fixture( $i ); // fixtures 001.jpg - 010.jpg
 		}
 		fwrite( STDOUT, "[bulk-large] real attachments created: " . implode( ', ', $real_ids ) . "\n" );
 
@@ -354,7 +354,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 			$queue_size   = count( (array) get_transient( Bulk_Indexer::PENDING_KEY ) );
 			fwrite( STDOUT, "[bulk-large] batch {$batches_run}/{$expected_batches}: done={$mid_state['done']} status={$mid_state['status']} remaining={$queue_size}\n" );
 
-			// Safety valve — prevent an infinite loop if the logic is broken.
+			// Safety valve - prevent an infinite loop if the logic is broken.
 			if ( $batches_run > $expected_batches + 2 ) {
 				$this->fail( sprintf( 'process_batch() ran %d times without draining the queue.', $batches_run ) );
 			}
@@ -369,7 +369,7 @@ final class Bulk_Indexer_Test extends Snopix_Integration_TestCase {
 		$this->assertSame(
 			Job_Status::DONE,
 			$final['status'],
-			'Bulk job must finish as DONE — broken images must be skipped, not abort the chain.'
+			'Bulk job must finish as DONE - broken images must be skipped, not abort the chain.'
 		);
 		$this->assertSame( $total_count, $final['done'], 'All 700 images must be counted in progress.' );
 		$this->assertFalse( get_transient( Bulk_Indexer::PENDING_KEY ), 'Pending queue must be empty after completion.' );

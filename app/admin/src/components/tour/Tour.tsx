@@ -137,7 +137,7 @@ export default function Tour({ onFinish }: Props): JSX.Element {
 					data: { status },
 				});
 			} catch {
-				/* swallow — local unmount still proceeds */
+				/* swallow - local unmount still proceeds */
 			}
 		},
 		[]

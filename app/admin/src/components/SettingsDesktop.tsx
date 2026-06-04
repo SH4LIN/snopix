@@ -17,14 +17,14 @@ import {
 } from './icons';
 
 /**
- * Settings tab — endpoint visibility plus an "Advanced" disclosure for
+ * Settings tab - endpoint visibility plus an "Advanced" disclosure for
  * developer-facing knobs (rate limiting, similarity thresholds, indexer
  * behaviour, uninstall cleanup).
  *
  * Form state, dirty tracking, and the diff-only save flow are shared with
  * `SettingsMobile` via {@link useSettingsForm}; this component is responsible
  * only for the desktop layout. Similarity thresholds are stored on the
- * backend as 0–1 floats but rendered here as 50–100% so the UI stays
+ * backend as 0-1 floats but rendered here as 50-100% so the UI stays
  * approachable for non-developer users.
  *
  * @return {JSX.Element}
@@ -337,7 +337,7 @@ export default function Settings() {
 									'snopix'
 								)}
 								hint={__(
-									'Permanently removes the search index and all Snopix settings when you delete the plugin. Leave this off if you might reinstall later and want to keep your data. This only happens on Delete — not when you simply deactivate the plugin.',
+									'Permanently removes the search index and all Snopix settings when you delete the plugin. Leave this off if you might reinstall later and want to keep your data. This only happens on Delete - not when you simply deactivate the plugin.',
 									'snopix'
 								)}
 							/>

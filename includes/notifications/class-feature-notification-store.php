@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the WordPress core convention for dashboard widget visibility and welcome
  * panels and ensures the row is removed automatically when a user is deleted.
  *
- * The store deliberately does not validate inbound IDs against the registry —
- * the REST layer is responsible for that — so this class stays trivially
+ * The store deliberately does not validate inbound IDs against the registry -
+ * the REST layer is responsible for that - so this class stays trivially
  * cheap and testable without booting the full notification subsystem.
  */
 final class Feature_Notification_Store {

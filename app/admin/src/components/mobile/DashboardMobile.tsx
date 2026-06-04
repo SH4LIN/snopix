@@ -31,7 +31,7 @@ interface IndexedImage {
  *   3. 2×2 grid of stat tiles (Indexed / Pending / Failed / Total).
  *   4. In-flight progress card when an index job is running.
  *   5. Recently-indexed list with a "See all" link pointing at the WP media
- *      library — re-indexing lives in the header upload button and feature
+ *      library - re-indexing lives in the header upload button and feature
  *      notifications live in the header bell, so neither is duplicated here.
  *
  * @return {JSX.Element}

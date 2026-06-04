@@ -10,7 +10,7 @@ import {
  *
  * Renders only while a bulk job is running, stalled, or in its post-completion
  * grace window. The "Index remaining" button itself lives in the global app
- * header — this component just visualises the current job.
+ * header - this component just visualises the current job.
  *
  * @return {JSX.Element|null}
  */
@@ -96,11 +96,11 @@ export default function ReindexButton() {
 						)
 					: isStalled
 						? __(
-								'Indexing stopped before finishing — usually because WordPress cron didn’t run. Click Reset, then start indexing again.',
+								'Indexing stopped before finishing - usually because WordPress cron didn’t run. Click Reset, then start indexing again.',
 								'snopix'
 							)
 						: __(
-								'Snopix is indexing your media in the background via WordPress cron. You can leave this page — it keeps running. Counts refresh every few seconds. Click Stop to cancel.',
+								'Snopix is indexing your media in the background via WordPress cron. You can leave this page - it keeps running. Counts refresh every few seconds. Click Stop to cancel.',
 								'snopix'
 							)}
 			</p>

@@ -57,7 +57,7 @@ export function useIndexingProgress() {
 		refetchInterval: isRunning ? 2_000 : false,
 	});
 
-	// State machine transitions — runs outside render cycle.
+	// State machine transitions - runs outside render cycle.
 	useEffect(() => {
 		if (!isRunning || !progress) {
 			return;

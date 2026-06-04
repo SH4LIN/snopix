@@ -1,5 +1,5 @@
 /**
- * Snopix admin app — smoke tests.
+ * Snopix admin app - smoke tests.
  *
  * Selectors are derived from source-code analysis of the React components and
  * are best-effort. They may need adjustment on the first run if the rendered
@@ -43,7 +43,7 @@ test('Snopix React app mounts and shows the Dashboard heading', async ({ page })
 			page.getByRole('heading', { name: 'Dashboard', level: 1 })
 		).toBeVisible({ timeout: 10_000 });
 
-		console.log('[admin] Dashboard heading visible — app mounted successfully');
+		console.log('[admin] Dashboard heading visible - app mounted successfully');
 		const screenshot = await page.screenshot();
 		await test.info().attach('dashboard-mounted', { body: screenshot, contentType: 'image/png' });
 	});

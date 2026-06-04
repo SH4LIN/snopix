@@ -57,8 +57,8 @@ final class Action_Scheduler_Test extends Snopix_Integration_TestCase {
 
 	public function test_cancel_all_clears_pending_event(): void {
 		// Production always schedules this scheduler's hooks with empty args
-		// (see Bulk_Indexer / Duplicate_Scanner), so cancel_all() — which wraps
-		// wp_clear_scheduled_hook() — is exercised the same way here.
+		// (see Bulk_Indexer / Duplicate_Scanner), so cancel_all() - which wraps
+		// wp_clear_scheduled_hook() - is exercised the same way here.
 		$hook = 'snopix_test_cancel_hook';
 
 		$this->scheduler->schedule( $hook, array() );

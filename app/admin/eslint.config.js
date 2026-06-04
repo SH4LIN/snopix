@@ -27,7 +27,7 @@ export default tseslint.config(
 	},
 	prettier,
 	{
-		// Project conventions — applied LAST so `eslint-config-prettier`
+		// Project conventions - applied LAST so `eslint-config-prettier`
 		// cannot silently disable them.
 		rules: {
 			// Always brace control-flow bodies. Prevents the classic
