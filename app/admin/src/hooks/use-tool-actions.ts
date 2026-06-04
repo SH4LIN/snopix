@@ -69,25 +69,25 @@ export function useToolActions(): ToolActions {
 		try {
 			if (id === 'reindex') {
 				await reindexAll.mutateAsync();
-				setToast(__('Reindex started · running in background', 'snopix'));
+				setToast(__('Indexing started · running in background', 'snopix'));
 			} else if (id === 'orphans') {
 				const res = await deleteOrphans.mutateAsync();
 				setToast(
 					sprintf(
-						/* translators: %d: deleted count */
-						__('%d orphan rows deleted', 'snopix'),
+						/* translators: %d: number of leftover entries removed */
+						__('%d leftover entries removed', 'snopix'),
 						res.deleted
 					)
 				);
 			} else if (id === 'cache') {
 				await clearCache.mutateAsync();
-				setToast(__('Transients flushed', 'snopix'));
+				setToast(__('Cache cleared', 'snopix'));
 			} else if (id === 'clear') {
 				const res = await clearIndex.mutateAsync();
 				setToast(
 					sprintf(
-						/* translators: %d: deleted count */
-						__('Index cleared · %d rows removed', 'snopix'),
+						/* translators: %d: number of index entries removed */
+						__('Search index emptied · %d entries removed', 'snopix'),
 						res.deleted
 					)
 				);

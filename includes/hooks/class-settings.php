@@ -34,13 +34,13 @@ class Settings {
 	 */
 	public static function defaults(): array {
 		return array(
-			'search_visibility'   => 'anyone',
+			'search_visibility'   => 'logged_in',
 			'rate_limit'          => 10,
 			'match_threshold'     => 0.85,
 			'batch_size'          => 25,
 			'downscale_max'       => 1024,
 			'duplicate_threshold' => 0.95,
-			'drop_on_uninstall'   => true,
+			'drop_on_uninstall'   => false,
 		);
 	}
 
@@ -99,7 +99,7 @@ class Settings {
 		$drop_unins = isset( $input['drop_on_uninstall'] ) ? (bool) $input['drop_on_uninstall'] : (bool) $defaults['drop_on_uninstall'];
 
 		return array(
-			'search_visibility'   => in_array( $visibility, $allowed_visibility, true ) ? $visibility : 'anyone',
+			'search_visibility'   => in_array( $visibility, $allowed_visibility, true ) ? $visibility : 'logged_in',
 			'rate_limit'          => max( 1, min( 60, $rate_limit ) ),
 			'batch_size'          => max( 5, min( 200, $batch_size ) ),
 			'downscale_max'       => max( 256, min( 4096, $downscale ) ),

@@ -108,7 +108,7 @@ export default function AppShellMobile() {
 							aria-label={__('Index remaining', 'snopix')}
 							title={
 								!canReindex
-									? __('No pending attachments.', 'snopix')
+									? __('No images waiting to be indexed.', 'snopix')
 									: __('Index remaining', 'snopix')
 							}
 							className="w-9 h-9 rounded-full bg-snopix-surface text-snopix-text grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"

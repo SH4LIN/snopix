@@ -94,7 +94,7 @@ export default function Settings() {
 			</div>
 			<p className="text-[14px] text-snopix-muted mb-7">
 				{__(
-					'Control who can search your media and tune advanced indexing behaviour.',
+					'Control who can search your images and adjust how indexing works.',
 					'snopix'
 				)}
 			</p>
@@ -102,18 +102,18 @@ export default function Settings() {
 			<div className="flex flex-col gap-4">
 				<SettingGroup
 					icon={<IconGlobe size={16} />}
-					title={__('Public search endpoint', 'snopix')}
+					title={__('Who can use image search', 'snopix')}
 					description={__(
-						'Who can POST images to /wp-json/snopix/v1/search and to the [snopix_search] shortcode.',
+						'Choose who is allowed to run a reverse image search on your site.',
 						'snopix'
 					)}
 				>
 					<RadioRow
 						checked={form.search_visibility === 'anyone'}
 						onClick={() => set('search_visibility', 'anyone')}
-						title={__('Anyone (rate-limited)', 'snopix')}
+						title={__('Anyone, including visitors', 'snopix')}
 						hint={__(
-							'Anonymous visitors can search the front-end widget. Rate-limited per IP.',
+							'Visitors who are not logged in can use the search box. Limited to a set number of searches per minute to prevent abuse.',
 							'snopix'
 						)}
 					/>
@@ -123,10 +123,19 @@ export default function Settings() {
 						onClick={() => set('search_visibility', 'logged_in')}
 						title={__('Logged-in users only', 'snopix')}
 						hint={__(
-							'Endpoint returns 401 to unauthenticated requests. Shortcode hides the widget.',
+							'Only people signed in to your site can search. Visitors won’t see the search box.',
 							'snopix'
 						)}
 					/>
+					<div className="mt-2.5 px-3 py-2.5 bg-snopix-surface rounded-lg text-[12px] text-snopix-muted flex gap-2 items-center">
+						<IconInfo size={14} />
+						<span>
+							{__(
+								'Image search lets someone upload a photo and find visually similar images from your media library. This setting controls who is allowed to use it.',
+								'snopix'
+							)}
+						</span>
+					</div>
 				</SettingGroup>
 
 				<button
@@ -145,7 +154,7 @@ export default function Settings() {
 							</span>
 							<span className="block text-[13px] text-snopix-muted mt-0.5">
 								{__(
-									'Rate limiting, similarity thresholds, indexer behaviour, and uninstall cleanup.',
+									'Search limit, match accuracy, indexing, and what happens when you delete the plugin.',
 									'snopix'
 								)}
 							</span>
@@ -160,9 +169,9 @@ export default function Settings() {
 					<div className="flex flex-col gap-4">
 						<SettingGroup
 							icon={<IconClock size={16} />}
-							title={__('Rate limit', 'snopix')}
+							title={__('Search limit', 'snopix')}
 							description={__(
-								'Cap on POST /search per requester. Applies only when the endpoint is public.',
+								'Maximum searches a single visitor can run per minute. Only applies when search is open to everyone.',
 								'snopix'
 							)}
 						>
@@ -180,9 +189,9 @@ export default function Settings() {
 
 						<SettingGroup
 							icon={<IconSearch size={16} />}
-							title={__('Match threshold', 'snopix')}
+							title={__('Match accuracy', 'snopix')}
 							description={__(
-								'Minimum similarity required for an image to surface in search results.',
+								'How closely an image must match before it appears in search results. Higher means stricter.',
 								'snopix'
 							)}
 						>
@@ -204,12 +213,12 @@ export default function Settings() {
 								<IconInfo size={14} />
 								<span>
 									{__(
-										'Format conversions and JPEG re-encodes recover above',
+										'Resized, re-saved, or format-changed copies of an image usually still match above',
 										'snopix'
 									)}{' '}
 									<strong>95%</strong>.{' '}
 									{__(
-										'Heavy blur and sub-128 px downscales sit closer to',
+										'Heavily blurred or very small versions match closer to',
 										'snopix'
 									)}{' '}
 									<strong>85%</strong>.
@@ -219,9 +228,9 @@ export default function Settings() {
 
 						<SettingGroup
 							icon={<IconLayers size={16} />}
-							title={__('Scan similarity', 'snopix')}
+							title={__('Duplicate sensitivity', 'snopix')}
 							description={__(
-								'Similarity floor used during duplicate scanning. Images cluster as duplicates only when their similarity meets this value.',
+								'How similar two images must be to be treated as duplicates when scanning. Higher means only near-identical images match.',
 								'snopix'
 							)}
 						>
@@ -246,16 +255,16 @@ export default function Settings() {
 
 						<SettingGroup
 							icon={<IconRefresh size={16} />}
-							title={__('Indexer', 'snopix')}
+							title={__('Indexing', 'snopix')}
 							description={__(
-								'How the background fingerprinter processes your library.',
+								'How Snopix scans and indexes your images in the background.',
 								'snopix'
 							)}
 						>
 							<RowField
-								label={__('Batch size', 'snopix')}
+								label={__('Images per batch', 'snopix')}
 								hint={__(
-									'Attachments fingerprinted per WP-Cron tick. Raise for speed; lower if PHP memory is tight.',
+									'How many images Snopix processes at a time in the background. Increase for faster indexing; decrease if your server runs low on memory.',
 									'snopix'
 								)}
 							>
@@ -270,9 +279,9 @@ export default function Settings() {
 							</RowField>
 							<Divider />
 							<RowField
-								label={__('Pre-downscale max edge', 'snopix')}
+								label={__('Max image size', 'snopix')}
 								hint={__(
-									'Probe images larger than this are downscaled before fingerprinting to keep search latency bounded.',
+									'Larger images are shrunk to this size before indexing so search stays fast. Measured on the longest edge, in pixels.',
 									'snopix'
 								)}
 							>
@@ -287,9 +296,9 @@ export default function Settings() {
 							</RowField>
 							<Divider />
 							<RowField
-								label={__('Supported MIME types', 'snopix')}
+								label={__('Supported image formats', 'snopix')}
 								hint={__(
-									'Read-only. The indexer rejects anything not in this list at upload and at the search endpoint.',
+									'These are the image formats Snopix can index and search. Other file types are skipped.',
 									'snopix'
 								)}
 							>
@@ -314,9 +323,9 @@ export default function Settings() {
 
 						<SettingGroup
 							icon={<IconLock size={16} />}
-							title={__('Uninstall cleanup', 'snopix')}
+							title={__('Deleting the plugin', 'snopix')}
 							description={__(
-								'What happens when the plugin is deleted from Plugins → Installed Plugins.',
+								'What happens to your saved search data if you delete the plugin.',
 								'snopix'
 							)}
 						>
@@ -324,11 +333,11 @@ export default function Settings() {
 								checked={form.drop_on_uninstall}
 								onChange={(v) => set('drop_on_uninstall', v)}
 								title={__(
-									'Remove all plugin data on uninstall',
+									'Delete all Snopix data when the plugin is deleted',
 									'snopix'
 								)}
 								hint={__(
-									'Drops the index table and removes all Snopix options, transients, cron events, and per-user data.',
+									'Permanently removes the search index and all Snopix settings when you delete the plugin. Leave this off if you might reinstall later and want to keep your data. This only happens on Delete — not when you simply deactivate the plugin.',
 									'snopix'
 								)}
 							/>

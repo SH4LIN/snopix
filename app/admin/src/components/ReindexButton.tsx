@@ -44,8 +44,8 @@ export default function ReindexButton() {
 						{isDone
 							? __('Indexing complete', 'snopix')
 							: isStalled
-								? __('Indexing stalled', 'snopix')
-								: __('Indexing attachments', 'snopix')}
+								? __('Indexing stuck', 'snopix')
+								: __('Indexing your images', 'snopix')}
 					</div>
 					<div className="text-[13px] text-snopix-muted mt-0.5">
 						{progress &&

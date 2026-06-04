@@ -94,8 +94,8 @@ export default function Duplicates() {
 				target.kind === 'group'
 					? __('Group resolved · others deleted', 'snopix')
 					: sprintf(
-							/* translators: %d: number of attachments deleted */
-							__('%d duplicate attachments deleted', 'snopix'),
+							/* translators: %d: number of images deleted */
+							__('%d duplicate images deleted', 'snopix'),
 							ids.length
 						)
 			);
@@ -147,7 +147,7 @@ export default function Duplicates() {
 					<div className="w-px self-stretch bg-snopix-border" />
 					<div>
 						<div className="text-[11px] font-medium text-snopix-muted uppercase tracking-[0.04em]">
-							{__('Duplicate attachments', 'snopix')}
+							{__('Duplicate images', 'snopix')}
 						</div>
 						<div className="text-[24px] font-semibold tracking-[-0.015em]">
 							{totalDupCount}
@@ -325,13 +325,13 @@ export default function Duplicates() {
 					title={
 						confirm.kind === 'all'
 							? sprintf(
-									/* translators: %d: attachment count */
-									__('Delete %d attachments?', 'snopix'),
+									/* translators: %d: image count */
+									__('Delete %d images?', 'snopix'),
 									totalDupCount
 								)
 							: sprintf(
-									/* translators: %d: attachment count */
-									__('Delete %d attachments?', 'snopix'),
+									/* translators: %d: image count */
+									__('Delete %d images?', 'snopix'),
 									confirm.group.images.length - 1
 								)
 					}
@@ -345,7 +345,7 @@ export default function Duplicates() {
 					onConfirm={() => performDelete(confirm)}
 					message={
 						<>
-							{__('The selected "keep" attachments stay.', 'snopix')}{' '}
+							{__('The images you chose to keep will stay.', 'snopix')}{' '}
 							{__('Everything else in', 'snopix')}{' '}
 							{confirm.kind === 'all'
 								? __('all visible groups', 'snopix')

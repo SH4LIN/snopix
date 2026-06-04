@@ -29,19 +29,19 @@ export default function StatsBar({ status }: Props) {
 			label: __('Total', 'snopix'),
 			value: status?.total,
 			valueClass: '',
-			delta: __('Attachments in library', 'snopix'),
+			delta: __('Images in your library', 'snopix'),
 		},
 		{
 			label: __('Indexed', 'snopix'),
 			value: status?.indexed,
 			valueClass: 'text-snopix-success-deep',
-			delta: __('Fingerprinted and searchable', 'snopix'),
+			delta: __('Indexed and searchable', 'snopix'),
 		},
 		{
 			label: __('Pending', 'snopix'),
 			value: status?.pending,
 			valueClass: 'text-snopix-warning-deep',
-			delta: __('Queued for next cron tick', 'snopix'),
+			delta: __('Waiting to be indexed', 'snopix'),
 		},
 		{
 			label: __('Failed', 'snopix'),

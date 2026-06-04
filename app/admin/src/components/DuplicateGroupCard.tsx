@@ -37,7 +37,7 @@ export default function DuplicateGroupCard({
 					<div className="text-[13px] font-semibold">
 						{sprintf(
 							/* translators: %d: image count */
-							__('Group · %d attachments', 'snopix'),
+							__('Group · %d images', 'snopix'),
 							group.images.length
 						)}
 					</div>

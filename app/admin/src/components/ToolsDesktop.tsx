@@ -60,12 +60,12 @@ export default function Tools() {
 
 	const blockingMessage = isJobActive
 		? __(
-				'A bulk indexing job is active. Reset it above to run other index tools.',
+				'Indexing is running. Cancel it above to use the other tools.',
 				'snopix'
 			)
 		: scanActive
 			? __(
-					'A duplicate scan is active. Wait for it to finish or reset it from the Duplicates tab.',
+					'A duplicate scan is running. Wait for it to finish, or cancel it from the Duplicates tab.',
 					'snopix'
 				)
 			: null;
@@ -76,67 +76,62 @@ export default function Tools() {
 			Icon: IconRefresh,
 			title: __('Reindex everything', 'snopix'),
 			description: __(
-				"Drops the existing fingerprints and re-fingerprints every attachment in your library. Runs in chained WP-Cron batches — won't block the request.",
+				'Rebuilds the search index from scratch for every image in your library. Runs in the background, so you can keep working.',
 				'snopix'
 			),
 			btn: __('Reindex all', 'snopix'),
 			danger: false,
 			confirmBody: __(
-				'All fingerprints will be recomputed. This takes a few minutes for a library this size; reverse-image search returns approximate results until it finishes.',
+				'The search index will be rebuilt for every image. This can take a few minutes; image search may return partial results until it finishes.',
 				'snopix'
 			),
 		},
 		{
 			id: 'orphans',
 			Icon: IconBroom,
-			title: __('Delete orphan rows', 'snopix'),
-			description: (
-				<>
-					<span className="snopix-mono">wp_snopix_index</span>{' '}
-					{__(
-						'rows whose attachment was deleted outside the plugin. Safe to run.',
-						'snopix'
-					)}
-				</>
+			title: __('Remove leftover entries', 'snopix'),
+			description: __(
+				'Removes index entries for images that were deleted from your media library outside of Snopix. Safe to run.',
+				'snopix'
 			),
 			btn: sprintf(
-				/* translators: %d: orphan count */
-				__('Delete %d orphans', 'snopix'),
+				/* translators: %d: number of leftover entries */
+				__('Remove %d leftover entries', 'snopix'),
 				orphanCount
 			),
 			danger: false,
 			confirmBody: __(
-				'Rows in wp_snopix_index pointing to attachments that no longer exist will be removed. No media files are touched.',
+				'Index entries pointing to images that no longer exist will be removed. Your media files are not touched.',
 				'snopix'
 			),
 		},
 		{
 			id: 'cache',
 			Icon: IconBroom,
-			title: __('Flush plugin caches', 'snopix'),
+			title: __('Clear the cache', 'snopix'),
 			description: __(
-				'Clears every Snopix transient — useful after schema or threshold changes.',
+				'Clears Snopix’s temporary cached data. Useful if something looks out of date after changing settings.',
 				'snopix'
 			),
-			btn: __('Flush caches', 'snopix'),
+			btn: __('Clear cache', 'snopix'),
 			danger: false,
 			confirmBody: __(
-				'All cached search results and progress transients will be cleared. The next search request will be slightly slower.',
+				'Snopix’s cached data will be cleared. The next search may be slightly slower while the cache rebuilds.',
 				'snopix'
 			),
 		},
 		{
 			id: 'clear',
 			Icon: IconTrash,
-			title: __('Clear the index', 'snopix'),
+			title: __('Empty the search index', 'snopix'),
 			description: __(
-				'Empties wp_snopix_index entirely. Search and duplicate detection will return nothing until reindexed.',
+				'Removes everything from the search index. Image search and duplicate detection will be empty until you reindex.',
 				'snopix'
 			),
-			btn: __('Clear index', 'snopix'),
+			btn: __('Empty index', 'snopix'),
 			danger: true,
 			confirmBody: __(
-				'Every fingerprint will be deleted from wp_snopix_index. Until you reindex, the search dropzone and the Duplicates tab will be empty. Your media library is not affected.',
+				'The entire search index will be deleted. Until you reindex, image search and the Duplicates tab will be empty. Your media library is not affected.',
 				'snopix'
 			),
 		},
@@ -157,7 +152,7 @@ export default function Tools() {
 			</h1>
 			<p className="text-[14px] text-snopix-muted mb-7">
 				{__(
-					'Maintenance actions for the fingerprint index. None of these touch your media library files.',
+					'Maintenance for the Snopix search index. None of these change or delete your actual images.',
 					'snopix'
 				)}
 			</p>
@@ -183,12 +178,12 @@ export default function Tools() {
 						<div className="min-w-0">
 							<div className="text-[15px] font-semibold">
 								{isStalled
-									? __('Indexer stalled', 'snopix')
+									? __('Indexing stuck', 'snopix')
 									: isRunning
-										? __('Indexing attachments', 'snopix')
+										? __('Indexing your images', 'snopix')
 										: isDone
 											? __('Indexing complete', 'snopix')
-											: __('Background indexer idle', 'snopix')}
+											: __('Not currently indexing', 'snopix')}
 							</div>
 							<div className="text-[13px] text-snopix-muted mt-0.5">
 								{isJobActive && progress ? (
@@ -197,12 +192,12 @@ export default function Tools() {
 											{done.toLocaleString()} /{' '}
 											{total.toLocaleString()}
 										</span>{' '}
-										· {__('chained WP-Cron batches', 'snopix')}
+										· {__('running in the background', 'snopix')}
 									</>
 								) : isDone ? (
-									__('Last run completed.', 'snopix')
+									__('Last run finished successfully.', 'snopix')
 								) : (
-									__('Last run idle.', 'snopix')
+									__('Nothing running right now.', 'snopix')
 								)}
 							</div>
 						</div>
@@ -229,7 +224,7 @@ export default function Tools() {
 							disabled={loading}
 						>
 							<IconRefresh size={14} />{' '}
-							{__('Start indexer', 'snopix')}
+							{__('Start indexing', 'snopix')}
 						</button>
 					)}
 				</div>
@@ -304,7 +299,7 @@ export default function Tools() {
 									title={
 										isLocked
 											? __(
-													'Disabled while a bulk job is active.',
+													'Unavailable while indexing is running.',
 													'snopix'
 												)
 											: undefined
@@ -333,12 +328,15 @@ export default function Tools() {
 							{__('Where Snopix stores data', 'snopix')}
 						</div>
 						<div className="text-[13px] text-snopix-muted leading-[1.6]">
-							{__('One custom table —', 'snopix')}{' '}
+							{__(
+								'Snopix keeps its search index in a single database table,',
+								'snopix'
+							)}{' '}
 							<code className="snopix-mono text-snopix-text">
 								wp_snopix_index
-							</code>{' '}
+							</code>
 							{__(
-								'— with one compact row per indexed attachment. Uninstalling the plugin drops the table and removes every Snopix option and transient (when uninstall cleanup is enabled).',
+								', with one small row per indexed image. Deleting the plugin removes this table and all Snopix settings only if you turned on “Delete all Snopix data” in Settings.',
 								'snopix'
 							)}
 						</div>

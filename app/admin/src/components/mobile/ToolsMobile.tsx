@@ -41,12 +41,12 @@ export default function ToolsMobile() {
 			key: 'reindex',
 			Icon: IconRefresh,
 			title: __('Reindex everything', 'snopix'),
-			sub: __('Wipe and rebuild every fingerprint.', 'snopix'),
+			sub: __('Rebuild the search index for every image.', 'snopix'),
 			disabled: isRunning || pending.reindex,
 			onClick: () => {
 				if (
 					window.confirm(
-						__('Reindex every attachment? This may take a while.', 'snopix')
+						__('Reindex every image? This may take a while.', 'snopix')
 					)
 				) {
 					void run('reindex');
@@ -56,7 +56,7 @@ export default function ToolsMobile() {
 		{
 			key: 'orphans',
 			Icon: IconBroom,
-			title: __('Delete orphan rows', 'snopix'),
+			title: __('Remove leftover entries', 'snopix'),
 			sub:
 				orphanCount > 0
 					? sprintf(
@@ -71,23 +71,23 @@ export default function ToolsMobile() {
 		{
 			key: 'cache',
 			Icon: IconBroom,
-			title: __('Flush plugin caches', 'snopix'),
-			sub: __('Clears progress transients + query cache.', 'snopix'),
+			title: __('Clear the cache', 'snopix'),
+			sub: __('Clear Snopix’s temporary cached data.', 'snopix'),
 			disabled: pending.cache,
 			onClick: () => void run('cache'),
 		},
 		{
 			key: 'clear',
 			Icon: IconTrash,
-			title: __('Clear the index', 'snopix'),
-			sub: __('Destructive — drops every fingerprint row.', 'snopix'),
+			title: __('Empty the search index', 'snopix'),
+			sub: __('Empties the entire search index.', 'snopix'),
 			danger: true,
 			disabled: pending.clear,
 			onClick: () => {
 				if (
 					window.confirm(
 						__(
-							'Drop every fingerprint row? You will need to reindex before search works again.',
+							'Empty the search index? You will need to reindex before search works again.',
 							'snopix'
 						)
 					)

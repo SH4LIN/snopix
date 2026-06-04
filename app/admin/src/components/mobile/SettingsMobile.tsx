@@ -66,19 +66,19 @@ export default function SettingsMobile() {
 		<>
 			<MobileHero title={__('Settings', 'snopix')} />
 
-			<SectionGroup label={__('Public endpoint', 'snopix')}>
+			<SectionGroup label={__('Who can search', 'snopix')}>
 				<RadioRow
 					checked={form.search_visibility === 'anyone'}
 					onClick={() => set('search_visibility', 'anyone')}
-					title={__('Anyone (rate-limited)', 'snopix')}
-					hint={`${form.rate_limit} req / 60s`}
+					title={__('Anyone, including visitors', 'snopix')}
+					hint={`${form.rate_limit} / min`}
 				/>
 				<Divider />
 				<RadioRow
 					checked={form.search_visibility === 'logged_in'}
 					onClick={() => set('search_visibility', 'logged_in')}
-					title={__('Logged-in users', 'snopix')}
-					hint={__('Returns 401 to guests.', 'snopix')}
+					title={__('Logged-in users only', 'snopix')}
+					hint={__('Visitors can’t use search.', 'snopix')}
 				/>
 			</SectionGroup>
 
@@ -94,7 +94,7 @@ export default function SettingsMobile() {
 							{__('Advanced', 'snopix')}
 						</span>
 						<span className="block text-[12px] text-snopix-muted mt-0.5">
-							{__('Thresholds, indexer, uninstall', 'snopix')}
+							{__('Matching, indexing, and plugin deletion', 'snopix')}
 						</span>
 					</span>
 					<span className="snopix-disclosure__chevron" aria-hidden="true">
@@ -107,7 +107,7 @@ export default function SettingsMobile() {
 				<>
 					<SectionGroup label={__('Matching', 'snopix')}>
 						<SliderRow
-							title={__('Match threshold', 'snopix')}
+							title={__('Match accuracy', 'snopix')}
 							value={matchPercent}
 							onChange={(percent) =>
 								set('match_threshold', +(percent / 100).toFixed(3))
@@ -121,7 +121,7 @@ export default function SettingsMobile() {
 						/>
 						<Divider />
 						<SliderRow
-							title={__('Scan similarity', 'snopix')}
+							title={__('Duplicate sensitivity', 'snopix')}
 							value={duplicatePercent}
 							onChange={(percent) =>
 								set(
@@ -138,9 +138,9 @@ export default function SettingsMobile() {
 						/>
 					</SectionGroup>
 
-					<SectionGroup label={__('Indexer', 'snopix')}>
+					<SectionGroup label={__('Indexing', 'snopix')}>
 						<NumberRow
-							title={__('Batch size', 'snopix')}
+							title={__('Images per batch', 'snopix')}
 							value={form.batch_size}
 							onChange={(v) => set('batch_size', v)}
 							min={1}
@@ -148,7 +148,7 @@ export default function SettingsMobile() {
 						/>
 						<Divider />
 						<NumberRow
-							title={__('Downscale max', 'snopix')}
+							title={__('Max image size', 'snopix')}
 							value={form.downscale_max}
 							onChange={(v) => set('downscale_max', v)}
 							min={64}
@@ -156,7 +156,7 @@ export default function SettingsMobile() {
 						/>
 						<Divider />
 						<NumberRow
-							title={__('Rate limit', 'snopix')}
+							title={__('Search limit', 'snopix')}
 							value={form.rate_limit}
 							onChange={(v) => set('rate_limit', v)}
 							min={1}
@@ -164,12 +164,12 @@ export default function SettingsMobile() {
 						/>
 					</SectionGroup>
 
-					<SectionGroup label={__('Uninstall cleanup', 'snopix')}>
+					<SectionGroup label={__('Deleting the plugin', 'snopix')}>
 						<SwitchRow
 							checked={form.drop_on_uninstall}
 							onChange={(v) => set('drop_on_uninstall', v)}
-							title={__('Remove all data on uninstall', 'snopix')}
-							hint={__('Drops the index table and removes all Snopix options, transients, and per-user data.', 'snopix')}
+							title={__('Delete all Snopix data when removed', 'snopix')}
+							hint={__('Permanently deletes the search index and all Snopix settings. Only happens when you delete the plugin — not when you deactivate it.', 'snopix')}
 						/>
 					</SectionGroup>
 				</>

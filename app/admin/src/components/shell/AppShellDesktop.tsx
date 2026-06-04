@@ -60,7 +60,7 @@ export default function AppShellDesktop() {
 								disabled={!canReindex || isPending}
 								title={
 									!canReindex
-										? __('No pending attachments.', 'snopix')
+										? __('No images waiting to be indexed.', 'snopix')
 										: undefined
 								}
 							>
