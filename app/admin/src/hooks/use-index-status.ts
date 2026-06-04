@@ -61,9 +61,16 @@ export function useIndexStatus() {
 		}
 		lastHandledRef.current = serverStatus;
 
-		if (serverStatus === 'running' || serverStatus === 'stalled') {
+		if (
+			serverStatus === 'running' ||
+			serverStatus === 'stalled' ||
+			serverStatus === 'done'
+		) {
 			// Read the current state at the moment of the server signal so we
-			// don't fight a concurrent local transition.
+			// don't fight a concurrent local transition. 'done' is rehydrated
+			// too so a reload after a completed job shows "Indexing complete"
+			// instead of falling back to idle (the transient holds 'done' for
+			// 24 h; Reset clears it back to idle).
 			if (useStore.getState().indexingState === 'idle') {
 				setIndexingState(serverStatus);
 			}

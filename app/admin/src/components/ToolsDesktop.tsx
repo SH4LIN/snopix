@@ -199,6 +199,8 @@ export default function Tools() {
 										</span>{' '}
 										· {__('chained WP-Cron batches', 'snopix')}
 									</>
+								) : isDone ? (
+									__('Last run completed.', 'snopix')
 								) : (
 									__('Last run idle.', 'snopix')
 								)}
