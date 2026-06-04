@@ -8,6 +8,7 @@ import { type DuplicateGroup } from '../hooks/use-duplicates';
 import { ConflictError } from '../lib/api';
 import { formatBytes } from '../lib/format';
 import DuplicateGroupCard from './DuplicateGroupCard';
+import EditableValue from './EditableValue';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import { IconCheck, IconRefresh, IconTrash, IconWarn } from './icons';
@@ -258,8 +259,14 @@ export default function Duplicates() {
 							setThresholdPercent(parseInt(e.target.value, 10))
 						}
 					/>
-					<div className="snopix-mono text-[14px] font-semibold w-16 text-right">
-						{thresholdPercent}%
+					<div className="shrink-0 flex justify-end">
+						<EditableValue
+							value={thresholdPercent}
+							min={80}
+							max={100}
+							suffix="%"
+							onChange={setThresholdPercent}
+						/>
 					</div>
 				</div>
 			</div>

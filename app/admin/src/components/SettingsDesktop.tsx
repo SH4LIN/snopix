@@ -1,7 +1,8 @@
-import { type ReactNode, useRef, useState } from 'react';
+import { type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useAdvancedOpen, useSettingsForm } from '../hooks/use-settings-form';
 import { ratioToPercent } from '../lib/format';
+import EditableValue from './EditableValue';
 import Toast from './Toast';
 import {
 	IconChevron,
@@ -171,7 +172,7 @@ export default function Settings() {
 								step={1}
 								value={form.rate_limit}
 								onChange={(v) => set('rate_limit', v)}
-								valueLabel={`${form.rate_limit} req / 60 s`}
+								suffix={' req / 60 s'}
 								extremes={['1 / 60 s', '60 / 60 s']}
 								disabled={form.search_visibility !== 'anyone'}
 							/>
@@ -193,7 +194,7 @@ export default function Settings() {
 								onChange={(percent) =>
 									set('match_threshold', +(percent / 100).toFixed(3))
 								}
-								valueLabel={`${matchPercent}%`}
+								suffix={'%'}
 								extremes={[
 									__('50% · loose', 'snopix'),
 									__('100% · exact only', 'snopix'),
@@ -235,7 +236,7 @@ export default function Settings() {
 										+(percent / 100).toFixed(3)
 									)
 								}
-								valueLabel={`${duplicatePercent}%`}
+								suffix={'%'}
 								extremes={[
 									__('80% · loose', 'snopix'),
 									__('100% · pixel-identical', 'snopix'),
@@ -437,7 +438,7 @@ interface SliderRowProps {
 	step: number;
 	value: number;
 	onChange: (v: number) => void;
-	valueLabel: string;
+	suffix: string;
 	extremes: [string, string];
 	disabled?: boolean;
 }
@@ -448,85 +449,26 @@ function SliderRow({
 	step,
 	value,
 	onChange,
-	valueLabel,
+	suffix,
 	extremes,
 	disabled,
 }: SliderRowProps) {
-	const [editing, setEditing] = useState(false);
-	const [draft, setDraft] = useState('');
-	const cancelled = useRef(false);
-	const startValue = useRef(0);
-
-	const snap = (n: number) => {
-		const clamped = Math.min(max, Math.max(min, n));
-		return Math.round((clamped - min) / step) * step + min;
-	};
-
-	// Push live changes to the slider as the user types, but only for an
-	// in-range number so partial input (e.g. "5" before "50") doesn't snap.
-	const onDraftChange = (text: string) => {
-		setDraft(text);
-		const n = parseFloat(text);
-		if (!Number.isNaN(n) && n >= min && n <= max) {
-			onChange(snap(n));
-		}
-	};
-
-	const commit = () => {
-		if (cancelled.current) {
-			cancelled.current = false;
-			onChange(startValue.current);
-			setEditing(false);
-			return;
-		}
-		const n = parseFloat(draft);
-		onChange(snap(Number.isNaN(n) ? startValue.current : n));
-		setEditing(false);
-	};
-
 	return (
 		<div
 			className={`py-4 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
 		>
-			<div className="flex justify-between items-baseline mb-2.5">
+			<div className="flex justify-between items-center mb-2.5">
 				<span className="text-[13px] text-snopix-muted">
 					{extremes[0]}
 				</span>
-				{editing ? (
-					<input
-						className="snopix-range-value"
-						type="number"
-						min={min}
-						max={max}
-						step={step}
-						value={draft}
-						autoFocus
-						onFocus={(e) => e.target.select()}
-						onChange={(e) => onDraftChange(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter') {
-								e.currentTarget.blur();
-							} else if (e.key === 'Escape') {
-								cancelled.current = true;
-								e.currentTarget.blur();
-							}
-						}}
-						onBlur={commit}
-					/>
-				) : (
-					<button
-						type="button"
-						className="snopix-mono text-sm font-semibold text-snopix-text bg-transparent border-0 cursor-text p-0"
-						title={__('Click to edit', 'snopix')}
-						onClick={() => {
-							setDraft(String(value));
-							startValue.current = value;
-							setEditing(true);
-						}}
-					>
-						{valueLabel}
-					</button>
-				)}
+				<EditableValue
+					value={value}
+					min={min}
+					max={max}
+					step={step}
+					suffix={suffix}
+					onChange={onChange}
+				/>
 				<span className="text-[13px] text-snopix-muted">
 					{extremes[1]}
 				</span>

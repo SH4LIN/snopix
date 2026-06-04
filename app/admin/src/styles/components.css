@@ -269,20 +269,51 @@
 		@apply cursor-not-allowed opacity-60;
 	}
 
-	/* Editable slider value — sized to match the label text so the row height
-	   stays put (no boxy input pushing the layout down). */
+	/* Editable slider value (design: design/admin-editable-slider.jsx).
+	   Resting button and edit box share identical padding + 1px border, so
+	   entering edit mode never shifts the row height. */
 	.snopix-range-value {
 		font-family: var(--snopix-font-mono);
-		@apply text-sm font-semibold text-snopix-text text-center bg-transparent border-0 border-b border-snopix-accent w-14 p-0 outline-none;
+		@apply inline-flex items-baseline gap-px text-sm font-semibold text-snopix-text px-[9px] py-[3px] rounded-[7px] border border-transparent bg-transparent cursor-text;
+		font-feature-settings: "tnum";
+		transition:
+			background var(--snopix-duration) var(--snopix-easing),
+			border-color var(--snopix-duration) var(--snopix-easing);
 	}
-	.snopix-range-value::-webkit-outer-spin-button,
-	.snopix-range-value::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
+	.snopix-range-value:hover,
+	.snopix-range-value:focus-visible {
+		@apply bg-snopix-surface border-snopix-border outline-none;
 	}
-	.snopix-range-value[type="number"] {
+	.snopix-range-value__suffix {
+		@apply text-snopix-muted font-semibold;
+	}
+	.snopix-range-edit {
+		@apply inline-flex items-baseline gap-px px-[9px] py-[3px] rounded-[7px] bg-white border border-snopix-accent;
+		box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+	}
+	/* Descendant selector + explicit resets outrank WP admin forms.css, which
+	   styles `input[type=text]` globally (min-height: 30px, padding, border,
+	   inset shadow) and would otherwise render this as a large boxy field. */
+	.snopix-range-edit .snopix-range-edit__input {
+		font-family: var(--snopix-font-mono);
+		@apply border-0 bg-transparent text-sm font-semibold text-snopix-text text-right p-0;
+		font-feature-settings: "tnum";
+		min-height: 0;
+		line-height: 1.4;
+		outline: none;
+		box-shadow: none;
 		-moz-appearance: textfield;
 		appearance: textfield;
+	}
+	.snopix-range-edit .snopix-range-edit__input:focus,
+	.snopix-range-edit .snopix-range-edit__input:focus-visible {
+		outline: none;
+		box-shadow: none;
+	}
+	.snopix-range-edit__input::-webkit-outer-spin-button,
+	.snopix-range-edit__input::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
 	}
 
 	/* Radio bullet */
