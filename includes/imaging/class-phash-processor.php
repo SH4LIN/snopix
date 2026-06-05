@@ -26,7 +26,11 @@ class PHash_Processor implements Processor_Interface {
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, 32, 32 );
 		if ( false === $small ) {
-			return array( 'phash' => str_repeat( '0', 16 ) );
+			// Signal failure rather than emitting an all-zero hash: a zero hash
+			// is indistinguishable from a legitimately blank image, so failed
+			// images would cluster together as false perceptual duplicates. The
+			// factory maps an empty fragment to "unprocessable".
+			return array();
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );

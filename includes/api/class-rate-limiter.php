@@ -90,36 +90,57 @@ class Rate_Limiter {
 	 * @return bool
 	 */
 	private function is_allowed_transient( string $ip, int $cap ): bool {
-		$key  = self::transient_key( $ip );
-		$data = get_transient( $key );
+		global $wpdb;
 
-		if ( false === $data ) {
+		$key  = self::transient_key( $ip );
+		$lock = self::lock_name( $ip );
+
+		// Serialise the read-modify-write across concurrent requests for this IP.
+		// Without a persistent object cache the counter lives in the options
+		// table, where a plain get/set lets simultaneous requests each read the
+		// same count and overshoot - or, under sustained parallel load, pin the
+		// count low and bypass the cap entirely. A short-lived MySQL advisory
+		// lock makes the window update atomic. If the lock can't be acquired we
+		// fall through best-effort rather than blocking the request.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$locked = ( 1 === (int) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $lock, 1 ) ) );
+
+		try {
+			$data = get_transient( $key );
+
+			if ( false === $data ) {
+				set_transient(
+					$key,
+					array(
+						'count'   => 1,
+						'expires' => time() + self::WINDOW,
+					),
+					self::WINDOW
+				);
+				return true;
+			}
+
+			if ( $data['count'] >= $cap ) {
+				return false;
+			}
+
+			$remaining_ttl = max( 1, $data['expires'] - time() );
 			set_transient(
 				$key,
 				array(
-					'count'   => 1,
-					'expires' => time() + self::WINDOW,
+					'count'   => $data['count'] + 1,
+					'expires' => $data['expires'],
 				),
-				self::WINDOW
+				$remaining_ttl
 			);
+
 			return true;
+		} finally {
+			if ( $locked ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
+			}
 		}
-
-		if ( $data['count'] >= $cap ) {
-			return false;
-		}
-
-		$remaining_ttl = max( 1, $data['expires'] - time() );
-		set_transient(
-			$key,
-			array(
-				'count'   => $data['count'] + 1,
-				'expires' => $data['expires'],
-			),
-			$remaining_ttl
-		);
-
-		return true;
 	}
 
 	/**
@@ -175,5 +196,17 @@ class Rate_Limiter {
 	 */
 	private static function transient_key( string $ip ): string {
 		return 'snopix_ratelimit_' . hash( 'sha256', $ip );
+	}
+
+	/**
+	 * Build a MySQL advisory-lock name for an IP. `GET_LOCK` names are capped at
+	 * 64 characters, so the full sha256 transient key can't be reused here.
+	 *
+	 * @param string $ip Client IP.
+	 *
+	 * @return string
+	 */
+	private static function lock_name( string $ip ): string {
+		return 'snopix_rl_' . hash( 'crc32b', $ip );
 	}
 }
