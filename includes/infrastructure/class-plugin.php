@@ -17,6 +17,7 @@ use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, 
 use Snopix\Notifications\Feature_Notification_Store;
 use Snopix\Admin\Admin_Page;
 use Snopix\Admin\Editor_Assets;
+use Snopix\Admin\Media_Surfaces;
 use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -71,6 +72,7 @@ class Plugin {
 		add_action( 'init', array( $this, 'register_hooks' ) );
 		add_action( 'init', array( $this, 'register_shortcode' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'register_media_surfaces' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_after_activation' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
 		add_action( 'init', array( $this, 'register_editor_assets' ) );
@@ -84,6 +86,15 @@ class Plugin {
 	 */
 	public function register_editor_assets(): void {
 		( new Editor_Assets() )->register();
+	}
+
+	/**
+	 * Register the "Search by image" integration into the WP media surfaces.
+	 *
+	 * @return void
+	 */
+	public function register_media_surfaces(): void {
+		( new Media_Surfaces() )->register();
 	}
 
 	/**

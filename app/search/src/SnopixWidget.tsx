@@ -40,6 +40,10 @@ type Props = {
 	maxResults: number
 	restUrl: string
 	nonce: string
+	// When true the widget drops its own card chrome + header and grows to
+	// fill the host, which supplies the surrounding chrome (the wp-admin
+	// panels / modal tab). Mirrors the design's `sx--embedded` mode.
+	embedded?: boolean
 }
 
 const ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
@@ -66,6 +70,7 @@ export default function SnopixWidget({
 	maxResults,
 	restUrl,
 	nonce,
+	embedded = false,
 }: Props) {
 	const [phase, setPhase] = useState<Phase>('idle')
 	const [over, setOver] = useState(false)
@@ -74,7 +79,7 @@ export default function SnopixWidget({
 	const [errorMessage, setErrorMessage] = useState('')
 	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-	const showHeader = variant !== 'inline'
+	const showHeader = variant !== 'inline' && !embedded
 	const resultsWrapColumns =
 		variant === 'card'
 			? 'grid-cols-[220px_minmax(0,1fr)]'
@@ -159,6 +164,10 @@ export default function SnopixWidget({
 
 	function onDrop(event: React.DragEvent<HTMLDivElement>) {
 		event.preventDefault()
+		// Stop the drop from bubbling to a host dropzone (e.g. WordPress's
+		// wp.media uploader, whose dropzone is the whole modal) that would
+		// otherwise hijack the file and upload it instead of searching.
+		event.stopPropagation()
 		setOver(false)
 		const file = event.dataTransfer.files?.[0]
 		if (file) handleFile(file)
@@ -170,7 +179,9 @@ export default function SnopixWidget({
 				'flex flex-col items-center justify-center gap-3.5 text-center cursor-pointer select-none',
 				variant === 'inline'
 					? 'p-[22px] flex-row gap-4 text-left justify-start rounded-none border-0 border-b border-snopix-border'
-					: 'mx-[18px] my-[18px] py-14 px-6 border-[1.5px] border-dashed border-snopix-border-strong rounded-card bg-snopix-surface',
+					: embedded
+						? 'flex-1 py-14 px-6 border-[1.5px] border-dashed border-snopix-border-strong rounded-card bg-snopix-surface'
+						: 'mx-[18px] my-[18px] py-14 px-6 border-[1.5px] border-dashed border-snopix-border-strong rounded-card bg-snopix-surface',
 				over ? 'border-snopix-accent bg-snopix-accent-soft' : '',
 				'transition-colors duration-200 ease-out',
 			].join(' ')}
@@ -178,6 +189,7 @@ export default function SnopixWidget({
 			onClick={() => fileInputRef.current?.click()}
 			onDragOver={(e) => {
 				e.preventDefault()
+				e.stopPropagation()
 				setOver(true)
 			}}
 			onDragLeave={() => setOver(false)}
@@ -361,8 +373,14 @@ export default function SnopixWidget({
 	)
 
 	return (
-		<div className={rootClass(variant)}>
-			<div className="bg-snopix-bg border border-snopix-border rounded-card shadow-card overflow-hidden">
+		<div className={`${rootClass(variant)}${embedded ? ' h-full' : ''}`}>
+			<div
+				className={
+					embedded
+						? 'h-full flex flex-col'
+						: 'bg-snopix-bg border border-snopix-border rounded-card shadow-card overflow-hidden'
+				}
+			>
 				{showHeader && (
 					<div className="flex items-center justify-between px-[18px] py-3.5 border-b border-snopix-border">
 						<div className="flex items-center gap-2.5 text-sm font-semibold text-snopix-text tracking-[-0.005em]">
