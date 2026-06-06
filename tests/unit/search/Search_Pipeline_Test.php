@@ -84,6 +84,8 @@ final class Fake_Search_Repo extends Index_Repository {
 	 */
 	public array $candidates = array();
 
+	public int $max_distance = -1;
+
 	public function __construct() {} // phpcs:ignore -- skip parent wpdb dependency.
 
 	/**
@@ -93,6 +95,7 @@ final class Fake_Search_Repo extends Index_Repository {
 	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_candidates_for_hamming( string $query_phash, int $max_distance ): array {
+		$this->max_distance = $max_distance;
 		return $this->candidates;
 	}
 }
@@ -132,7 +135,7 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 	private function base_fingerprint(): array {
 		return array(
 			'phash'        => 'a1b2c3d4e5f60718',
-			'color_vector' => array( 0.6, 0.4, 0.7, 0.3, 0.2, 0.8 ),
+			'color_vector' => array( 0.6, 0.4, 0.7, 0.3 ),
 			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
 		);
 	}
@@ -169,6 +172,7 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 		$repo->candidates = array();
 
 		$this->assertSame( array(), $this->make_pipeline( $repo, $factory )->search( 1 ) );
+		$this->assertSame( 14, $repo->max_distance );
 	}
 
 	public function test_orders_results_by_score_descending_and_drops_sub_threshold(): void {
@@ -186,7 +190,7 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 				30,
 				array(
 					'phash'        => '5e4d3c2b1a09f8e7',
-					'color_vector' => array( 0.0, 1.0, 0.0, 1.0, 1.0, 0.0 ),
+					'color_vector' => array( 0.0, 1.0, 0.0, 1.0 ),
 					'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
 				)
 			),

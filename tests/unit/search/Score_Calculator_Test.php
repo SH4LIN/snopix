@@ -32,8 +32,8 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 	private function identical_fingerprint(): array {
 		return array(
 			'phash'        => 'a1b2c3d4e5f60718',
-			// 3 channels × 2 bins, each channel sums to 1.0.
-			'color_vector' => array( 0.6, 0.4, 0.7, 0.3, 0.2, 0.8 ),
+			// 2 components × 2 bins, each component sums to 1.0.
+			'color_vector' => array( 0.6, 0.4, 0.7, 0.3 ),
 			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
 		);
 	}
@@ -100,7 +100,7 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 			// Inverted bits → large hamming distance → low phash score.
 			'phash'        => '5e4d3c2b1a09f8e7',
 			// Histograms disjoint from the query's per-channel bins → low bhattacharyya.
-			'color_vector' => array( 0.0, 1.0, 0.0, 1.0, 1.0, 0.0 ),
+			'color_vector' => array( 0.0, 1.0, 0.0, 1.0 ),
 			// Opposite direction → cosine clamps toward 0.
 			'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
 		);
@@ -118,7 +118,7 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 		$query  = $this->identical_fingerprint();
 		$stored = array(
 			'phash'        => 'ffffffff00000000',
-			'color_vector' => array( 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ),
+			'color_vector' => array( 0.5, 0.5, 0.5, 0.5 ),
 			'edge_vector'  => array( 2.0, 1.0, 0.0, 4.0 ),
 		);
 

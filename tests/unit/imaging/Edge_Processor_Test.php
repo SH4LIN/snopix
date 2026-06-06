@@ -41,9 +41,9 @@ final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 		$this->assertIsArray( $result['edge_vector'] );
 	}
 
-	public function test_vector_has_length_32(): void {
+	public function test_vector_has_length_64(): void {
 		$vector = $this->vector( self::gd_from_fixture( 1 ) );
-		$this->assertCount( 32, $vector );
+		$this->assertCount( 64, $vector );
 	}
 
 	public function test_vector_values_are_floats_in_normalised_range(): void {

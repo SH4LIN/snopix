@@ -1,6 +1,6 @@
 <?php
 /**
- * Sobel edge-density processor - produces a 32-float normalised edge vector.
+ * Sobel edge-density processor - produces a 64-float normalised edge vector.
  *
  * @package Snopix
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
- * Generates a 32-element normalised edge-density vector via Sobel filtering.
+ * Generates a 64-element normalised edge-density vector via Sobel filtering.
  */
 class Edge_Processor implements Processor_Interface {
 
@@ -31,12 +31,12 @@ class Edge_Processor implements Processor_Interface {
 	 * @param mixed $gd_resource  GD image resource or GdImage object.
 	 * @param int   $attachment_id WordPress attachment ID.
 	 *
-	 * @return array<string, array<int, float>> ['edge_vector' => [32 floats]]
+	 * @return array<string, array<int, float>> ['edge_vector' => [64 floats]]
 	 */
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, self::THUMB_SIZE, self::THUMB_SIZE );
 		if ( false === $small ) {
-			return array( 'edge_vector' => array_fill( 0, 32, 0.0 ) );
+			return array( 'edge_vector' => array_fill( 0, 64, 0.0 ) );
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
@@ -46,8 +46,7 @@ class Edge_Processor implements Processor_Interface {
 
 		$magnitude  = $this->compute_sobel( $pixels );
 		$blocks     = $this->compute_blocks( $magnitude );
-		$reduced    = $this->reduce_to_32( $blocks );
-		$normalised = $this->normalise( $reduced );
+		$normalised = $this->normalise( $blocks );
 
 		return array( 'edge_vector' => $normalised );
 	}
@@ -131,21 +130,6 @@ class Edge_Processor implements Processor_Interface {
 		}
 
 		return $flat;
-	}
-
-	/**
-	 * Average adjacent pairs in the 64-element flat array to produce 32 values.
-	 *
-	 * @param array<int, float> $flat 64 block averages.
-	 *
-	 * @return array<int, float> 32 values.
-	 */
-	private function reduce_to_32( array $flat ): array {
-		$reduced = array();
-		for ( $i = 0; $i < 32; $i++ ) {
-			$reduced[] = ( $flat[ $i * 2 ] + $flat[ $i * 2 + 1 ] ) / 2.0;
-		}
-		return $reduced;
 	}
 
 	/**

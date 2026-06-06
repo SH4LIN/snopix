@@ -14,9 +14,9 @@ use Snopix\Imaging\Similarity;
 final class Color_Processor_Test extends Snopix_Unit_TestCase {
 
 	/**
-	 * Number of RGB channels concatenated in the vector.
+	 * Number of HSV components concatenated in the vector.
 	 */
-	private const CHANNELS = 3;
+	private const CHANNELS = 2;
 
 	private Color_Processor $processor;
 
@@ -25,13 +25,13 @@ final class Color_Processor_Test extends Snopix_Unit_TestCase {
 		$this->processor = new Color_Processor();
 	}
 
-	public function test_output_has_color_vector_of_48_floats(): void {
+	public function test_output_has_color_vector_of_24_floats(): void {
 		$gd     = self::gd_from_fixture( 1 );
 		$result = $this->processor->process( $gd, 1 );
 		imagedestroy( $gd );
 
 		$this->assertArrayHasKey( 'color_vector', $result );
-		$this->assertCount( 48, $result['color_vector'] );
+		$this->assertCount( 24, $result['color_vector'] );
 		foreach ( $result['color_vector'] as $value ) {
 			$this->assertIsFloat( $value );
 		}
@@ -50,19 +50,16 @@ final class Color_Processor_Test extends Snopix_Unit_TestCase {
 
 	public function test_each_channel_histogram_sums_to_one(): void {
 		// Thumbnail is exactly 150x150 = 22500 px = TOTAL_PIXELS, so every
-		// pixel falls into one bin per channel and each 16-bin sub-histogram
-		// (normalised by TOTAL_PIXELS) sums to 1.0.
+		// pixel falls into one hue and one saturation bin.
 		$gd     = self::gd_from_fixture( 1 );
 		$vector = $this->processor->process( $gd, 1 )['color_vector'];
 		imagedestroy( $gd );
 
-		$r = array_sum( array_slice( $vector, 0, 16 ) );
-		$g = array_sum( array_slice( $vector, 16, 16 ) );
-		$b = array_sum( array_slice( $vector, 32, 16 ) );
+		$hue        = array_sum( array_slice( $vector, 0, 16 ) );
+		$saturation = array_sum( array_slice( $vector, 16, 8 ) );
 
-		$this->assertEqualsWithDelta( 1.0, $r, 1e-9 );
-		$this->assertEqualsWithDelta( 1.0, $g, 1e-9 );
-		$this->assertEqualsWithDelta( 1.0, $b, 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $hue, 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $saturation, 1e-9 );
 	}
 
 	public function test_process_is_deterministic(): void {

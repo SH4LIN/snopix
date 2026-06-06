@@ -89,5 +89,7 @@ final class Similarity_Test extends Snopix_Unit_TestCase {
 	public function test_bhattacharyya_guards_empty_and_bad_channels(): void {
 		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array(), array(), 1 ) );
 		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5 ), array( 0.5, 0.5 ), 0 ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5 ), array( 0.5, 0.5 ), 1 ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5, 0.5 ), array( 0.5, 0.5, 0.5 ), 2 ) );
 	}
 }

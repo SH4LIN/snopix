@@ -90,8 +90,8 @@ class Similarity {
 	 * @return float Bhattacharyya similarity in [0.0, 1.0].
 	 */
 	public function bhattacharyya_similarity( array $a, array $b, int $channels = 1 ): float {
-		$count = min( count( $a ), count( $b ) );
-		if ( 0 === $count || $channels < 1 ) {
+		$count = count( $a );
+		if ( 0 === $count || $channels < 1 || count( $b ) !== $count || 0 !== $count % $channels ) {
 			return 0.0;
 		}
 
