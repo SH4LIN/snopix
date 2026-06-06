@@ -29,6 +29,7 @@ type SnopixMediaConfig = {
 	i18n: {
 		trigger: string
 		panelTitle: string
+		close: string
 	}
 }
 
@@ -130,7 +131,7 @@ function initUpload(): void {
 		buttons.forEach((button) => {
 			const active = button.dataset.mode === mode
 			button.classList.toggle('is-active', active)
-			button.setAttribute('aria-selected', active ? 'true' : 'false')
+			button.setAttribute('aria-pressed', active ? 'true' : 'false')
 		})
 	}
 
@@ -157,6 +158,15 @@ function installModalTab(): void {
 		className: 'snopix-media-tab',
 		_root: null as SnopixRoot | null,
 		render() {
+			// Idempotent: Backbone may call render() more than once on a live
+			// view. Tear down any prior root + nodes before rebuilding so we
+			// neither duplicate the UI nor leak React roots.
+			if (this._root) {
+				this._root.unmount()
+				this._root = null
+			}
+			this.el.replaceChildren()
+
 			const by = document.createElement('div')
 			by.className = 'snopix-media-tab__by'
 			by.innerHTML = '<span class="sxwp-by">powered by snopix</span>'
@@ -247,7 +257,7 @@ function initGrid(): void {
 		const close = document.createElement('button')
 		close.type = 'button'
 		close.className = 'sxwp-panel__close'
-		close.setAttribute('aria-label', 'Close')
+		close.setAttribute('aria-label', cfg.i18n.close)
 		close.innerHTML = CLOSE_SVG
 		const host = document.createElement('div')
 		host.className = 'sxwp-panel__body'

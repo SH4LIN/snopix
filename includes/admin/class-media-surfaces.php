@@ -132,6 +132,7 @@ class Media_Surfaces {
 				'i18n'       => array(
 					'trigger'    => __( 'Search by image', 'snopix' ),
 					'panelTitle' => __( 'Search by image', 'snopix' ),
+					'close'      => __( 'Close', 'snopix' ),
 				),
 			)
 		);
@@ -150,11 +151,11 @@ class Media_Surfaces {
 			return;
 		}
 		?>
-		<div id="snopix-upload-toggle" class="snopix-upload-toggle" role="tablist">
-			<button type="button" data-mode="upload" class="is-active" role="tab" aria-selected="true">
+		<div id="snopix-upload-toggle" class="snopix-upload-toggle">
+			<button type="button" data-mode="upload" class="is-active" aria-pressed="true">
 				<?php esc_html_e( 'Upload files', 'snopix' ); ?>
 			</button>
-			<button type="button" data-mode="search" role="tab" aria-selected="false">
+			<button type="button" data-mode="search" aria-pressed="false">
 				<?php esc_html_e( 'Search by image', 'snopix' ); ?>
 			</button>
 		</div>
