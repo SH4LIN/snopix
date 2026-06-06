@@ -80,29 +80,44 @@ class Similarity {
 	 *
 	 * Better than cosine for histogram comparison: penalises bin-by-bin divergence,
 	 * not just direction. The input vectors are expected to be concatenations of
-	 * per-channel histograms each summing to 1.0; the coefficient is averaged across
-	 * channels so the result stays in [0.0, 1.0] (1.0 = identical distributions).
+	 * normalised histogram components. Component sizes are explicit because the
+	 * histograms may use different bin counts.
 	 *
-	 * @param array<int, float> $a       First histogram vector.
-	 * @param array<int, float> $b       Second histogram vector.
-	 * @param int               $channels Number of equal-length sub-histograms concatenated.
+	 * @param array<int, float> $a               First histogram vector.
+	 * @param array<int, float> $b               Second histogram vector.
+	 * @param array<int, int>   $component_sizes Bin count for each concatenated histogram.
 	 *
 	 * @return float Bhattacharyya similarity in [0.0, 1.0].
 	 */
-	public function bhattacharyya_similarity( array $a, array $b, int $channels = 1 ): float {
-		$count = count( $a );
-		if ( 0 === $count || $channels < 1 || count( $b ) !== $count || 0 !== $count % $channels ) {
+	public function bhattacharyya_similarity( array $a, array $b, array $component_sizes ): float {
+		if ( empty( $component_sizes ) ) {
 			return 0.0;
 		}
 
-		$sum = 0.0;
-		for ( $i = 0; $i < $count; $i++ ) {
-			$av   = max( 0.0, (float) $a[ $i ] );
-			$bv   = max( 0.0, (float) $b[ $i ] );
-			$sum += sqrt( $av * $bv );
+		foreach ( $component_sizes as $component_size ) {
+			if ( $component_size < 1 ) {
+				return 0.0;
+			}
 		}
 
-		return max( 0.0, min( 1.0, $sum / (float) $channels ) );
+		$expected_length = array_sum( $component_sizes );
+		if ( count( $a ) !== $expected_length || count( $b ) !== $expected_length ) {
+			return 0.0;
+		}
+
+		$sum    = 0.0;
+		$offset = 0;
+
+		foreach ( $component_sizes as $component_size ) {
+			for ( $i = $offset; $i < $offset + $component_size; $i++ ) {
+				$av   = max( 0.0, (float) $a[ $i ] );
+				$bv   = max( 0.0, (float) $b[ $i ] );
+				$sum += sqrt( $av * $bv );
+			}
+			$offset += $component_size;
+		}
+
+		return max( 0.0, min( 1.0, $sum / (float) count( $component_sizes ) ) );
 	}
 
 	/**

@@ -14,9 +14,9 @@ use Snopix\Imaging\Similarity;
 final class Color_Processor_Test extends Snopix_Unit_TestCase {
 
 	/**
-	 * Number of HSV components concatenated in the vector.
+	 * Bin count for each HSV component concatenated in the vector.
 	 */
-	private const CHANNELS = 2;
+	private const COMPONENT_SIZES = array( 16, 8 );
 
 	private Color_Processor $processor;
 
@@ -88,8 +88,8 @@ final class Color_Processor_Test extends Snopix_Unit_TestCase {
 		imagedestroy( $png_gd );
 		imagedestroy( $other_gd );
 
-		$same_format = $similarity->bhattacharyya_similarity( $base, $png, self::CHANNELS );
-		$diff_image  = $similarity->bhattacharyya_similarity( $base, $other, self::CHANNELS );
+		$same_format = $similarity->bhattacharyya_similarity( $base, $png, self::COMPONENT_SIZES );
+		$diff_image  = $similarity->bhattacharyya_similarity( $base, $other, self::COMPONENT_SIZES );
 
 		// Same image re-encoded as PNG: histograms nearly identical.
 		$this->assertGreaterThan( 0.95, $same_format );

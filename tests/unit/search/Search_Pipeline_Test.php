@@ -135,8 +135,33 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 	private function base_fingerprint(): array {
 		return array(
 			'phash'        => 'a1b2c3d4e5f60718',
-			'color_vector' => array( 0.6, 0.4, 0.7, 0.3 ),
+			'color_vector' => $this->color_vector(),
 			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
+		);
+	}
+
+	/**
+	 * Build a valid 16-bin hue + 8-bin saturation vector.
+	 *
+	 * @param bool $disjoint Whether to use bins disjoint from the base vector.
+	 *
+	 * @return array<int, float>
+	 */
+	private function color_vector( bool $disjoint = false ): array {
+		if ( $disjoint ) {
+			return array_merge(
+				array( 0.0, 0.0, 1.0 ),
+				array_fill( 0, 13, 0.0 ),
+				array( 0.0, 0.0, 1.0 ),
+				array_fill( 0, 5, 0.0 )
+			);
+		}
+
+		return array_merge(
+			array( 0.6, 0.4 ),
+			array_fill( 0, 14, 0.0 ),
+			array( 0.7, 0.3 ),
+			array_fill( 0, 6, 0.0 )
 		);
 	}
 
@@ -190,7 +215,7 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 				30,
 				array(
 					'phash'        => '5e4d3c2b1a09f8e7',
-					'color_vector' => array( 0.0, 1.0, 0.0, 1.0 ),
+					'color_vector' => $this->color_vector( true ),
 					'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
 				)
 			),

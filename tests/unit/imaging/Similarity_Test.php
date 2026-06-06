@@ -70,26 +70,28 @@ final class Similarity_Test extends Snopix_Unit_TestCase {
 
 	public function test_bhattacharyya_identical_distributions_is_one(): void {
 		$hist = array( 0.25, 0.25, 0.25, 0.25 );
-		$this->assertEqualsWithDelta( 1.0, $this->similarity->bhattacharyya_similarity( $hist, $hist, 1 ), 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, $this->similarity->bhattacharyya_similarity( $hist, $hist, array( 4 ) ), 1e-9 );
 	}
 
 	public function test_bhattacharyya_disjoint_distributions_is_zero(): void {
 		$a = array( 1.0, 0.0, 0.0, 0.0 );
 		$b = array( 0.0, 0.0, 0.0, 1.0 );
-		$this->assertEqualsWithDelta( 0.0, $this->similarity->bhattacharyya_similarity( $a, $b, 1 ), 1e-9 );
+		$this->assertEqualsWithDelta( 0.0, $this->similarity->bhattacharyya_similarity( $a, $b, array( 4 ) ), 1e-9 );
 	}
 
-	public function test_bhattacharyya_averages_across_channels(): void {
-		// Two identical channels, each summing to 1.0 → coefficient 2.0 / 2 channels = 1.0.
-		$a = array( 0.5, 0.5, 0.5, 0.5 );
-		$b = array( 0.5, 0.5, 0.5, 0.5 );
-		$this->assertEqualsWithDelta( 1.0, $this->similarity->bhattacharyya_similarity( $a, $b, 2 ), 1e-9 );
+	public function test_bhattacharyya_averages_unequal_components(): void {
+		// Both components sum to 1.0 despite using different bin counts.
+		$a = array( 0.5, 0.5, 0.25, 0.25, 0.5 );
+		$b = array( 0.5, 0.5, 0.25, 0.25, 0.5 );
+		$this->assertEqualsWithDelta( 1.0, $this->similarity->bhattacharyya_similarity( $a, $b, array( 2, 3 ) ), 1e-9 );
 	}
 
-	public function test_bhattacharyya_guards_empty_and_bad_channels(): void {
-		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array(), array(), 1 ) );
-		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5 ), array( 0.5, 0.5 ), 0 ) );
-		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5 ), array( 0.5, 0.5 ), 1 ) );
-		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5, 0.5 ), array( 0.5, 0.5, 0.5 ), 2 ) );
+	public function test_bhattacharyya_rejects_invalid_component_shapes(): void {
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array(), array(), array( 1 ) ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5 ), array( 0.5, 0.5 ), array() ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5 ), array( 0.5, 0.5 ), array( 2, 0 ) ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5, 0.5 ), array( 0.5, 0.5 ), array( 3, -1 ) ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array( 0.5 ), array( 0.5, 0.5 ), array( 2 ) ) );
+		$this->assertSame( 0.0, $this->similarity->bhattacharyya_similarity( array_fill( 0, 22, 1.0 / 11.0 ), array_fill( 0, 22, 1.0 / 11.0 ), array( 16, 8 ) ) );
 	}
 }

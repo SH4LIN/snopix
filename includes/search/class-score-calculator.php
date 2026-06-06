@@ -17,9 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Score_Calculator {
 
-	private const PHASH_WEIGHT = 0.40;
-	private const COLOR_WEIGHT = 0.35;
-	private const EDGE_WEIGHT  = 0.25;
+	private const PHASH_WEIGHT          = 0.40;
+	private const COLOR_WEIGHT          = 0.35;
+	private const EDGE_WEIGHT           = 0.25;
+	private const COLOR_COMPONENT_SIZES = array( 16, 8 );
 
 	/**
 	 * Constructor.
@@ -61,7 +62,11 @@ class Score_Calculator {
 
 		$query_color  = $this->decode_vector( $query_fp['color_vector'] );
 		$stored_color = $this->decode_vector( $stored_fp['color_vector'] );
-		$color_score  = $this->similarity->bhattacharyya_similarity( $query_color, $stored_color, 2 );
+		$color_score  = $this->similarity->bhattacharyya_similarity(
+			$query_color,
+			$stored_color,
+			self::COLOR_COMPONENT_SIZES
+		);
 
 		$query_edge  = $this->decode_vector( $query_fp['edge_vector'] );
 		$stored_edge = $this->decode_vector( $stored_fp['edge_vector'] );
