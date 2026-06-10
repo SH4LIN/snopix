@@ -177,7 +177,7 @@ class Media_Surfaces {
 		printf(
 			'<div id="snopix-upload-panel" class="snopix-upload-panel" hidden><div data-snopix-search data-variant="%1$s" data-max-results="%2$d"></div></div>',
 			esc_attr( self::VARIANT ),
-			self::MAX_RESULTS
+			esc_attr( self::MAX_RESULTS )
 		);
 	}
 
