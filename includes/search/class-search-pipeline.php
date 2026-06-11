@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The composite-score floor used by the final filter comes from
  * {@see Settings::get_match_threshold()} so the admin can tune precision /
  * recall from the Settings tab. The cheap hamming pre-filter is derived from
- * the same threshold so candidate breadth tracks the requested precision.
+ * the same threshold via {@see Score_Calculator::max_passing_hamming()}, the
+ * loosest cutoff that cannot exclude a row the final gate could accept.
  */
 class Search_Pipeline {
 
@@ -56,7 +57,7 @@ class Search_Pipeline {
 		}
 
 		$threshold        = Settings::get_match_threshold();
-		$hamming_distance = max( 10, (int) round( ( 1.0 - $threshold ) * 64.0 * 1.5 ) );
+		$hamming_distance = Score_Calculator::max_passing_hamming( $threshold );
 		$candidates       = $this->repository->get_candidates_for_hamming(
 			(string) $query_fp['phash'],
 			$hamming_distance

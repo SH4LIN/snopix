@@ -1,6 +1,6 @@
 <?php
 /**
- * Similarity metrics - Hamming distance for pHash, cosine similarity for vectors.
+ * Similarity metrics - Hamming distance for pHash, Bhattacharyya coefficient for histograms.
  *
  * @package Snopix
  */
@@ -37,42 +37,6 @@ class Similarity {
 		// XOR the binary strings and count differing positions.
 		$diff = $bits1 ^ $bits2;
 		return substr_count( $diff, "\x01" );
-	}
-
-	/**
-	 * Compute cosine similarity between two float vectors.
-	 *
-	 * Returns a value in the range 0.0-1.0.
-	 * Returns 0.0 if either vector has zero magnitude.
-	 *
-	 * @param array<int, float> $a First vector.
-	 * @param array<int, float> $b Second vector.
-	 *
-	 * @return float Cosine similarity 0.0-1.0.
-	 */
-	public function cosine_similarity( array $a, array $b ): float {
-		$dot   = 0.0;
-		$mag_a = 0.0;
-		$mag_b = 0.0;
-
-		$count = min( count( $a ), count( $b ) );
-		for ( $i = 0; $i < $count; $i++ ) {
-			$dot   += $a[ $i ] * $b[ $i ];
-			$mag_a += $a[ $i ] * $a[ $i ];
-			$mag_b += $b[ $i ] * $b[ $i ];
-		}
-
-		$mag_a = sqrt( $mag_a );
-		$mag_b = sqrt( $mag_b );
-
-		if ( $mag_a <= 0.0 || $mag_b <= 0.0 ) {
-			return 0.0;
-		}
-
-		$similarity = $dot / ( $mag_a * $mag_b );
-
-		// Clamp to [0.0, 1.0] - floating point drift can produce values slightly outside.
-		return max( 0.0, min( 1.0, $similarity ) );
 	}
 
 	/**

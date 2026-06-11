@@ -61,11 +61,15 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Compute a separable 2D DCT and return the 9×9 top-left block.
+	 * Compute a separable 2D DCT and return the 8×8 low-frequency AC block
+	 * (u, v ∈ 1..8 - the DC row and column are excluded entirely).
+	 *
+	 * The normalisation factors for u=0 / v=0 never apply to this block, so
+	 * the coefficient is a plain (1/4) scale.
 	 *
 	 * @param array<int, array<int, float>> $pixels 32×32 pixel values.
 	 *
-	 * @return array<int, array<int, float>> 9×9 DCT coefficients.
+	 * @return array<int, array<int, float>> DCT coefficients indexed [u][v], u, v ∈ 1..8.
 	 */
 	private function compute_dct( array $pixels ): array {
 		$size         = 32;
@@ -73,7 +77,7 @@ class PHash_Processor implements Processor_Interface {
 		$intermediate = array();
 
 		for ( $x = 0; $x < $size; $x++ ) {
-			for ( $v = 0; $v < 9; $v++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
 				$sum = 0.0;
 				for ( $y = 0; $y < $size; $y++ ) {
 					$sum += $pixels[ $x ][ $y ] * $table[ $v ][ $y ];
@@ -83,15 +87,13 @@ class PHash_Processor implements Processor_Interface {
 		}
 
 		$dct = array();
-		for ( $u = 0; $u < 9; $u++ ) {
-			$cu = ( 0 === $u ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
-			for ( $v = 0; $v < 9; $v++ ) {
-				$cv  = ( 0 === $v ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
+		for ( $u = 1; $u < 9; $u++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
 				$sum = 0.0;
 				for ( $x = 0; $x < $size; $x++ ) {
 					$sum += $intermediate[ $x ][ $v ] * $table[ $u ][ $x ];
 				}
-				$dct[ $u ][ $v ] = ( 1.0 / 4.0 ) * $cu * $cv * $sum;
+				$dct[ $u ][ $v ] = ( 1.0 / 4.0 ) * $sum;
 			}
 		}
 
@@ -99,7 +101,7 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Lazy-initialised 9×32 lookup of cos(pi · (2x + 1) · u / 64).
+	 * Lazy-initialised 8×32 lookup of cos(pi · (2x + 1) · u / 64) for u ∈ 1..8.
 	 *
 	 * The DCT inner loop calls `cos()` 131k times per image when computed
 	 * naively. Caching the values once per PHP process turns the loop into
@@ -113,7 +115,7 @@ class PHash_Processor implements Processor_Interface {
 			return $table;
 		}
 		$table = array();
-		for ( $u = 0; $u < 9; $u++ ) {
+		for ( $u = 1; $u < 9; $u++ ) {
 			$row = array();
 			for ( $x = 0; $x < 32; $x++ ) {
 				$row[ $x ] = cos( M_PI * ( 2.0 * $x + 1.0 ) * $u / 64.0 );
@@ -124,26 +126,24 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Compute a 64-bit hash from low-frequency AC coefficients.
+	 * Compute a 64-bit hash from the 8×8 low-frequency AC block.
 	 *
-	 * The 63 AC coefficients in the 8×8 block are supplemented by the average
-	 * of the next horizontal and vertical frequencies. This keeps all 64 bits
-	 * discriminating while excluding the DC brightness coefficient.
+	 * The block (u, v ∈ 1..8) contains 64 genuine AC coefficients and no DC
+	 * term: the DC coefficient tracks overall brightness, is typically an
+	 * order of magnitude larger than the AC terms, and would skew the mean.
+	 * Each bit is 1 if its coefficient exceeds the block mean, else 0.
 	 *
-	 * @param array<int, array<int, float>> $dct 9×9 DCT coefficients.
+	 * @param array<int, array<int, float>> $dct DCT coefficients indexed [u][v], u, v ∈ 1..8.
 	 *
 	 * @return array<int, int> 64 bits (0 or 1).
 	 */
 	private function compute_bits( array $dct ): array {
 		$coefficients = array();
-		for ( $u = 0; $u < 8; $u++ ) {
-			for ( $v = 0; $v < 8; $v++ ) {
-				if ( 0 !== $u || 0 !== $v ) {
-					$coefficients[] = $dct[ $u ][ $v ];
-				}
+		for ( $u = 1; $u < 9; $u++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
+				$coefficients[] = $dct[ $u ][ $v ];
 			}
 		}
-		$coefficients[] = ( $dct[8][0] + $dct[0][8] ) / 2.0;
 
 		$mean = array_sum( $coefficients ) / 64.0;
 

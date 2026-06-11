@@ -16,4 +16,5 @@ require_once dirname( __DIR__ ) . '/includes/infrastructure/class-autoloader.php
 
 \Snopix\Infrastructure\Autoloader::init( dirname( __DIR__ ) . '/includes' );
 
+require_once __DIR__ . '/fixtures/extract-images.php';
 require_once __DIR__ . '/unit/class-unit-testcase.php';

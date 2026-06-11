@@ -136,12 +136,12 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 		return array(
 			'phash'        => 'a1b2c3d4e5f60718',
 			'color_vector' => $this->color_vector(),
-			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
+			'edge_vector'  => $this->edge_vector(),
 		);
 	}
 
 	/**
-	 * Build a valid 16-bin hue + 8-bin saturation vector.
+	 * Build a valid 16-bin hue + 8-bin saturation + 8-bin value vector.
 	 *
 	 * @param bool $disjoint Whether to use bins disjoint from the base vector.
 	 *
@@ -153,6 +153,8 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 				array( 0.0, 0.0, 1.0 ),
 				array_fill( 0, 13, 0.0 ),
 				array( 0.0, 0.0, 1.0 ),
+				array_fill( 0, 5, 0.0 ),
+				array( 0.0, 0.0, 1.0 ),
 				array_fill( 0, 5, 0.0 )
 			);
 		}
@@ -161,7 +163,31 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 			array( 0.6, 0.4 ),
 			array_fill( 0, 14, 0.0 ),
 			array( 0.7, 0.3 ),
+			array_fill( 0, 6, 0.0 ),
+			array( 0.8, 0.2 ),
 			array_fill( 0, 6, 0.0 )
+		);
+	}
+
+	/**
+	 * Build a valid 64-bin edge-orientation distribution.
+	 *
+	 * @param bool $disjoint Whether to use bins disjoint from the base vector.
+	 *
+	 * @return array<int, float>
+	 */
+	private function edge_vector( bool $disjoint = false ): array {
+		if ( $disjoint ) {
+			return array_merge(
+				array_fill( 0, 4, 0.0 ),
+				array( 0.5, 0.5 ),
+				array_fill( 0, 58, 0.0 )
+			);
+		}
+
+		return array_merge(
+			array( 0.5, 0.25, 0.25 ),
+			array_fill( 0, 61, 0.0 )
 		);
 	}
 
@@ -197,7 +223,9 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 		$repo->candidates = array();
 
 		$this->assertSame( array(), $this->make_pipeline( $repo, $factory )->search( 1 ) );
-		$this->assertSame( 14, $repo->max_distance );
+		// Default threshold 0.85 → loosest hamming cutoff that can still pass
+		// the composite gate: 64·(1 - (0.85 - 0.60)/0.40) = 24.
+		$this->assertSame( 24, $repo->max_distance );
 	}
 
 	public function test_orders_results_by_score_descending_and_drops_sub_threshold(): void {
@@ -210,13 +238,13 @@ final class Search_Pipeline_Test extends Snopix_Unit_TestCase {
 			$this->row( 10 ),
 			// One-bit pHash difference, identical colour/edge → just under 1.0.
 			$this->row( 20, array( 'phash' => 'a1b2c3d4e5f60719' ) ),
-			// Inverted pHash + disjoint colour + opposite edge → below 0.85, dropped.
+			// Inverted pHash + disjoint colour + disjoint edge → below 0.85, dropped.
 			$this->row(
 				30,
 				array(
 					'phash'        => '5e4d3c2b1a09f8e7',
 					'color_vector' => $this->color_vector( true ),
-					'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
+					'edge_vector'  => $this->edge_vector( true ),
 				)
 			),
 		);

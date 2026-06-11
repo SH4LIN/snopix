@@ -121,7 +121,7 @@ for forbidden in app node_modules vendor tests .git .github composer.json packag
     fi
 done
 
-for required in snopix.php uninstall.php readme.txt includes assets/admin assets/search assets/editor/index.js assets/editor/index.asset.php assets/media/snopix-media.js; do
+for required in snopix.php uninstall.php readme.txt includes assets/admin assets/search assets/editor/index.js assets/editor/index.asset.php assets/media/snopix-media.js assets/media/snopix-media.css; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1

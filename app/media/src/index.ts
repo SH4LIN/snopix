@@ -195,6 +195,11 @@ function installModalTab(): void {
 				this.on('content:create:snopix', (contentRegion: any) => {
 					contentRegion.view = new SnopixContent({ controller: this })
 				})
+				// Closing the modal hides the frame without removing its views,
+				// so the drop guard set by a still-mounted Snopix tab would leak
+				// onto other frames; sync it with the modal's lifecycle instead.
+				this.on('close', () => setDropGuard(false))
+				this.on('open', () => setDropGuard(this.content.mode() === 'snopix'))
 			},
 		})
 

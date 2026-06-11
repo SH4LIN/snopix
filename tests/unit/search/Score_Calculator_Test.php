@@ -23,9 +23,9 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 	/**
 	 * Build a self-consistent fingerprint that scores 1.0 against itself:
 	 * - phash hex (hamming distance 0),
-	 * - color_vector: 3 concatenated histograms each summing to 1.0
-	 *   (bhattacharyya with 3 channels → 1.0 for identical input),
-	 * - edge_vector: any non-zero vector (cosine → 1.0 for identical input).
+	 * - color_vector: 3 concatenated histograms each summing to 1.0,
+	 * - edge_vector: a 64-bin distribution summing to 1.0
+	 *   (bhattacharyya → 1.0 for identical input).
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -33,12 +33,12 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 		return array(
 			'phash'        => 'a1b2c3d4e5f60718',
 			'color_vector' => $this->color_vector(),
-			'edge_vector'  => array( 1.0, 2.0, 3.0, 4.0 ),
+			'edge_vector'  => $this->edge_vector(),
 		);
 	}
 
 	/**
-	 * Build a valid 16-bin hue + 8-bin saturation vector.
+	 * Build a valid 16-bin hue + 8-bin saturation + 8-bin value vector.
 	 *
 	 * @param bool $disjoint Whether to use bins disjoint from the base vector.
 	 *
@@ -50,6 +50,8 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 				array( 0.0, 0.0, 1.0 ),
 				array_fill( 0, 13, 0.0 ),
 				array( 0.0, 0.0, 1.0 ),
+				array_fill( 0, 5, 0.0 ),
+				array( 0.0, 0.0, 1.0 ),
 				array_fill( 0, 5, 0.0 )
 			);
 		}
@@ -58,7 +60,31 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 			array( 0.6, 0.4 ),
 			array_fill( 0, 14, 0.0 ),
 			array( 0.7, 0.3 ),
+			array_fill( 0, 6, 0.0 ),
+			array( 0.8, 0.2 ),
 			array_fill( 0, 6, 0.0 )
+		);
+	}
+
+	/**
+	 * Build a valid 64-bin edge-orientation distribution.
+	 *
+	 * @param bool $disjoint Whether to use bins disjoint from the base vector.
+	 *
+	 * @return array<int, float>
+	 */
+	private function edge_vector( bool $disjoint = false ): array {
+		if ( $disjoint ) {
+			return array_merge(
+				array_fill( 0, 4, 0.0 ),
+				array( 0.5, 0.5 ),
+				array_fill( 0, 58, 0.0 )
+			);
+		}
+
+		return array_merge(
+			array( 0.5, 0.25, 0.25 ),
+			array_fill( 0, 61, 0.0 )
 		);
 	}
 
@@ -125,8 +151,8 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 			'phash'        => '5e4d3c2b1a09f8e7',
 			// Histograms disjoint from the query's per-channel bins → low bhattacharyya.
 			'color_vector' => $this->color_vector( true ),
-			// Opposite direction → cosine clamps toward 0.
-			'edge_vector'  => array( -1.0, -2.0, -3.0, -4.0 ),
+			// Distribution disjoint from the query's bins → bhattacharyya 0.
+			'edge_vector'  => $this->edge_vector( true ),
 		);
 
 		$identical_score   = $this->calculator->calculate( $query, $query );
@@ -143,7 +169,7 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 		$stored = array(
 			'phash'        => 'ffffffff00000000',
 			'color_vector' => $this->color_vector(),
-			'edge_vector'  => array( 2.0, 1.0, 0.0, 4.0 ),
+			'edge_vector'  => $this->edge_vector( true ),
 		);
 
 		$first  = $this->calculator->calculate( $query, $stored );
@@ -151,15 +177,22 @@ final class Score_Calculator_Test extends Snopix_Unit_TestCase {
 
 		$this->assertSame( $first, $second );
 	}
-}
 
-/**
- * JSON-encode without depending on WordPress (no WP functions in unit tests).
- *
- * @param mixed $value Value to encode.
- *
- * @return string
- */
-function wp_json_encode_local( $value ): string {
-	return json_encode( $value );
+	public function test_max_passing_hamming_matches_score_algebra(): void {
+		// 0.40·(1 - d/64) + 0.35 + 0.25 >= t  →  d <= 64·(1 - (t - 0.60)/0.40).
+		$this->assertSame( 24, Score_Calculator::max_passing_hamming( 0.85 ) );
+		$this->assertSame( 0, Score_Calculator::max_passing_hamming( 1.0 ) );
+		// At t <= 0.60 colour + edge alone can clear the gate → no pre-filter.
+		$this->assertSame( 64, Score_Calculator::max_passing_hamming( 0.5 ) );
+		$this->assertSame( 64, Score_Calculator::max_passing_hamming( 0.0 ) );
+	}
+
+	public function test_max_passing_hamming_bound_is_tight(): void {
+		// d = 24 at t = 0.85 reaches the gate exactly with perfect colour/edge;
+		// d = 25 cannot.
+		$at_bound   = ( 0.40 * ( 1.0 - 24.0 / 64.0 ) ) + 0.35 + 0.25;
+		$past_bound = ( 0.40 * ( 1.0 - 25.0 / 64.0 ) ) + 0.35 + 0.25;
+		$this->assertGreaterThanOrEqual( 0.85, $at_bound );
+		$this->assertLessThan( 0.85, $past_bound );
+	}
 }

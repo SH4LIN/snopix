@@ -40,34 +40,6 @@ final class Similarity_Test extends Snopix_Unit_TestCase {
 		$this->assertSame( 64, $this->similarity->hamming_distance( '', 'f' ) );
 	}
 
-	public function test_cosine_similarity_identical_vectors_is_one(): void {
-		$v = array( 1.0, 2.0, 3.0, 4.0 );
-		$this->assertEqualsWithDelta( 1.0, $this->similarity->cosine_similarity( $v, $v ), 1e-9 );
-	}
-
-	public function test_cosine_similarity_orthogonal_vectors_is_zero(): void {
-		$this->assertEqualsWithDelta( 0.0, $this->similarity->cosine_similarity( array( 1.0, 0.0 ), array( 0.0, 1.0 ) ), 1e-9 );
-	}
-
-	public function test_cosine_similarity_opposite_vectors_clamps_to_zero(): void {
-		// Raw cosine would be -1.0; implementation clamps to [0,1].
-		$this->assertSame( 0.0, $this->similarity->cosine_similarity( array( 1.0, 1.0 ), array( -1.0, -1.0 ) ) );
-	}
-
-	public function test_cosine_similarity_zero_magnitude_returns_zero(): void {
-		$this->assertSame( 0.0, $this->similarity->cosine_similarity( array( 0.0, 0.0 ), array( 1.0, 2.0 ) ) );
-		$this->assertSame( 0.0, $this->similarity->cosine_similarity( array( 1.0, 2.0 ), array( 0.0, 0.0 ) ) );
-	}
-
-	public function test_cosine_similarity_uses_shorter_vector_length(): void {
-		// Extra trailing element on $b is ignored (min count = 2).
-		$this->assertEqualsWithDelta(
-			1.0,
-			$this->similarity->cosine_similarity( array( 1.0, 1.0 ), array( 1.0, 1.0, 99.0 ) ),
-			1e-9
-		);
-	}
-
 	public function test_bhattacharyya_identical_distributions_is_one(): void {
 		$hist = array( 0.25, 0.25, 0.25, 0.25 );
 		$this->assertEqualsWithDelta( 1.0, $this->similarity->bhattacharyya_similarity( $hist, $hist, array( 4 ) ), 1e-9 );

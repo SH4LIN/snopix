@@ -116,12 +116,12 @@ class Plugin {
 	}
 
 	/**
-	 * Run DB migrations if version changed.
+	 * Run DB migrations (and any follow-up reindex) if version changed.
 	 *
 	 * @return void
 	 */
 	public function maybe_upgrade_db(): void {
-		$this->schema->maybe_upgrade();
+		( new Upgrader( $this->schema ) )->maybe_upgrade();
 	}
 
 	/**
@@ -220,8 +220,7 @@ class Plugin {
 	 * @return void
 	 */
 	public static function activate(): void {
-		self::instance()->schema->install();
-		self::instance()->schema->maybe_upgrade();
+		( new Upgrader( self::instance()->schema ) )->install();
 
 		if ( ! wp_next_scheduled( Duplicate_Scanner::DAILY_HOOK ) ) {
 			wp_schedule_event( time(), 'daily', Duplicate_Scanner::DAILY_HOOK );

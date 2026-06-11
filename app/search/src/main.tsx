@@ -78,7 +78,6 @@ function boot() {
 			variant: el.dataset.variant,
 			title: el.dataset.title,
 			maxResults: el.dataset.maxResults,
-			embedded: el.dataset.embedded !== undefined,
 		})
 	})
 }
