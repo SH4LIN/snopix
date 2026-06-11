@@ -1,10 +1,10 @@
 === Snopix ===
-Contributors: SH4LIN, akrocks, vishalkakadiya
+Contributors: SH4LIN, akrocks, vishalkakadiya, hilayt24
 Tags: image-search, reverse-image-search, similarity-search, duplicates, media-library
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 0.1.4
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -186,6 +186,16 @@ tab before deleting the plugin.
 
 == Changelog ==
 
+= 0.2.0 - 2026-06-11 =
+* Added: "Search by image" is now available throughout the wp-admin media flow - a panel on the Upload New Media screen, a toolbar button in the Media Library list and grid views, and a dedicated tab in the media modal.
+* Changed: colour fingerprints now use HSV histograms instead of RGB averages, improving tolerance to lighting and exposure differences.
+* Changed: edge fingerprints expanded to orientation histograms for finer structural matching.
+* Changed: perceptual hash now uses the low-frequency AC block of the DCT (DC components excluded), so uniform brightness shifts no longer dominate the hash.
+* Changed: histogram comparison switched from cosine to Bhattacharyya similarity for more accurate distribution matching.
+* Changed: images that fail fingerprinting are now marked unprocessable instead of receiving an all-zero hash, preventing failed images from clustering as false duplicates.
+* Added: upgrade routine that migrates the database schema and automatically rebuilds the image index when fingerprint formats change between versions.
+* Changed: per-IP search rate limiting now uses advisory locks to avoid double-counting under concurrent requests.
+
 = 0.1.4 - 2026-06-04 =
 * Changed: search visibility default changed from "Anyone" to "Logged-in users only" for stricter access out of the box.
 * Changed: "Drop data on uninstall" now defaults to disabled - your index is preserved on plugin removal unless you opt in.
@@ -225,6 +235,9 @@ tab before deleting the plugin.
 * WordPress.org compatibility: JPEG, PNG, GIF, WebP, BMP.
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+Fingerprint formats changed (HSV colour, orientation edges, AC-block pHash). Your image index is wiped and rebuilt automatically after upgrading; search and duplicate detection may show partial results until the reindex completes.
 
 = 0.1.4 =
 Changes default search visibility to logged-in users only and disables drop-on-uninstall by default. Review your Settings tab after upgrading.

@@ -1,6 +1,6 @@
 {
 	"name": "snopix",
-	"version": "0.1.4",
+	"version": "0.2.0",
 	"description": "Image similarity search for WordPress media library",
 	"private": true,
 	"workspaces": [
