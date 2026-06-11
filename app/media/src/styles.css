@@ -1,0 +1,205 @@
+/**
+ * Chrome for the wp-admin media surfaces, ported from the design's `sxwp-*`
+ * layer. The search widget ships its own styles in snopix-search.css; these
+ * rules cover the host elements this glue adds (upload-page toggle, grid
+ * trigger + panel, modal tab). Everything is namespaced so nothing leaks into
+ * wp-admin.
+ */
+
+:root {
+	--snopix-accent: #0071e3;
+	--snopix-accent-deep: #0058b3;
+}
+
+.sxwp-by {
+	font-family: 'JetBrains Mono', ui-monospace, monospace;
+	font-size: 11px;
+	color: #6e6e73;
+	letter-spacing: 0.02em;
+}
+
+.sxwp-mark {
+	display: inline-flex;
+	vertical-align: -3px;
+	flex-shrink: 0;
+}
+
+/* ── Upload New Media page toggle ────────────────────────────────────────── */
+.snopix-upload-toggle {
+	display: inline-flex;
+	gap: 4px;
+	margin: 12px 0 16px;
+	padding: 4px;
+	background: #f5f5f7;
+	border: 1px solid #e5e5ea;
+	border-radius: 11px;
+}
+
+.snopix-upload-toggle button {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 16px;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: #6e6e73;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.snopix-upload-toggle button:hover {
+	color: #1d1d1f;
+}
+
+.snopix-upload-toggle button.is-active {
+	background: #fff;
+	color: #1d1d1f;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.snopix-upload-panel {
+	max-width: 900px;
+	margin: 4px 0 8px;
+}
+
+/* ── Snopix trigger (library toolbar) ────────────────────────────────────── */
+.sxwp-trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	margin-left: 8px;
+	padding: 4px 12px;
+	white-space: nowrap;
+	border: 1px solid #d2d2d7;
+	border-radius: 8px;
+	background: #fff;
+	color: #1d1d1f;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.8;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sxwp-trigger:hover {
+	border-color: var(--snopix-accent);
+	color: var(--snopix-accent);
+}
+
+.sxwp-trigger.is-active {
+	background: rgba(0, 113, 227, 0.1);
+	border-color: var(--snopix-accent);
+	color: var(--snopix-accent-deep);
+}
+
+/* WP caps `.media-toolbar-primary` at max-width:33%, which is too narrow for
+   the search box + our trigger below ~1200px and pushes the trigger outside
+   the toolbar. Lift the cap and let the trigger wrap under the search box. */
+.media-toolbar-primary.snopix-has-trigger {
+	max-width: none;
+	flex-wrap: wrap;
+	row-gap: 8px;
+}
+
+/* ── Snopix panel (library) ──────────────────────────────────────────────── */
+.sxwp-panel {
+	clear: both;
+	max-width: 920px;
+	margin: 12px 0 4px;
+	background: #fff;
+	border: 1px solid #e5e5ea;
+	border-radius: 14px;
+	box-shadow: 0 12px 34px rgba(0, 0, 0, 0.07);
+	overflow: hidden;
+}
+
+.sxwp-panel__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	border-bottom: 1px solid #e5e5ea;
+}
+
+.sxwp-panel__title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d1d1f;
+	letter-spacing: -0.01em;
+}
+
+.sxwp-panel__right {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.sxwp-panel__close {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: #6e6e73;
+	cursor: pointer;
+}
+
+.sxwp-panel__close:hover {
+	background: #f5f5f7;
+	color: #1d1d1f;
+}
+
+.sxwp-panel__body {
+	padding: 18px;
+}
+
+/* ── Media modal tab ─────────────────────────────────────────────────────── */
+.snopix-media-tab {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.snopix-media-tab__by {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 10px;
+}
+
+.snopix-media-tab__widget {
+	flex: 1;
+	width: 100%;
+	max-width: 760px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Snopix-blue router tab in the wp.media modal. */
+#menu-item-snopix {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+}
+
+#menu-item-snopix.active {
+	color: var(--snopix-accent-deep);
+	box-shadow: inset 0 -4px 0 var(--snopix-accent);
+}
+
+/* While a Snopix drop area is the active surface, hide WordPress's full-window
+   upload overlay (its dropzone is the whole modal/page) so a dropped image
+   reaches the widget and searches instead of uploading. */
+body.snopix-search-active .uploader-window {
+	display: none !important;
+}

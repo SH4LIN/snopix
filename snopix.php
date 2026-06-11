@@ -25,7 +25,7 @@ if ( ! defined( 'SNOPIX_VERSION' ) ) {
 }
 
 if ( ! defined( 'SNOPIX_DB_VERSION' ) ) {
-	define( 'SNOPIX_DB_VERSION', '0.1.1' );
+	define( 'SNOPIX_DB_VERSION', '0.2.0' );
 }
 
 if ( ! defined( 'SNOPIX_FILE' ) ) {

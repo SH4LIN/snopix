@@ -58,3 +58,6 @@ build/
 
 # WordPress.org asset sources (PNGs ship, sources don't)
 .wordpress-org/_source/
+
+# Extracted from the committed tests/fixtures/images.zip by the test bootstraps.
+tests/fixtures/images/

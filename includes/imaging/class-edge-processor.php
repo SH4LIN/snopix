@@ -1,6 +1,6 @@
 <?php
 /**
- * Sobel edge-density processor - produces a 32-float normalised edge vector.
+ * Sobel edge-orientation processor - produces a 64-float normalised edge histogram.
  *
  * @package Snopix
  */
@@ -11,7 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
- * Generates a 32-element normalised edge-density vector via Sobel filtering.
+ * Generates a 64-element edge-orientation histogram via Sobel filtering.
+ *
+ * The thumbnail is divided into a 4×4 grid of cells; each cell accumulates a
+ * 4-bin histogram of unsigned gradient orientation, weighted by gradient
+ * magnitude. This captures both where edges are and which way they run,
+ * unlike a plain per-block magnitude average. The flattened 64-value vector
+ * is normalised to sum to 1.0 so it compares as a distribution.
  */
 class Edge_Processor implements Processor_Interface {
 
@@ -21,22 +27,40 @@ class Edge_Processor implements Processor_Interface {
 	private const THUMB_SIZE = 64;
 
 	/**
-	 * Number of blocks per axis (8×8 grid of 8×8-pixel blocks).
+	 * Number of spatial cells per axis (4×4 grid of 16×16-pixel cells).
 	 */
-	private const BLOCK_COUNT = 8;
+	private const CELL_COUNT = 4;
 
 	/**
-	 * Generate edge-density fingerprint for an image.
+	 * Number of unsigned orientation bins covering [0, π).
+	 */
+	private const ORIENTATION_BINS = 4;
+
+	/**
+	 * Bin count of each histogram component concatenated into the vector.
+	 *
+	 * The whole vector is one distribution summing to 1.0; consumers compare
+	 * it with a single-component Bhattacharyya coefficient.
+	 */
+	public const COMPONENT_SIZES = array( self::CELL_COUNT * self::CELL_COUNT * self::ORIENTATION_BINS );
+
+	/**
+	 * Total number of floats in the vector.
+	 */
+	private const VECTOR_LENGTH = self::CELL_COUNT * self::CELL_COUNT * self::ORIENTATION_BINS;
+
+	/**
+	 * Generate edge-orientation fingerprint for an image.
 	 *
 	 * @param mixed $gd_resource  GD image resource or GdImage object.
 	 * @param int   $attachment_id WordPress attachment ID.
 	 *
-	 * @return array<string, array<int, float>> ['edge_vector' => [32 floats]]
+	 * @return array<string, array<int, float>> ['edge_vector' => [64 floats]]
 	 */
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, self::THUMB_SIZE, self::THUMB_SIZE );
 		if ( false === $small ) {
-			return array( 'edge_vector' => array_fill( 0, 32, 0.0 ) );
+			return array( 'edge_vector' => array_fill( 0, self::VECTOR_LENGTH, 0.0 ) );
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
@@ -44,10 +68,8 @@ class Edge_Processor implements Processor_Interface {
 		$pixels = $this->extract_pixels( $small );
 		imagedestroy( $small ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 
-		$magnitude  = $this->compute_sobel( $pixels );
-		$blocks     = $this->compute_blocks( $magnitude );
-		$reduced    = $this->reduce_to_32( $blocks );
-		$normalised = $this->normalise( $reduced );
+		$histogram  = $this->compute_histogram( $pixels );
+		$normalised = $this->normalise( $histogram );
 
 		return array( 'edge_vector' => $normalised );
 	}
@@ -72,27 +94,26 @@ class Edge_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Apply Sobel operator and return gradient magnitude for each pixel.
+	 * Apply the Sobel operator and accumulate magnitude-weighted orientation
+	 * votes into per-cell histograms.
 	 *
-	 * Border pixels (x=0, x=63, y=0, y=63) are assigned magnitude 0
-	 * because Sobel requires a 3×3 neighbourhood.
+	 * Border pixels (x=0, x=63, y=0, y=63) are skipped because Sobel requires
+	 * a 3×3 neighbourhood. Each vote is split between the two nearest
+	 * orientation bins, circularly: orientation is unsigned (period π), so the
+	 * first and last bins are adjacent.
 	 *
 	 * @param array<int, array<int, float>> $p Pixel matrix [x][y].
 	 *
-	 * @return array<int, array<int, float>> Magnitude matrix [x][y].
+	 * @return array<int, float> 64 accumulated weights (cells in row-major
+	 *                           order, orientation bins within each cell).
 	 */
-	private function compute_sobel( array $p ): array {
+	private function compute_histogram( array $p ): array {
 		$size      = self::THUMB_SIZE;
-		$magnitude = array();
+		$cell_size = $size / self::CELL_COUNT; // 16.
+		$bins      = array_fill( 0, self::VECTOR_LENGTH, 0.0 );
 
-		for ( $x = 0; $x < $size; $x++ ) {
-			for ( $y = 0; $y < $size; $y++ ) {
-				// Border pixels have no full 3×3 neighbourhood.
-				if ( 0 === $x || $x === $size - 1 || 0 === $y || $y === $size - 1 ) {
-					$magnitude[ $x ][ $y ] = 0.0;
-					continue;
-				}
-
+		for ( $x = 1; $x < $size - 1; $x++ ) {
+			for ( $y = 1; $y < $size - 1; $y++ ) {
 				$gx = -$p[ $x - 1 ][ $y - 1 ] + $p[ $x + 1 ][ $y - 1 ]
 					+ -2.0 * $p[ $x - 1 ][ $y ] + 2.0 * $p[ $x + 1 ][ $y ]
 					+ -$p[ $x - 1 ][ $y + 1 ] + $p[ $x + 1 ][ $y + 1 ];
@@ -100,66 +121,50 @@ class Edge_Processor implements Processor_Interface {
 				$gy = -$p[ $x - 1 ][ $y - 1 ] - 2.0 * $p[ $x ][ $y - 1 ] - $p[ $x + 1 ][ $y - 1 ]
 					+ $p[ $x - 1 ][ $y + 1 ] + 2.0 * $p[ $x ][ $y + 1 ] + $p[ $x + 1 ][ $y + 1 ];
 
-				$magnitude[ $x ][ $y ] = sqrt( $gx * $gx + $gy * $gy );
-			}
-		}
-
-		return $magnitude;
-	}
-
-	/**
-	 * Divide 64×64 magnitude grid into 8×8 blocks and compute average per block.
-	 *
-	 * @param array<int, array<int, float>> $magnitude Magnitude matrix [x][y].
-	 *
-	 * @return array<int, float> 64 block averages in row-major order.
-	 */
-	private function compute_blocks( array $magnitude ): array {
-		$block_size = self::THUMB_SIZE / self::BLOCK_COUNT; // 8.
-		$flat       = array();
-
-		for ( $bx = 0; $bx < self::BLOCK_COUNT; $bx++ ) {
-			for ( $by = 0; $by < self::BLOCK_COUNT; $by++ ) {
-				$sum = 0.0;
-				for ( $x = $bx * $block_size; $x < ( $bx + 1 ) * $block_size; $x++ ) {
-					for ( $y = $by * $block_size; $y < ( $by + 1 ) * $block_size; $y++ ) {
-						$sum += $magnitude[ $x ][ $y ];
-					}
+				$magnitude = sqrt( ( $gx * $gx ) + ( $gy * $gy ) );
+				if ( $magnitude <= 0.0 ) {
+					continue;
 				}
-				$flat[] = $sum / (float) ( $block_size * $block_size );
+
+				// Fold the gradient angle onto [0, π) - an edge has no sign.
+				$theta = atan2( $gy, $gx );
+				if ( $theta < 0.0 ) {
+					$theta += M_PI;
+				}
+				if ( $theta >= M_PI ) {
+					$theta -= M_PI;
+				}
+
+				$cell = ( intdiv( $x, $cell_size ) * self::CELL_COUNT ) + intdiv( $y, $cell_size );
+				$base = $cell * self::ORIENTATION_BINS;
+
+				// Split the vote between the two nearest orientation bins.
+				$scaled = ( ( $theta / M_PI ) * self::ORIENTATION_BINS ) - 0.5;
+				$lower  = (int) floor( $scaled );
+				$frac   = $scaled - $lower;
+				$low    = ( ( $lower % self::ORIENTATION_BINS ) + self::ORIENTATION_BINS ) % self::ORIENTATION_BINS;
+				$high   = ( $low + 1 ) % self::ORIENTATION_BINS;
+
+				$bins[ $base + $low ]  += ( 1.0 - $frac ) * $magnitude;
+				$bins[ $base + $high ] += $frac * $magnitude;
 			}
 		}
 
-		return $flat;
+		return $bins;
 	}
 
 	/**
-	 * Average adjacent pairs in the 64-element flat array to produce 32 values.
+	 * Normalise values into a distribution summing to 1.0.
 	 *
-	 * @param array<int, float> $flat 64 block averages.
-	 *
-	 * @return array<int, float> 32 values.
-	 */
-	private function reduce_to_32( array $flat ): array {
-		$reduced = array();
-		for ( $i = 0; $i < 32; $i++ ) {
-			$reduced[] = ( $flat[ $i * 2 ] + $flat[ $i * 2 + 1 ] ) / 2.0;
-		}
-		return $reduced;
-	}
-
-	/**
-	 * Normalise values to 0.0-1.0 by dividing by the maximum value.
-	 *
-	 * @param array<int, float> $values Raw edge values.
+	 * @param array<int, float> $values Raw accumulated weights.
 	 *
 	 * @return array<int, float> Normalised values.
 	 */
 	private function normalise( array $values ): array {
-		$max = max( $values );
-		if ( $max <= 0.0 ) {
+		$total = array_sum( $values );
+		if ( $total <= 0.0 ) {
 			return $values;
 		}
-		return array_map( static fn( float $v ): float => $v / $max, $values );
+		return array_map( static fn( float $v ): float => $v / $total, $values );
 	}
 }

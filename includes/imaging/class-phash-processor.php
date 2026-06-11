@@ -26,7 +26,11 @@ class PHash_Processor implements Processor_Interface {
 	public function process( $gd_resource, int $attachment_id ): array {
 		$small = imagescale( $gd_resource, 32, 32 );
 		if ( false === $small ) {
-			return array( 'phash' => str_repeat( '0', 16 ) );
+			// Signal failure rather than emitting an all-zero hash: a zero hash
+			// is indistinguishable from a legitimately blank image, so failed
+			// images would cluster together as false perceptual duplicates. The
+			// factory maps an empty fragment to "unprocessable".
+			return array();
 		}
 
 		imagefilter( $small, IMG_FILTER_GRAYSCALE );
@@ -61,34 +65,39 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Compute 2D DCT of the 32×32 pixel matrix, return 8×8 top-left block.
+	 * Compute a separable 2D DCT and return the 8×8 low-frequency AC block
+	 * (u, v ∈ 1..8 - the DC row and column are excluded entirely).
+	 *
+	 * The normalisation factors for u=0 / v=0 never apply to this block, so
+	 * the coefficient is a plain (1/4) scale.
 	 *
 	 * @param array<int, array<int, float>> $pixels 32×32 pixel values.
 	 *
-	 * @return array<int, array<int, float>> 8×8 DCT coefficients.
+	 * @return array<int, array<int, float>> DCT coefficients indexed [u][v], u, v ∈ 1..8.
 	 */
 	private function compute_dct( array $pixels ): array {
-		$size  = 32;
-		$table = self::cosine_table();
-		$dct   = array();
+		$size         = 32;
+		$table        = self::cosine_table();
+		$intermediate = array();
 
-		for ( $u = 0; $u < 8; $u++ ) {
-			$cos_u = $table[ $u ];
-			for ( $v = 0; $v < 8; $v++ ) {
-				$cos_v = $table[ $v ];
-				$cu    = ( 0 === $u ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
-				$cv    = ( 0 === $v ) ? ( 1.0 / sqrt( 2.0 ) ) : 1.0;
-				$sum   = 0.0;
-
-				for ( $x = 0; $x < $size; $x++ ) {
-					$cx  = $cos_u[ $x ];
-					$row = $pixels[ $x ];
-					for ( $y = 0; $y < $size; $y++ ) {
-						$sum += $row[ $y ] * $cx * $cos_v[ $y ];
-					}
+		for ( $x = 0; $x < $size; $x++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
+				$sum = 0.0;
+				for ( $y = 0; $y < $size; $y++ ) {
+					$sum += $pixels[ $x ][ $y ] * $table[ $v ][ $y ];
 				}
+				$intermediate[ $x ][ $v ] = $sum;
+			}
+		}
 
-				$dct[ $u ][ $v ] = ( 1.0 / 4.0 ) * $cu * $cv * $sum;
+		$dct = array();
+		for ( $u = 1; $u < 9; $u++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
+				$sum = 0.0;
+				for ( $x = 0; $x < $size; $x++ ) {
+					$sum += $intermediate[ $x ][ $v ] * $table[ $u ][ $x ];
+				}
+				$dct[ $u ][ $v ] = ( 1.0 / 4.0 ) * $sum;
 			}
 		}
 
@@ -96,7 +105,7 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Lazy-initialised 8×32 lookup of cos(pi · (2x + 1) · u / 64).
+	 * Lazy-initialised 8×32 lookup of cos(pi · (2x + 1) · u / 64) for u ∈ 1..8.
 	 *
 	 * The DCT inner loop calls `cos()` 131k times per image when computed
 	 * naively. Caching the values once per PHP process turns the loop into
@@ -110,7 +119,7 @@ class PHash_Processor implements Processor_Interface {
 			return $table;
 		}
 		$table = array();
-		for ( $u = 0; $u < 8; $u++ ) {
+		for ( $u = 1; $u < 9; $u++ ) {
 			$row = array();
 			for ( $x = 0; $x < 32; $x++ ) {
 				$row[ $x ] = cos( M_PI * ( 2.0 * $x + 1.0 ) * $u / 64.0 );
@@ -121,29 +130,29 @@ class PHash_Processor implements Processor_Interface {
 	}
 
 	/**
-	 * Compute 64-bit hash from 8×8 DCT block.
+	 * Compute a 64-bit hash from the 8×8 low-frequency AC block.
 	 *
-	 * Mean is computed across the 63 AC coefficients only (DC at [0][0] excluded).
-	 * The DC coefficient represents overall brightness and is typically an order of
-	 * magnitude larger than the AC terms - including it skews the mean and degrades
-	 * the hash. Each bit is 1 if its coefficient exceeds the AC mean, else 0.
+	 * The block (u, v ∈ 1..8) contains 64 genuine AC coefficients and no DC
+	 * term: the DC coefficient tracks overall brightness, is typically an
+	 * order of magnitude larger than the AC terms, and would skew the mean.
+	 * Each bit is 1 if its coefficient exceeds the block mean, else 0.
 	 *
-	 * @param array<int, array<int, float>> $dct 8×8 DCT coefficients.
+	 * @param array<int, array<int, float>> $dct DCT coefficients indexed [u][v], u, v ∈ 1..8.
 	 *
 	 * @return array<int, int> 64 bits (0 or 1).
 	 */
 	private function compute_bits( array $dct ): array {
-		$flat = array();
-		for ( $u = 0; $u < 8; $u++ ) {
-			for ( $v = 0; $v < 8; $v++ ) {
-				$flat[] = $dct[ $u ][ $v ];
+		$coefficients = array();
+		for ( $u = 1; $u < 9; $u++ ) {
+			for ( $v = 1; $v < 9; $v++ ) {
+				$coefficients[] = $dct[ $u ][ $v ];
 			}
 		}
 
-		$mean = ( array_sum( $flat ) - $flat[0] ) / 63.0;
+		$mean = array_sum( $coefficients ) / 64.0;
 
 		$bits = array();
-		foreach ( $flat as $value ) {
+		foreach ( $coefficients as $value ) {
 			$bits[] = $value > $mean ? 1 : 0;
 		}
 

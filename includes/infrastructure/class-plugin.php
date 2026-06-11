@@ -17,6 +17,7 @@ use Snopix\Duplicates\{Duplicate_Progress, Duplicate_Finder, Duplicate_Scanner, 
 use Snopix\Notifications\Feature_Notification_Store;
 use Snopix\Admin\Admin_Page;
 use Snopix\Admin\Editor_Assets;
+use Snopix\Admin\Media_Surfaces;
 use Snopix\Frontend\Shortcode;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -41,10 +42,124 @@ class Plugin {
 	private Schema $schema;
 
 	/**
+	 * Whether the shared service graph has been built this request.
+	 *
+	 * @var bool
+	 */
+	private bool $services_built = false;
+
+	/**
+	 * Shared index repository.
+	 *
+	 * @var Index_Repository
+	 */
+	private Index_Repository $repository;
+
+	/**
+	 * Shared similarity metrics provider.
+	 *
+	 * @var Similarity
+	 */
+	private Similarity $similarity;
+
+	/**
+	 * Shared fingerprint factory.
+	 *
+	 * @var Fingerprint_Factory
+	 */
+	private Fingerprint_Factory $factory;
+
+	/**
+	 * Shared MIME validator.
+	 *
+	 * @var Mime_Validator
+	 */
+	private Mime_Validator $validator;
+
+	/**
+	 * Shared bulk-index progress tracker.
+	 *
+	 * @var Index_Progress
+	 */
+	private Index_Progress $index_progress;
+
+	/**
+	 * Shared single-image indexer.
+	 *
+	 * @var Image_Indexer
+	 */
+	private Image_Indexer $indexer;
+
+	/**
+	 * Shared bulk indexer.
+	 *
+	 * @var Bulk_Indexer
+	 */
+	private Bulk_Indexer $bulk_indexer;
+
+	/**
+	 * Shared duplicate-scan progress tracker.
+	 *
+	 * @var Duplicate_Progress
+	 */
+	private Duplicate_Progress $dup_progress;
+
+	/**
+	 * Shared duplicate finder.
+	 *
+	 * @var Duplicate_Finder
+	 */
+	private Duplicate_Finder $dup_finder;
+
+	/**
+	 * Shared duplicate scanner.
+	 *
+	 * @var Duplicate_Scanner
+	 */
+	private Duplicate_Scanner $dup_scanner;
+
+	/**
 	 * Constructor.
 	 */
 	private function __construct() {
 		$this->schema = new Schema();
+	}
+
+	/**
+	 * Build the shared service graph once per request.
+	 *
+	 * Both the REST-route and hook registrars need overlapping services
+	 * (repository, fingerprint factory, indexers, duplicate scanner). On a REST
+	 * request both `init` and `rest_api_init` fire, so without memoisation the
+	 * whole graph would be constructed twice. The objects are lightweight and do
+	 * no DB work in their constructors, but building them once keeps the wiring
+	 * single-sourced.
+	 *
+	 * @return void
+	 */
+	private function build_services(): void {
+		if ( $this->services_built ) {
+			return;
+		}
+
+		global $wpdb;
+		$this->repository     = new Index_Repository( $wpdb );
+		$this->similarity     = new Similarity();
+		$this->factory        = new Fingerprint_Factory(
+			new GD_Loader(),
+			new PHash_Processor(),
+			new Color_Processor(),
+			new Edge_Processor()
+		);
+		$this->validator      = new Mime_Validator();
+		$this->index_progress = new Index_Progress();
+		$this->indexer        = new Image_Indexer( $this->validator, $this->factory, $this->repository );
+		$this->bulk_indexer   = new Bulk_Indexer( $this->repository, $this->indexer, $this->index_progress, new Action_Scheduler() );
+		$this->dup_progress   = new Duplicate_Progress();
+		$this->dup_finder     = new Duplicate_Finder( $this->similarity );
+		$this->dup_scanner    = new Duplicate_Scanner( $this->repository, $this->dup_finder, $this->dup_progress, new Action_Scheduler() );
+
+		$this->services_built = true;
 	}
 
 	/**
@@ -71,6 +186,7 @@ class Plugin {
 		add_action( 'init', array( $this, 'register_hooks' ) );
 		add_action( 'init', array( $this, 'register_shortcode' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'register_media_surfaces' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_after_activation' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_page' ) );
 		add_action( 'init', array( $this, 'register_editor_assets' ) );
@@ -84,6 +200,15 @@ class Plugin {
 	 */
 	public function register_editor_assets(): void {
 		( new Editor_Assets() )->register();
+	}
+
+	/**
+	 * Register the "Search by image" integration into the WP media surfaces.
+	 *
+	 * @return void
+	 */
+	public function register_media_surfaces(): void {
+		( new Media_Surfaces() )->register();
 	}
 
 	/**
@@ -105,12 +230,12 @@ class Plugin {
 	}
 
 	/**
-	 * Run DB migrations if version changed.
+	 * Run DB migrations (and any follow-up reindex) if version changed.
 	 *
 	 * @return void
 	 */
 	public function maybe_upgrade_db(): void {
-		$this->schema->maybe_upgrade();
+		( new Upgrader( $this->schema ) )->maybe_upgrade();
 	}
 
 	/**
@@ -119,35 +244,21 @@ class Plugin {
 	 * @return void
 	 */
 	public function register_rest_routes(): void {
-		global $wpdb;
-		$repository   = new Index_Repository( $wpdb );
-		$similarity   = new Similarity();
-		$loader       = new GD_Loader();
-		$factory      = new Fingerprint_Factory(
-			$loader,
-			new PHash_Processor(),
-			new Color_Processor(),
-			new Edge_Processor()
-		);
-		$calculator   = new Score_Calculator( $similarity );
-		$pipeline     = new Search_Pipeline( $repository, $factory, $calculator );
-		$validator    = new Mime_Validator();
-		$indexer      = new Image_Indexer( $validator, $factory, $repository );
-		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
-		$controller   = new REST_Controller(
+		$this->build_services();
+
+		$calculator = new Score_Calculator( $this->similarity );
+		$pipeline   = new Search_Pipeline( $this->repository, $this->factory, $calculator );
+		$controller = new REST_Controller(
 			$pipeline,
 			new Query_Image(),
-			$repository,
-			$bulk_indexer,
-			new Index_Progress(),
+			$this->repository,
+			$this->bulk_indexer,
+			$this->index_progress,
 			new Rate_Limiter()
 		);
 		$controller->register_routes();
 
-		$dup_progress   = new Duplicate_Progress();
-		$dup_finder     = new Duplicate_Finder( $similarity );
-		$dup_scanner    = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
-		$dup_controller = new Duplicates_REST_Controller( $dup_scanner, $dup_progress );
+		$dup_controller = new Duplicates_REST_Controller( $this->dup_scanner, $this->dup_progress );
 		$dup_controller->register_routes();
 
 		$notifications_controller = new Notifications_REST_Controller( new Feature_Notification_Store() );
@@ -160,27 +271,15 @@ class Plugin {
 	 * @return void
 	 */
 	public function register_hooks(): void {
-		global $wpdb;
-		$repository   = new Index_Repository( $wpdb );
-		$similarity   = new Similarity();
-		$validator    = new Mime_Validator();
-		$loader       = new GD_Loader();
-		$factory      = new Fingerprint_Factory(
-			$loader,
-			new PHash_Processor(),
-			new Color_Processor(),
-			new Edge_Processor()
-		);
-		$indexer      = new Image_Indexer( $validator, $factory, $repository );
-		$bulk_indexer = new Bulk_Indexer( $repository, $indexer, new Index_Progress(), new Action_Scheduler() );
+		$this->build_services();
 
-		( new Media_Hooks( $indexer ) )->register();
-		( new Cron_Handler( $bulk_indexer ) )->register();
+		( new Media_Hooks( $this->indexer ) )->register();
+		( new Cron_Handler( $this->bulk_indexer ) )->register();
 
-		$dup_progress = new Duplicate_Progress();
-		$dup_finder   = new Duplicate_Finder( $similarity );
-		$dup_scanner  = new Duplicate_Scanner( $repository, $dup_finder, $dup_progress, new Action_Scheduler() );
-		( new Duplicate_Cron_Handler( $dup_scanner ) )->register();
+		( new Duplicate_Cron_Handler( $this->dup_scanner ) )->register();
+
+		$dup_scanner  = $this->dup_scanner;
+		$dup_progress = $this->dup_progress;
 		add_action(
 			Duplicate_Scanner::DAILY_HOOK,
 			static function () use ( $dup_scanner, $dup_progress ) {
@@ -209,8 +308,7 @@ class Plugin {
 	 * @return void
 	 */
 	public static function activate(): void {
-		self::instance()->schema->install();
-		self::instance()->schema->maybe_upgrade();
+		( new Upgrader( self::instance()->schema ) )->install();
 
 		if ( ! wp_next_scheduled( Duplicate_Scanner::DAILY_HOOK ) ) {
 			wp_schedule_event( time(), 'daily', Duplicate_Scanner::DAILY_HOOK );

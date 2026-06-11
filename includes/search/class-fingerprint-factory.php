@@ -79,7 +79,18 @@ class Fingerprint_Factory {
 		$fingerprint = array();
 
 		foreach ( $this->processors as $processor ) {
-			$fingerprint = array_merge( $fingerprint, $processor->process( $gd, $attachment_id ) );
+			$fragment = $processor->process( $gd, $attachment_id );
+
+			// A processor returns an empty fragment when it cannot fingerprint
+			// the image (e.g. an internal downscale failed). Treat that as a
+			// total failure rather than persisting a partial/degenerate
+			// fingerprint - callers map the empty array to "unprocessable".
+			if ( empty( $fragment ) ) {
+				$this->loader->destroy( $gd );
+				return array();
+			}
+
+			$fingerprint = array_merge( $fingerprint, $fragment );
 		}
 
 		$this->loader->destroy( $gd );

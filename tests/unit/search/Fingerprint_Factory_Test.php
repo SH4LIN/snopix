@@ -37,6 +37,22 @@ final class Fake_Fingerprint_Loader extends GD_Loader {
 }
 
 /**
+ * Processor stub that always fails to fingerprint (returns an empty fragment).
+ */
+final class Failing_Fingerprint_Processor implements \Snopix\Imaging\Processor_Interface {
+
+	/**
+	 * @param mixed $gd_resource   Unused.
+	 * @param int   $attachment_id Unused.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function process( $gd_resource, int $attachment_id ): array {
+		return array();
+	}
+}
+
+/**
  * @covers \Snopix\Search\Fingerprint_Factory
  */
 final class Fingerprint_Factory_Test extends Snopix_Unit_TestCase {
@@ -67,6 +83,23 @@ final class Fingerprint_Factory_Test extends Snopix_Unit_TestCase {
 		$loader->gd_to_return = false;
 
 		$this->assertSame( array(), $this->make_factory( $loader )->generate( 99 ) );
+	}
+
+	public function test_generate_returns_empty_array_when_a_processor_fails(): void {
+		// A failing processor must abort the whole fingerprint so the image is
+		// recorded as unprocessable rather than stored with a degenerate hash
+		// that would falsely cluster with other failures.
+		$loader               = new Fake_Fingerprint_Loader();
+		$loader->gd_to_return = self::gd_from_fixture( 1 );
+
+		$factory = new Fingerprint_Factory(
+			$loader,
+			new PHash_Processor(),
+			new Failing_Fingerprint_Processor(),
+			new Edge_Processor()
+		);
+
+		$this->assertSame( array(), $factory->generate( 1 ) );
 	}
 
 	public function test_generate_handles_oversized_image_via_predownscale(): void {

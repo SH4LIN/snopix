@@ -7,6 +7,8 @@
 
 namespace Snopix\Search;
 
+use Snopix\Imaging\Color_Processor;
+use Snopix\Imaging\Edge_Processor;
 use Snopix\Imaging\Similarity;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -61,15 +63,41 @@ class Score_Calculator {
 
 		$query_color  = $this->decode_vector( $query_fp['color_vector'] );
 		$stored_color = $this->decode_vector( $stored_fp['color_vector'] );
-		$color_score  = $this->similarity->bhattacharyya_similarity( $query_color, $stored_color, 3 );
+		$color_score  = $this->similarity->bhattacharyya_similarity(
+			$query_color,
+			$stored_color,
+			Color_Processor::COMPONENT_SIZES
+		);
 
 		$query_edge  = $this->decode_vector( $query_fp['edge_vector'] );
 		$stored_edge = $this->decode_vector( $stored_fp['edge_vector'] );
-		$edge_score  = $this->similarity->cosine_similarity( $query_edge, $stored_edge );
+		$edge_score  = $this->similarity->bhattacharyya_similarity(
+			$query_edge,
+			$stored_edge,
+			Edge_Processor::COMPONENT_SIZES
+		);
 
 		return ( self::PHASH_WEIGHT * $phash_score )
 			+ ( self::COLOR_WEIGHT * $color_score )
 			+ ( self::EDGE_WEIGHT * $edge_score );
+	}
+
+	/**
+	 * Highest pHash hamming distance that can still reach the composite
+	 * threshold, assuming perfect colour and edge scores:
+	 *
+	 *     PHASH_WEIGHT · (1 - d/64) + COLOR_WEIGHT + EDGE_WEIGHT >= threshold
+	 *
+	 * Used by the search pipeline's candidate pre-filter so it never excludes
+	 * a row the final composite-score gate could have accepted.
+	 *
+	 * @param float $threshold Composite-score floor in [0.0, 1.0].
+	 *
+	 * @return int Hamming distance in [0, 64].
+	 */
+	public static function max_passing_hamming( float $threshold ): int {
+		$bound = 64.0 * ( 1.0 - ( ( $threshold - self::COLOR_WEIGHT - self::EDGE_WEIGHT ) / self::PHASH_WEIGHT ) );
+		return max( 0, min( 64, (int) floor( $bound ) ) );
 	}
 
 	/**

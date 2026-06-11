@@ -1,6 +1,6 @@
 <?php
 /**
- * Similarity metrics - Hamming distance for pHash, cosine similarity for vectors.
+ * Similarity metrics - Hamming distance for pHash, Bhattacharyya coefficient for histograms.
  *
  * @package Snopix
  */
@@ -40,69 +40,48 @@ class Similarity {
 	}
 
 	/**
-	 * Compute cosine similarity between two float vectors.
-	 *
-	 * Returns a value in the range 0.0-1.0.
-	 * Returns 0.0 if either vector has zero magnitude.
-	 *
-	 * @param array<int, float> $a First vector.
-	 * @param array<int, float> $b Second vector.
-	 *
-	 * @return float Cosine similarity 0.0-1.0.
-	 */
-	public function cosine_similarity( array $a, array $b ): float {
-		$dot   = 0.0;
-		$mag_a = 0.0;
-		$mag_b = 0.0;
-
-		$count = min( count( $a ), count( $b ) );
-		for ( $i = 0; $i < $count; $i++ ) {
-			$dot   += $a[ $i ] * $b[ $i ];
-			$mag_a += $a[ $i ] * $a[ $i ];
-			$mag_b += $b[ $i ] * $b[ $i ];
-		}
-
-		$mag_a = sqrt( $mag_a );
-		$mag_b = sqrt( $mag_b );
-
-		if ( $mag_a <= 0.0 || $mag_b <= 0.0 ) {
-			return 0.0;
-		}
-
-		$similarity = $dot / ( $mag_a * $mag_b );
-
-		// Clamp to [0.0, 1.0] - floating point drift can produce values slightly outside.
-		return max( 0.0, min( 1.0, $similarity ) );
-	}
-
-	/**
 	 * Bhattacharyya coefficient between two normalised histograms.
 	 *
 	 * Better than cosine for histogram comparison: penalises bin-by-bin divergence,
 	 * not just direction. The input vectors are expected to be concatenations of
-	 * per-channel histograms each summing to 1.0; the coefficient is averaged across
-	 * channels so the result stays in [0.0, 1.0] (1.0 = identical distributions).
+	 * normalised histogram components. Component sizes are explicit because the
+	 * histograms may use different bin counts.
 	 *
-	 * @param array<int, float> $a       First histogram vector.
-	 * @param array<int, float> $b       Second histogram vector.
-	 * @param int               $channels Number of equal-length sub-histograms concatenated.
+	 * @param array<int, float> $a               First histogram vector.
+	 * @param array<int, float> $b               Second histogram vector.
+	 * @param array<int, int>   $component_sizes Bin count for each concatenated histogram.
 	 *
 	 * @return float Bhattacharyya similarity in [0.0, 1.0].
 	 */
-	public function bhattacharyya_similarity( array $a, array $b, int $channels = 1 ): float {
-		$count = min( count( $a ), count( $b ) );
-		if ( 0 === $count || $channels < 1 ) {
+	public function bhattacharyya_similarity( array $a, array $b, array $component_sizes ): float {
+		if ( empty( $component_sizes ) ) {
 			return 0.0;
 		}
 
-		$sum = 0.0;
-		for ( $i = 0; $i < $count; $i++ ) {
-			$av   = max( 0.0, (float) $a[ $i ] );
-			$bv   = max( 0.0, (float) $b[ $i ] );
-			$sum += sqrt( $av * $bv );
+		foreach ( $component_sizes as $component_size ) {
+			if ( $component_size < 1 ) {
+				return 0.0;
+			}
 		}
 
-		return max( 0.0, min( 1.0, $sum / (float) $channels ) );
+		$expected_length = array_sum( $component_sizes );
+		if ( count( $a ) !== $expected_length || count( $b ) !== $expected_length ) {
+			return 0.0;
+		}
+
+		$sum    = 0.0;
+		$offset = 0;
+
+		foreach ( $component_sizes as $component_size ) {
+			for ( $i = $offset; $i < $offset + $component_size; $i++ ) {
+				$av   = max( 0.0, (float) $a[ $i ] );
+				$bv   = max( 0.0, (float) $b[ $i ] );
+				$sum += sqrt( $av * $bv );
+			}
+			$offset += $component_size;
+		}
+
+		return max( 0.0, min( 1.0, $sum / (float) count( $component_sizes ) ) );
 	}
 
 	/**

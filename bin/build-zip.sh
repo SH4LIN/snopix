@@ -68,7 +68,7 @@ log "Output: $ZIP_PATH"
 
 # --- build all JS workspaces ----------------------------------------------
 # One install + build at the repo root: npm workspaces hoist every app's deps
-# and `npm run build` fans out to admin, search, and editor via run-p.
+# and `npm run build` fans out to admin, search, editor, and media via run-p.
 log "Building all JS (npm ci && npm run build)"
 (
     cd "$ROOT_DIR"
@@ -95,6 +95,11 @@ if [ ! -f "$ASSETS_DIR/editor/index.js" ] || [ ! -f "$ASSETS_DIR/editor/index.as
     exit 1
 fi
 
+if [ ! -d "$ASSETS_DIR/media" ] || [ -z "$(ls -A "$ASSETS_DIR/media" 2>/dev/null)" ]; then
+    echo "assets/media is empty after build — refusing to ship a zip without the bundle." >&2
+    exit 1
+fi
+
 # --- stage ----------------------------------------------------------------
 log "Staging into $STAGING_DIR"
 rm -rf "$BUILD_DIR"
@@ -116,7 +121,7 @@ for forbidden in app node_modules vendor tests .git .github composer.json packag
     fi
 done
 
-for required in snopix.php uninstall.php readme.txt includes assets/admin assets/search assets/editor/index.js assets/editor/index.asset.php; do
+for required in snopix.php uninstall.php readme.txt includes assets/admin assets/search assets/editor/index.js assets/editor/index.asset.php assets/media/snopix-media.js assets/media/snopix-media.css; do
     if [ ! -e "$STAGING_DIR/$required" ]; then
         echo "FATAL: required path missing from staging: $required" >&2
         exit 1

@@ -3,6 +3,8 @@
  * design canvas (`design/PixelScout/snopix-thumb.jsx`) and kept dependency
  * free so the bundle stays small.
  */
+import markSvg from '../../shared/snopix-mark.svg?raw'
+
 type IconProps = { size?: number; className?: string }
 
 export function IconUpload({ size = 20, className }: IconProps) {
@@ -62,61 +64,13 @@ export function IconEmpty({ size = 22, className }: IconProps) {
 }
 
 export function IconMark({ size = 18, className }: IconProps) {
-	const grid = [0, 1, 2, 3, 4]
+	// Renders the shared mark (`app/shared/snopix-mark.svg`), the single source
+	// also used by the wp-admin glue, so there is one copy of the artwork.
 	return (
-		<svg
-			width={size}
-			height={size}
-			viewBox="0 0 64 64"
+		<span
 			className={className}
-			style={{ verticalAlign: '-3px' }}
-		>
-			{grid.map((r) =>
-				grid.map((c) => (
-					<rect
-						key={`bg-${r}-${c}`}
-						x={3 + c * 12}
-						y={3 + r * 12}
-						width="10"
-						height="10"
-						rx="1.5"
-						fill="#d2d2d7"
-					/>
-				))
-			)}
-			<defs>
-				<clipPath id="snopix-mark-lens">
-					<circle cx="40" cy="24" r="16.5" />
-				</clipPath>
-			</defs>
-			<g clipPath="url(#snopix-mark-lens)">
-				{grid.map((r) =>
-					grid.map((c) => {
-						const hit = r === 1 && c === 3
-						return (
-							<rect
-								key={`fg-${r}-${c}`}
-								x={3 + c * 12}
-								y={3 + r * 12}
-								width="10"
-								height="10"
-								rx="1.5"
-								fill={hit ? '#0071e3' : '#cfe4fb'}
-							/>
-						)
-					})
-				)}
-			</g>
-			<circle cx="40" cy="24" r="19" fill="none" stroke="#0071e3" strokeWidth="4" />
-			<line
-				x1="53.5"
-				y1="37.5"
-				x2="60"
-				y2="44"
-				stroke="#0071e3"
-				strokeWidth="6.5"
-				strokeLinecap="round"
-			/>
-		</svg>
+			style={{ display: 'inline-flex', width: size, height: size, verticalAlign: '-3px' }}
+			dangerouslySetInnerHTML={{ __html: markSvg }}
+		/>
 	)
 }
