@@ -1,10 +1,8 @@
 name: CI
 
 on:
+  # Every PR runs the full pipeline regardless of target branch.
   pull_request:
-    branches:
-      - main
-      - development
   push:
     branches:
       - main
@@ -150,7 +148,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: gd, mbstring
+          # zip: the test bootstraps extract tests/fixtures/images.zip via ZipArchive.
+          extensions: gd, mbstring, zip
           coverage: none
           tools: composer:v2
 
