@@ -41,9 +41,9 @@ final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 		$this->assertIsArray( $result['edge_vector'] );
 	}
 
-	public function test_vector_has_length_32(): void {
+	public function test_vector_has_length_64(): void {
 		$vector = $this->vector( self::gd_from_fixture( 1 ) );
-		$this->assertCount( 32, $vector );
+		$this->assertCount( 64, $vector );
 	}
 
 	public function test_vector_values_are_floats_in_normalised_range(): void {
@@ -56,10 +56,11 @@ final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 		}
 	}
 
-	public function test_normalisation_max_value_is_one(): void {
-		// normalise() divides by max, so a non-degenerate image's peak block is 1.0.
+	public function test_vector_sums_to_one(): void {
+		// normalise() divides by the total, so a non-degenerate image's
+		// histogram is a distribution summing to 1.0.
 		$vector = $this->vector( self::gd_from_fixture( 5 ) );
-		$this->assertEqualsWithDelta( 1.0, max( $vector ), 1e-9 );
+		$this->assertEqualsWithDelta( 1.0, array_sum( $vector ), 1e-9 );
 	}
 
 	public function test_process_is_deterministic_for_same_image(): void {
@@ -86,8 +87,8 @@ final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 		$downscale = $this->vector( self::gd_from_path( self::variation_path( 1, 'downscale' ) ) );
 		$other     = $this->vector( self::gd_from_fixture( 10 ) );
 
-		$near = $similarity->cosine_similarity( $base, $downscale );
-		$far  = $similarity->cosine_similarity( $base, $other );
+		$near = $similarity->bhattacharyya_similarity( $base, $downscale, Edge_Processor::COMPONENT_SIZES );
+		$far  = $similarity->bhattacharyya_similarity( $base, $other, Edge_Processor::COMPONENT_SIZES );
 
 		$this->assertGreaterThan( $far, $near );
 	}
@@ -99,8 +100,8 @@ final class Edge_Processor_Test extends Snopix_Unit_TestCase {
 		$blur  = $this->vector( self::gd_from_path( self::variation_path( 1, 'blur' ) ) );
 		$other = $this->vector( self::gd_from_fixture( 10 ) );
 
-		$near = $similarity->cosine_similarity( $base, $blur );
-		$far  = $similarity->cosine_similarity( $base, $other );
+		$near = $similarity->bhattacharyya_similarity( $base, $blur, Edge_Processor::COMPONENT_SIZES );
+		$far  = $similarity->bhattacharyya_similarity( $base, $other, Edge_Processor::COMPONENT_SIZES );
 
 		$this->assertGreaterThan( $far, $near );
 	}

@@ -11,6 +11,8 @@
  * @package Snopix
  */
 
+require_once __DIR__ . '/fixtures/extract-images.php';
+
 $snopix_tests_dir = getenv( 'WP_TESTS_DIR' );
 
 if ( ! $snopix_tests_dir || ! file_exists( $snopix_tests_dir . '/includes/functions.php' ) ) {
