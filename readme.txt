@@ -186,7 +186,7 @@ tab before deleting the plugin.
 
 == Changelog ==
 
-= 0.2.0 - 2026-06-11 =
+= 0.2.0 - 2026-06-14 =
 * Added: "Search by image" is now available throughout the wp-admin media flow - a panel on the Upload New Media screen, a toolbar button in the Media Library list and grid views, and a dedicated tab in the media modal.
 * Changed: colour fingerprints now use HSV histograms instead of RGB averages, improving tolerance to lighting and exposure differences.
 * Changed: edge fingerprints expanded to orientation histograms for finer structural matching.
